@@ -9,9 +9,11 @@
     "lint": "echo \"todo: configure ESLint\"",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:manual": "tsx test-manuel.ts",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
+    "tsx": "^4.22.0",
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"
   }
