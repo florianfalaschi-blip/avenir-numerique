@@ -40,4 +40,45 @@ export type {
   DecoupeMode,
 } from './types/plaques';
 
-// À venir : flyers, bobines, brochures
+// Flyers / Affiches
+export { calcFlyers, FlyersCalcError } from './calculators/flyers';
+export type {
+  FlyersInput,
+  FlyersParams,
+  FlyersResult,
+  FlyersImpressionDetail,
+  FlyersMachineConfig,
+  FlyersPapierConfig,
+  FlyersPapierFormat,
+  FlyersFormatStandardConfig,
+  FlyersFinitionConfig,
+  FlyersFinitionType,
+  FlyersDegressifSeuil,
+  FlyersDimensionMode,
+  FlyersTailleStandard,
+  RectoVerso,
+  TechnoMode,
+  Techno,
+} from './types/flyers';
+
+// Bobines / Étiquettes
+export { calcBobines, BobinesCalcError } from './calculators/bobines';
+export type {
+  BobinesInput,
+  BobinesParams,
+  BobinesResult,
+  BobinesMatiereResult,
+  BobinesMateriauConfig,
+  BobinesRouleauConfig,
+  BobinesMachineImpressionConfig,
+  BobinesMachineDecoupeConfig,
+  BobinesFinitionConfig,
+  BobinesFinitionType,
+  BobinesDegressifSeuil,
+  BobinesForme,
+  BobinesConditionnement,
+  BobinesDecoupeMode,
+  BobinesMethodeCalcul,
+} from './types/bobines';
+
+// À venir : brochures
