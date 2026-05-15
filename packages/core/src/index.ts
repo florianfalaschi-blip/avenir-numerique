@@ -81,4 +81,27 @@ export type {
   BobinesMethodeCalcul,
 } from './types/bobines';
 
-// À venir : brochures
+// Brochures
+export { calcBrochures, BrochuresCalcError } from './calculators/brochures';
+export type {
+  BrochuresInput,
+  BrochuresParams,
+  BrochuresResult,
+  BrochuresImpressionDetail,
+  BrochuresMachineImpressionConfig,
+  BrochuresMachineFaconnageConfig,
+  BrochuresReliureConfig,
+  BrochuresPapierConfig,
+  BrochuresPapierFormat,
+  BrochuresFormatStandardConfig,
+  BrochuresFinitionConfig,
+  BrochuresFinitionType,
+  BrochuresDegressifSeuil,
+  BrochuresDimensionMode,
+  BrochuresTailleStandard,
+  BrochuresCouleur,
+  BrochuresTechnoMode,
+  BrochuresTechno,
+  BrochuresPoste,
+  BrochuresReliureType,
+} from './types/brochures';
