@@ -83,8 +83,8 @@ describe('calcRollup — cas standard', () => {
     expect(result.remise_pct).toBe(0);
     expect(result.prix_ht).toBeCloseTo(139.43, 2);
 
-    // TTC = 139.43 × 1.20 = 167.316 → arrondi 167.32
-    expect(result.prix_ttc).toBeCloseTo(167.32, 2);
+    // TTC = 139.425 × 1.20 = 167.31 (arrondi sur la valeur non-arrondie pour préserver la précision)
+    expect(result.prix_ttc).toBeCloseTo(167.31, 2);
   });
 
   it('applique le BAT optionnel quand demandé', () => {
