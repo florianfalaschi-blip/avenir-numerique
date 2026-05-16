@@ -123,9 +123,13 @@ export interface BrochuresPapierFormat {
 export interface BrochuresPapierConfig {
   id: string;
   nom: string;
+  /** Nom du fournisseur / papetier (info admin, optionnel). */
+  fournisseur?: string;
   grammage: number;
   formats_achat: BrochuresPapierFormat[];
   compatible_techno: BrochuresTechno[];
+  /** Timestamp Unix ms de dernière modification (optionnel, info). */
+  lastModifiedAt?: number;
 }
 
 export interface BrochuresFormatStandardConfig {

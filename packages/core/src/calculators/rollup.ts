@@ -49,10 +49,18 @@ export function calcRollup(input: RollupInput, params: RollupParams): RollupResu
     throw new RollupCalcError(`Structure introuvable : ${input.structure_id}`, 'STRUCTURE_NOT_FOUND');
   }
 
+  if (params.machines.length === 0) {
+    throw new RollupCalcError('Aucune machine configurée', 'NO_MACHINE_CONFIGURED');
+  }
+  const machine = params.machines.find((m) => m.id === input.machine_id);
+  if (!machine) {
+    throw new RollupCalcError(`Machine introuvable : ${input.machine_id}`, 'MACHINE_NOT_FOUND');
+  }
+
   // === 3. Validation des paramètres machine ===
-  if (params.machine.vitesse_m2_h <= 0) {
+  if (machine.vitesse_m2_h <= 0) {
     throw new RollupCalcError(
-      `Vitesse machine invalide pour ${params.machine.nom}`,
+      `Vitesse machine invalide pour ${machine.nom}`,
       'INVALID_MACHINE_SPEED'
     );
   }
@@ -65,7 +73,7 @@ export function calcRollup(input: RollupInput, params: RollupParams): RollupResu
   // === 5. Coûts unitaires ===
   const cout_bache_unitaire_ht = surface_m2 * bache.prix_m2_ht;
   const cout_machine_unitaire_ht =
-    (surface_m2 / params.machine.vitesse_m2_h) * params.machine.taux_horaire_ht;
+    (surface_m2 / machine.vitesse_m2_h) * machine.taux_horaire_ht;
   const cout_structure_unitaire_ht = structure.prix_unitaire_ht;
 
   const cout_unitaire_ht =
@@ -106,6 +114,7 @@ export function calcRollup(input: RollupInput, params: RollupParams): RollupResu
     `Roll-up ${input.largeur_cm} × ${input.hauteur_cm} cm`,
     `Bâche : ${bache.nom}`,
     `Structure : ${structure.nom}`,
+    `Machine : ${machine.nom}`,
     `Quantité : ${input.quantite}`,
     `Surface unitaire : ${surface_m2.toFixed(4)} m²`,
     `Coût unitaire : ${cout_unitaire_ht.toFixed(2)} € HT`,
@@ -125,6 +134,8 @@ export function calcRollup(input: RollupInput, params: RollupParams): RollupResu
   // Les valeurs intermédiaires gardent leur précision pour permettre l'audit,
   // mais les prix finaux affichés sont arrondis au centime.
   return {
+    machine_id: machine.id,
+    machine_nom: machine.nom,
     surface_m2: round(surface_m2, 4),
     cout_bache_unitaire_ht: round(cout_bache_unitaire_ht, 4),
     cout_machine_unitaire_ht: round(cout_machine_unitaire_ht, 4),

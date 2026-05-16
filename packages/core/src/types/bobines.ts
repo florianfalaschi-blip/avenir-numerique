@@ -65,6 +65,8 @@ export type BobinesMethodeCalcul = 'calepinage' | 'm2' | 'auto';
 export interface BobinesMateriauConfig {
   id: string;
   nom: string;
+  /** Nom du fournisseur (info admin, optionnel). */
+  fournisseur?: string;
   /** Type de matière (info, ex. 'adhesif', 'film', 'papier') */
   type: string;
   /** Rouleaux disponibles (vide si vendu uniquement au m²) */
@@ -73,6 +75,8 @@ export interface BobinesMateriauConfig {
   prix_m2_ht?: number;
   /** Méthode de calcul à utiliser */
   methode_calcul: BobinesMethodeCalcul;
+  /** Timestamp Unix ms de dernière modification (optionnel, info). */
+  lastModifiedAt?: number;
 }
 
 export interface BobinesMachineImpressionConfig {

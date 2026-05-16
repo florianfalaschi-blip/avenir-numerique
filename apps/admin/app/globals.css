@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Palette Avenir Numérique — design system aligné sur le calculateur legacy.
+ * Couleurs en HSL pour utilisation Tailwind `hsl(var(--token))`.
+ *
+ * Référence rapide :
+ * - background: #f5f6f8 (gris très doux)
+ * - foreground: #1a1f2e (presque noir bleuté)
+ * - primary: #2563eb (bleu vif blue-600)
+ * - accent: #f97316 (orange CTA)
+ */
+@layer base {
+  :root {
+    --background: 220 14% 96%;
+    --foreground: 222 31% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 31% 14%;
+
+    /* Bleu vif type calculateur legacy */
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 217 100% 96%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 31% 14%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    /* Orange CTA conservé pour les actions clés */
+    --accent: 21 90% 48%;
+    --accent-foreground: 0 0% 100%;
+    --accent-soft: 28 100% 96%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
+    --radius: 0.625rem;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 32 95% 24%;
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family:
+      var(--font-inter),
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      Helvetica,
+      Arial,
+      sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  h1 {
+    @apply tracking-tight;
+  }
+  /* Tabular numbers for prices */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /* Label uppercase style pattern récurrent du calculateur legacy */
+  .label-section {
+    @apply text-[10px] uppercase tracking-[0.06em] font-semibold text-muted-foreground;
+  }
+  /* Pill arrondi 99px style legacy */
+  .pill {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold;
+  }
+  /* Carte-prix avec dégradé bleu marine */
+  .price-gradient {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    color: white;
+  }
+  /* Card minor élévation */
+  .elevation-soft {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  .elevation-hover {
+    @apply transition-all duration-150;
+  }
+  .elevation-hover:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+  }
+}
+
+/* ===========================================================
+   PRINT — règles spécifiques pour la génération PDF
+   =========================================================== */
+@page {
+  size: A4;
+  margin: 1.5cm 1.5cm 2cm 1.5cm;
+}
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+  .print-no-bg {
+    background: transparent !important;
+  }
+  .print-keep {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+}

@@ -9,7 +9,6 @@ import type {
   PlaquesResult,
   CalepinageResult,
   FinitionConfig,
-  TailleStandard,
   MateriauConfig,
 } from '../types/plaques';
 import { calepiner } from './calepinage';
