@@ -1,50 +1,182 @@
 'use client';
 
 /**
- * Persistance des paramètres calculateurs (papiers, machines, marges…).
+ * Persistance des paramètres + collections métier dans Supabase.
  *
- * Phase 3a : on utilise localStorage côté client.
- * Phase 3b (à venir) : remplacer par lecture/écriture Supabase
- * (table `app_settings`, clé `calc_<slug>_settings_v1`) sans changer
- * l'API publique de ce module.
+ * Phase 3a : localStorage (historique)
+ * Phase 3b : Supabase via la table `app_settings` (clé-valeur JSONB)
  *
- * SSR-safe : le premier rendu serveur/hydratation utilise les
- * `defaults` ; les valeurs persistées sont chargées dans un useEffect
- * après montage.
+ * L'API publique du hook `useSettings` reste identique : les pages n'ont
+ * rien à modifier. Seul le storage underlying change.
+ *
+ * Convention de slugs :
+ * - `'<calc>'` (rollup, plaques…) : paramètres calculateur
+ * - `'shared.<name>'` (shared.papiers…) : catalogue partagé
+ * - `'data.<entity>'` (data.clients…) : collections métier
+ * - `'config.<name>'` (config.entreprise) : config app
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useAuth } from './auth';
+import { getSupabase } from './supabase';
 
-const PREFIX_CALC = 'avenir.calc';
-const PREFIX_SHARED = 'avenir.shared';
-const PREFIX_DATA = 'avenir.data';
-const PREFIX_CONFIG = 'avenir.config';
+// ============================================================
+// Helpers bas niveau (utilisés aussi par la migration)
+// ============================================================
+
+export async function loadFromSupabase<T>(slug: string, defaults: T): Promise<{
+  value: T;
+  isCustom: boolean;
+}> {
+  try {
+    const { data, error } = await getSupabase()
+      .from('app_settings')
+      .select('value')
+      .eq('key', slug)
+      .maybeSingle();
+    if (error) {
+      console.error(`[settings] load failed for "${slug}":`, error.message);
+      return { value: defaults, isCustom: false };
+    }
+    if (!data) return { value: defaults, isCustom: false };
+    return { value: data.value as T, isCustom: true };
+  } catch (e) {
+    console.error(`[settings] load exception for "${slug}":`, e);
+    return { value: defaults, isCustom: false };
+  }
+}
+
+export async function saveToSupabase<T>(slug: string, value: T): Promise<void> {
+  try {
+    // Cast vers le type Json attendu par Supabase (jsonb)
+    const { error } = await getSupabase()
+      .from('app_settings')
+      .upsert(
+        { key: slug, value: value as unknown as never },
+        { onConflict: 'key' }
+      );
+    if (error) {
+      console.error(`[settings] save failed for "${slug}":`, error.message);
+    }
+  } catch (e) {
+    console.error(`[settings] save exception for "${slug}":`, e);
+  }
+}
+
+export async function deleteFromSupabase(slug: string): Promise<void> {
+  try {
+    const { error } = await getSupabase().from('app_settings').delete().eq('key', slug);
+    if (error) {
+      console.error(`[settings] delete failed for "${slug}":`, error.message);
+    }
+  } catch (e) {
+    console.error(`[settings] delete exception for "${slug}":`, e);
+  }
+}
+
+// ============================================================
+// Hook public
+// ============================================================
+
+interface UseSettingsResult<T> {
+  value: T;
+  update: (next: T) => void;
+  reset: () => void;
+  hydrated: boolean;
+  isCustom: boolean;
+}
 
 /**
- * Version du shape des paramètres par slug.
- * À bumper quand on change la forme des données pour invalider
- * silencieusement les anciennes valeurs stockées en localStorage.
+ * Lit + écrit un paramètre depuis Supabase (table `app_settings`).
  *
- * Conventions :
- * - `'<calc>'` : settings spécifiques à un calculateur (PREFIX_CALC).
- * - `'shared.<name>'` : catalogues partagés entre plusieurs calcs (PREFIX_SHARED).
- * - `'data.<entity>'` : collections métier (clients, devis…) (PREFIX_DATA).
+ * - Au montage : charge depuis Supabase ; si pas trouvé, garde les defaults.
+ * - update() / reset() : fire-and-forget vers Supabase (état local maj immédiate).
+ * - hydrated : true une fois le premier load terminé.
+ * - isCustom : true si une valeur est persistée pour cette clé.
+ *
+ * Si pas authentifié, reste sur les defaults (l'app redirige vers /login).
  */
-const VERSIONS: Record<string, string> = {
-  rollup: 'v2',
-  plaques: 'v2',
-  flyers: 'v2',
-  bobines: 'v2',
-  brochures: 'v2',
-  'shared.papiers': 'v1',
-  'data.clients': 'v3', // v3 : carnet d'adresses unifié (adresses[] avec usages multiples)
-  'data.devis': 'v1',
-  'data.commandes': 'v1',
-  'data.factures': 'v1',
-  'config.entreprise': 'v1',
-};
+export function useSettings<T>(slug: string, defaults: T): UseSettingsResult<T> {
+  const { user } = useAuth();
+  const [value, setValue] = useState<T>(defaults);
+  const [hydrated, setHydrated] = useState(false);
+  const [isCustom, setIsCustom] = useState(false);
+  const lastSavedRef = useRef<T>(defaults);
 
-export function settingsKey(slug: string): string {
+  // Reset hydrated lorsqu'on change de slug (rare)
+  useEffect(() => {
+    setHydrated(false);
+  }, [slug]);
+
+  // Load au montage (et quand user devient connecté)
+  useEffect(() => {
+    if (!user) {
+      // Pas connecté : on garde les defaults, on indique "non hydraté" depuis Supabase
+      setValue(defaults);
+      setIsCustom(false);
+      setHydrated(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const result = await loadFromSupabase(slug, defaults);
+      if (cancelled) return;
+      setValue(result.value);
+      setIsCustom(result.isCustom);
+      lastSavedRef.current = result.value;
+      setHydrated(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, user?.id]);
+
+  const update = (next: T) => {
+    setValue(next);
+    setIsCustom(true);
+    lastSavedRef.current = next;
+    void saveToSupabase(slug, next);
+  };
+
+  const reset = () => {
+    setValue(defaults);
+    setIsCustom(false);
+    lastSavedRef.current = defaults;
+    void deleteFromSupabase(slug);
+  };
+
+  return { value, update, reset, hydrated, isCustom };
+}
+
+// ============================================================
+// API legacy conservée pour compat — ne fait plus rien d'utile
+// ============================================================
+
+/** @deprecated — Phase 3b utilise Supabase. Toujours renvoie false. */
+export function hasCustomSettings(_slug: string): boolean {
+  return false;
+}
+
+/** @deprecated — clé de stockage localStorage historique (pour migration uniquement). */
+export function legacyLocalStorageKey(slug: string): string {
+  const PREFIX_CALC = 'avenir.calc';
+  const PREFIX_SHARED = 'avenir.shared';
+  const PREFIX_DATA = 'avenir.data';
+  const PREFIX_CONFIG = 'avenir.config';
+  const VERSIONS: Record<string, string> = {
+    rollup: 'v2',
+    plaques: 'v2',
+    flyers: 'v2',
+    bobines: 'v2',
+    brochures: 'v2',
+    'shared.papiers': 'v1',
+    'data.clients': 'v3',
+    'data.devis': 'v1',
+    'data.commandes': 'v1',
+    'data.factures': 'v1',
+    'config.entreprise': 'v1',
+  };
   let prefix: string;
   let cleanSlug: string;
   if (slug.startsWith('shared.')) {
@@ -64,115 +196,5 @@ export function settingsKey(slug: string): string {
   return `${prefix}.${cleanSlug}.${version}`;
 }
 
-export function loadSettings<T>(slug: string, defaults: T): T {
-  if (typeof window === 'undefined') return defaults;
-  try {
-    const raw = window.localStorage.getItem(settingsKey(slug));
-    if (!raw) return defaults;
-    return JSON.parse(raw) as T;
-  } catch {
-    return defaults;
-  }
-}
-
-export function saveSettings<T>(slug: string, value: T): void {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(settingsKey(slug), JSON.stringify(value));
-  } catch {
-    /* quota ou navigation privée — on ignore silencieusement */
-  }
-}
-
-export function resetSettings(slug: string): void {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.removeItem(settingsKey(slug));
-  } catch {
-    /* ignore */
-  }
-}
-
-/**
- * Indique si une configuration custom est présente en local pour ce
- * calculateur (utile pour afficher un badge "modifié").
- */
-export function hasCustomSettings(slug: string): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
-    return window.localStorage.getItem(settingsKey(slug)) !== null;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Hook React : lit + écrit les paramètres avec persistance localStorage.
- *
- * - Premier rendu : renvoie `defaults` (cohérent SSR/CSR).
- * - Après montage : remplace par la version persistée s'il y en a une.
- * - `update(next)` met à jour l'état ET persiste.
- * - `reset()` supprime la version persistée et revient aux defaults.
- * - Sync cross-tab : un changement dans un autre onglet est répercuté.
- */
-export function useSettings<T>(
-  slug: string,
-  defaults: T
-): {
-  value: T;
-  update: (next: T) => void;
-  reset: () => void;
-  hydrated: boolean;
-  isCustom: boolean;
-} {
-  const [value, setValue] = useState<T>(defaults);
-  const [hydrated, setHydrated] = useState(false);
-  const [isCustom, setIsCustom] = useState(false);
-
-  // Hydratation initiale depuis localStorage après montage
-  useEffect(() => {
-    const loaded = loadSettings(slug, defaults);
-    setValue(loaded);
-    setIsCustom(hasCustomSettings(slug));
-    setHydrated(true);
-    // On ne ré-hydrate que si le slug change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
-
-  // Synchronisation cross-tab via l'événement `storage`
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const key = settingsKey(slug);
-    const handler = (e: StorageEvent) => {
-      if (e.key !== key) return;
-      if (e.newValue === null) {
-        setValue(defaults);
-        setIsCustom(false);
-      } else {
-        try {
-          setValue(JSON.parse(e.newValue) as T);
-          setIsCustom(true);
-        } catch {
-          /* ignore */
-        }
-      }
-    };
-    window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
-
-  const update = (next: T) => {
-    setValue(next);
-    saveSettings(slug, next);
-    setIsCustom(true);
-  };
-
-  const reset = () => {
-    setValue(defaults);
-    resetSettings(slug);
-    setIsCustom(false);
-  };
-
-  return { value, update, reset, hydrated, isCustom };
-}
+/** Alias historique. */
+export const settingsKey = legacyLocalStorageKey;

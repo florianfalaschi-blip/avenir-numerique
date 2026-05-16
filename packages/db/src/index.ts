@@ -1,6 +1,16 @@
 /**
- * @avenir/db — Types Supabase et clients
+ * @avenir/db — Couche d'accès Supabase / Postgres pour Avenir Numérique.
  *
- * Sera initialisé en Phase 2.
+ * Conventions :
+ * - Types Database / Tables dans `./types`
+ * - Factory client browser dans `./client`
+ * - Pas de logique métier ici (juste accès données) — la logique vit dans
+ *   `apps/admin/lib/` (hooks, transformations…)
  */
-export const VERSION = '0.1.0';
+
+export {
+  createSupabaseBrowserClient,
+  type AvenirSupabaseClient,
+} from './client';
+
+export type { Database } from './types';

@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@avenir/ui';
+import { usePathname, useRouter } from 'next/navigation';
+import { Button, cn } from '@avenir/ui';
+import { useAuth } from '@/lib/auth';
 
 interface NavItem {
   href: string;
@@ -51,18 +53,55 @@ const navGroups: NavGroup[] = [
 
 /**
  * Shell global de l'app :
- * - Sur la plupart des routes : sidebar verticale fixe 240px + contenu à droite
+ * - Sur /login : layout minimal sans sidebar
  * - Sur les routes /imprimer : container A4 sans sidebar (pour PDF propre)
+ * - Sur les autres routes : redirige vers /login si non auth, sinon sidebar
+ *   verticale + contenu
  */
 export function GlobalShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const isPrint = pathname.endsWith('/imprimer') || pathname.endsWith('/imprimer/');
+  const isLogin = pathname === '/login' || pathname.startsWith('/login/');
 
+  // Protection des routes : redirige vers /login si pas connecté
+  useEffect(() => {
+    if (loading) return;
+    if (!user && !isLogin) {
+      router.replace('/login');
+    }
+  }, [user, loading, isLogin, router]);
+
+  // Page login : layout minimal centré (pas de sidebar)
+  if (isLogin) {
+    return <main className="min-h-screen">{children}</main>;
+  }
+
+  // Pages /imprimer : layout A4 sans sidebar
   if (isPrint) {
     return (
       <main className="mx-auto max-w-[210mm] px-6 py-6 print:px-0 print:py-0 print:max-w-none">
         {children}
       </main>
+    );
+  }
+
+  // Loading initial : écran neutre
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
+        Chargement…
+      </div>
+    );
+  }
+
+  // Pas connecté : on n'affiche rien (le useEffect ci-dessus redirige)
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
+        Redirection vers la page de connexion…
+      </div>
     );
   }
 
@@ -110,11 +149,31 @@ function Sidebar({ pathname }: { pathname: string }) {
         ))}
       </nav>
 
-      {/* Footer */}
-      <div className="border-t border-border px-5 py-3 text-[10px] text-muted-foreground">
-        <p>Phase 3a · localStorage</p>
-      </div>
+      {/* Footer : user + logout */}
+      <SidebarUserFooter />
     </aside>
+  );
+}
+
+function SidebarUserFooter() {
+  const { user, signOut } = useAuth();
+  if (!user) return null;
+  const displayName = user.email ?? 'Utilisateur';
+  return (
+    <div className="border-t border-border px-3 py-3 space-y-2">
+      <p className="px-2 text-xs truncate" title={displayName}>
+        {displayName}
+      </p>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="w-full"
+        onClick={() => signOut()}
+      >
+        Se déconnecter
+      </Button>
+    </div>
   );
 }
 
