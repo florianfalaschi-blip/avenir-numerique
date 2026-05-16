@@ -1,5 +1,21 @@
 /**
- * @avenir/ui — Composants UI partagés
- * Sera initialisé en Phase 2.
+ * @avenir/ui — Composants UI partagés (admin + e-commerce)
+ *
+ * Basé sur shadcn/ui (composants copy-paste, customisables).
+ * Style : Tailwind CSS avec variables CSS pour le thème.
  */
-export const VERSION = '0.1.0';
+
+export { cn } from './lib/utils';
+
+// Composants de base
+export { Button, buttonVariants, type ButtonProps } from './components/button';
+export { Input, type InputProps } from './components/input';
+export { Label, type LabelProps } from './components/label';
+export {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from './components/card';
