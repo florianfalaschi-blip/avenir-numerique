@@ -2,19 +2,19 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, Input } from '@avenir/ui';
+import { Card, CardContent, CardHeader, Input, Pill, type PillProps } from '@avenir/ui';
 import { Select } from '../calculateurs/_shared/components';
-import { fmtEur } from '../calculateurs/_shared/format';
+import { fmtEur, fmtInt } from '../calculateurs/_shared/format';
 import { useClients, clientLabel } from '@/lib/clients';
 import {
   useFactures,
   STATUT_LABELS,
-  STATUT_COLORS,
   montantPaye,
   montantRestant,
   type FactureStatut,
 } from '@/lib/factures';
 import { CALC_LABELS, CALC_SLUGS, type CalcSlug } from '@/lib/default-params';
+import { KpiTile } from '../_components/kpi-tile';
 
 const STATUTS: FactureStatut[] = [
   'brouillon',
@@ -24,6 +24,15 @@ const STATUTS: FactureStatut[] = [
   'impayee',
   'avoir',
 ];
+
+const STATUT_PILL_VARIANT: Record<FactureStatut, PillProps['variant']> = {
+  brouillon: 'muted',
+  emise: 'primary',
+  partiellement_payee: 'warning',
+  payee: 'success',
+  impayee: 'destructive',
+  avoir: 'accent',
+};
 
 export default function FacturesListPage() {
   const { factures, hydrated } = useFactures();
@@ -64,54 +73,38 @@ export default function FacturesListPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Factures</h1>
-        <p className="text-muted-foreground mt-2">
-          {factures.length} facture{factures.length !== 1 ? 's' : ''}. Émises depuis une
-          commande livrée.
+        <h1 className="text-2xl font-semibold tracking-tight">Factures</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {factures.length} facture{factures.length !== 1 ? 's' : ''} émise{factures.length !== 1 ? 's' : ''} depuis une commande livrée.
         </p>
       </div>
 
       {/* Stats globales */}
       {factures.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                Total facturé TTC
-              </p>
-              <p className="text-2xl font-bold">{fmtEur(totalFacture)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                Total encaissé
-              </p>
-              <p className="text-2xl font-bold text-green-700">{fmtEur(totalPaye)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                Restant dû
-              </p>
-              <p className="text-2xl font-bold text-accent">{fmtEur(totalRestant)}</p>
-            </CardContent>
-          </Card>
-          <Card
-            className={enRetard.length > 0 ? 'border-destructive/40 bg-destructive/5' : ''}
-          >
-            <CardContent className="pt-6">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                En retard
-              </p>
-              <p
-                className={`text-2xl font-bold ${enRetard.length > 0 ? 'text-destructive' : ''}`}
-              >
-                {enRetard.length}
-              </p>
-            </CardContent>
-          </Card>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <KpiTile
+            label="Total facturé TTC"
+            value={fmtEur(totalFacture)}
+            accent="primary"
+          />
+          <KpiTile
+            label="Encaissé"
+            value={fmtEur(totalPaye)}
+            accent="success"
+            emphasis
+          />
+          <KpiTile
+            label="Restant dû"
+            value={fmtEur(totalRestant)}
+            accent="accent"
+          />
+          <KpiTile
+            label="En retard"
+            value={fmtInt(enRetard.length)}
+            accent="destructive"
+            emphasis={enRetard.length > 0}
+            sub={enRetard.length > 0 ? 'factures à relancer' : 'aucune en retard'}
+          />
         </div>
       )}
 
@@ -172,69 +165,79 @@ export default function FacturesListPage() {
               )}
             </div>
           ) : (
-            <ul className="divide-y">
-              {filtered.map((f) => {
-                const client = getClient(f.client_id);
-                const date = new Date(f.date_creation);
-                const echeance = f.date_echeance ? new Date(f.date_echeance) : null;
-                const enRetardLocal =
-                  echeance &&
-                  Date.now() > echeance.getTime() &&
-                  !['payee', 'avoir', 'brouillon'].includes(f.statut);
-                const restant = montantRestant(f);
+            <>
+              <div className="grid grid-cols-12 gap-3 px-6 py-2.5 border-b bg-secondary/40 text-[10px] uppercase tracking-[0.06em] font-semibold text-muted-foreground">
+                <span className="col-span-2">Numéro</span>
+                <span className="col-span-3">Client</span>
+                <span className="col-span-2">Produit · cmd</span>
+                <span className="col-span-2">Dates</span>
+                <span className="col-span-2">Statut</span>
+                <span className="col-span-1 text-right">TTC</span>
+              </div>
+              <ul className="divide-y">
+                {filtered.map((f) => {
+                  const client = getClient(f.client_id);
+                  const date = new Date(f.date_creation);
+                  const echeance = f.date_echeance ? new Date(f.date_echeance) : null;
+                  const enRetardLocal =
+                    echeance &&
+                    Date.now() > echeance.getTime() &&
+                    !['payee', 'avoir', 'brouillon'].includes(f.statut);
+                  const restant = montantRestant(f);
 
-                return (
-                  <li key={f.id}>
-                    <Link
-                      href={`/factures/${f.id}`}
-                      className="grid grid-cols-12 gap-3 items-center px-6 py-3 hover:bg-secondary/40 transition-colors"
-                    >
-                      <span className="col-span-2 font-mono text-xs text-muted-foreground">
-                        {f.numero}
-                      </span>
-                      <span className="col-span-3 text-sm truncate">
-                        {client ? (
-                          clientLabel(client)
-                        ) : (
-                          <span className="text-destructive">Client supprimé</span>
-                        )}
-                      </span>
-                      <span className="col-span-2 text-xs text-muted-foreground">
-                        {CALC_LABELS[f.calculateur]}
-                        <br />
-                        cmd {f.commande_numero}
-                      </span>
-                      <span className="col-span-2 text-xs text-muted-foreground">
-                        Émise : {date.toLocaleDateString('fr-FR')}
-                        {echeance && (
-                          <span
-                            className={`block ${enRetardLocal ? 'text-destructive font-medium' : ''}`}
-                          >
-                            Échéance : {echeance.toLocaleDateString('fr-FR')}
-                            {enRetardLocal && ' ⚠'}
-                          </span>
-                        )}
-                      </span>
-                      <span
-                        className={`col-span-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUT_COLORS[f.statut]} justify-self-start`}
+                  return (
+                    <li key={f.id}>
+                      <Link
+                        href={`/factures/${f.id}`}
+                        className="grid grid-cols-12 gap-3 items-center px-6 py-3 hover:bg-primary-soft transition-colors"
                       >
-                        {STATUT_LABELS[f.statut]}
-                      </span>
-                      <span className="col-span-1 text-right">
-                        <span className="block text-sm font-medium">
-                          {fmtEur(f.montant_ttc)}
+                        <span className="col-span-2 font-mono text-xs text-muted-foreground">
+                          {f.numero}
                         </span>
-                        {restant > 0.01 && (
-                          <span className="block text-[10px] text-accent">
-                            {fmtEur(restant)} dû
+                        <span className="col-span-3 text-sm truncate">
+                          {client ? (
+                            clientLabel(client)
+                          ) : (
+                            <span className="text-destructive">Client supprimé</span>
+                          )}
+                        </span>
+                        <span className="col-span-2 text-xs text-muted-foreground">
+                          {CALC_LABELS[f.calculateur]}
+                          <br />
+                          cmd {f.commande_numero}
+                        </span>
+                        <span className="col-span-2 text-xs text-muted-foreground">
+                          Émise : {date.toLocaleDateString('fr-FR')}
+                          {echeance && (
+                            <span
+                              className={`block ${enRetardLocal ? 'text-destructive font-medium' : ''}`}
+                            >
+                              Échéance : {echeance.toLocaleDateString('fr-FR')}
+                              {enRetardLocal && ' ⚠'}
+                            </span>
+                          )}
+                        </span>
+                        <span className="col-span-2 justify-self-start">
+                          <Pill variant={STATUT_PILL_VARIANT[f.statut]}>
+                            {STATUT_LABELS[f.statut]}
+                          </Pill>
+                        </span>
+                        <span className="col-span-1 text-right">
+                          <span className="block text-sm font-semibold tabular">
+                            {fmtEur(f.montant_ttc)}
                           </span>
-                        )}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+                          {restant > 0.01 && (
+                            <span className="block text-[10px] text-accent">
+                              {fmtEur(restant)} dû
+                            </span>
+                          )}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
         </CardContent>
       </Card>
