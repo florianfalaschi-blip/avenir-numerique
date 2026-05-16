@@ -76,7 +76,7 @@ export function CalcHeader({ title, subtitle }: { title: string; subtitle: strin
   );
 }
 
-/** Bloc de mise en avant du prix final (orange CTA). */
+/** Bloc de mise en avant du prix final (dégradé bleu marine type legacy). */
 export function PriceHighlight({
   prixHt,
   prixTtc,
@@ -87,14 +87,18 @@ export function PriceHighlight({
   tvaPct: number;
 }) {
   return (
-    <div className="rounded-lg bg-accent text-accent-foreground p-4 space-y-1.5">
-      <div className="flex justify-between items-baseline gap-3">
-        <span className="text-sm opacity-90">Prix HT final</span>
-        <span className="text-xl font-bold">{fmtEur(prixHt)}</span>
+    <div className="rounded-xl price-gradient p-5 space-y-2">
+      <div>
+        <p className="text-[10px] uppercase tracking-[0.08em] font-semibold opacity-85">
+          Prix HT final
+        </p>
+        <p className="text-3xl font-bold tracking-tight tabular mt-0.5">
+          {fmtEur(prixHt)}
+        </p>
       </div>
-      <div className="flex justify-between items-baseline gap-3">
-        <span className="text-sm opacity-90">Prix TTC (TVA {tvaPct} %)</span>
-        <span className="text-xl font-bold">{fmtEur(prixTtc)}</span>
+      <div className="pt-3 mt-3 border-t border-white/20 flex justify-between items-baseline gap-3 text-sm">
+        <span className="opacity-85">TTC (TVA {tvaPct} %)</span>
+        <span className="font-semibold tabular">{fmtEur(prixTtc)}</span>
       </div>
     </div>
   );

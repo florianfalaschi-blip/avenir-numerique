@@ -1,174 +1,105 @@
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@avenir/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Pill } from '@avenir/ui';
 
 const calculateurs = [
   {
     slug: 'rollup',
     nom: 'Roll-up',
-    description: 'Bâche PVC + structure (eco/standard/premium).',
+    icon: '🎯',
+    description: 'Bâche PVC + structure (eco/standard/premium)',
   },
   {
     slug: 'plaques',
-    nom: 'Plaques / Signalétique',
-    description: 'PVC, Forex, Dibond, Plexi — calepinage automatique + découpe Zund.',
+    nom: 'Plaques',
+    icon: '🟦',
+    description: 'PVC, Forex, Dibond, Plexi — calepinage + Zund',
   },
   {
     slug: 'flyers',
-    nom: 'Flyers / Affiches',
-    description: 'Choix techno auto, machine la moins chère, pelliculage par face.',
+    nom: 'Flyers',
+    icon: '📰',
+    description: 'Offset/numérique auto, pelliculage par face',
   },
   {
     slug: 'bobines',
-    nom: 'Bobines / Étiquettes',
-    description: '4 formes, calepinage rouleau ou m², planches ou rouleau applicateur.',
+    nom: 'Bobines',
+    icon: '🏷️',
+    description: 'Étiquettes adhésives, 4 formes',
   },
   {
     slug: 'brochures',
     nom: 'Brochures',
-    description: 'Intérieur + couverture séparés, 4 reliures, pliage et finitions.',
+    icon: '📖',
+    description: 'Intérieur + couverture séparés, 4 reliures',
   },
 ];
 
 export default function HomePage() {
   return (
-    <div className="space-y-10">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Back-office Avenir Numérique</h1>
-        <p className="text-muted-foreground mt-2 max-w-2xl">
-          Génère des devis, gère ta base clients, et configure les paramètres tarifaires de chaque
-          calculateur métier.
-        </p>
+    <div className="space-y-8">
+      {/* Hero */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Tableau de bord</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Génère des devis, suis la production, gère les paiements.
+          </p>
+        </div>
+        <Pill variant="accent" size="lg">
+          ⚡ Phase 3a — stockage local
+        </Pill>
       </div>
 
-      {/* === FLUX PRINCIPAL : DEVIS / CLIENTS === */}
+      {/* Flux principal — cartes d'action */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Flux principal
-        </h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          <Link href="/devis/nouveau" className="group block">
-            <Card className="h-full transition group-hover:border-accent group-hover:shadow-md border-accent/40 bg-accent/5">
-              <CardHeader>
-                <CardTitle className="text-lg">+ Nouveau devis</CardTitle>
-                <CardDescription>
-                  Sélectionne un client, choisis un produit, le devis se sauvegarde en 1 clic.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-accent">
-                  Démarrer
-                  <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
-                </span>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/devis" className="group block">
-            <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
-              <CardHeader>
-                <CardTitle className="text-lg">Tous les devis</CardTitle>
-                <CardDescription>
-                  Historique filtrable par statut (brouillon, envoyé, accepté…) et par produit.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-                  Voir la liste
-                  <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
-                </span>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/commandes" className="group block">
-            <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
-              <CardHeader>
-                <CardTitle className="text-lg">Commandes en production</CardTitle>
-                <CardDescription>
-                  Suivi du workflow d&apos;une commande : étapes, statut, livraison.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-                  Suivre la production
-                  <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
-                </span>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/factures" className="group block">
-            <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
-              <CardHeader>
-                <CardTitle className="text-lg">Factures</CardTitle>
-                <CardDescription>
-                  Émission, suivi des paiements, échéances et relances.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-                  Gérer la facturation
-                  <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
-                </span>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/clients" className="group block">
-            <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
-              <CardHeader>
-                <CardTitle className="text-lg">Clients</CardTitle>
-                <CardDescription>
-                  Carnet d&apos;adresses B2C / B2B, historique de devis par client.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-                  Gérer la base
-                  <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
-                </span>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/parametres" className="group block">
-            <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
-              <CardHeader>
-                <CardTitle className="text-lg">⚙ Paramètres</CardTitle>
-                <CardDescription>
-                  Catalogues papiers, matériaux, machines, marges et dégressifs.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-                  Configurer
-                  <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
-                </span>
-              </CardContent>
-            </Card>
-          </Link>
+        <p className="label-section">Flux principal</p>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <ActionCard
+            href="/devis/nouveau"
+            title="Nouveau devis"
+            description="Sélectionne un client, choisis un produit"
+            icon="📝"
+            accent
+          />
+          <ActionCard
+            href="/devis"
+            title="Tous les devis"
+            description="Historique filtrable par statut"
+            icon="📄"
+          />
+          <ActionCard
+            href="/commandes"
+            title="Production"
+            description="Suivi du workflow d'étapes"
+            icon="📦"
+          />
+          <ActionCard
+            href="/factures"
+            title="Facturation"
+            description="Émission, paiements, échéances"
+            icon="💰"
+          />
         </div>
       </section>
 
-      {/* === CALCULATEURS === */}
+      {/* Calculateurs en mode test */}
       <section className="space-y-3">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Calculateurs (mode test)
-          </h2>
-          <p className="text-xs text-muted-foreground mt-1">
-            Joue avec les calculateurs sans créer de devis. Utilise « + Nouveau devis » pour
-            enregistrer un calcul à un client.
+          <p className="label-section">Calculateurs (mode test)</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Joue avec les calculateurs sans créer de devis.
           </p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {calculateurs.map((c) => (
             <Link key={c.slug} href={`/calculateurs/${c.slug}`} className="group block">
-              <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-lg">{c.nom}</CardTitle>
-                  <CardDescription>{c.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-                    Ouvrir le calculateur
-                    <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
-                  </span>
+              <Card className="h-full elevation-soft elevation-hover group-hover:border-primary">
+                <CardContent className="pt-5 pb-4 text-center">
+                  <div className="text-2xl mb-1">{c.icon}</div>
+                  <p className="font-semibold text-sm">{c.nom}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1 leading-snug">
+                    {c.description}
+                  </p>
                 </CardContent>
               </Card>
             </Link>
@@ -176,13 +107,60 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="rounded-lg border border-dashed bg-secondary/30 p-4 text-sm text-muted-foreground max-w-3xl">
+      {/* Footer info */}
+      <div className="rounded-lg border border-dashed bg-card p-4 text-xs text-muted-foreground max-w-3xl">
         <p>
-          <strong className="text-foreground">⚠️ Stockage local (Phase 3a)</strong> — Clients,
-          devis et paramètres sont stockés dans ton navigateur. Phase 3b à venir : Supabase pour
-          partager entre tous les postes.
+          <strong className="text-foreground">⚠ Stockage local</strong> — Clients, devis,
+          commandes, factures et paramètres sont stockés dans ce navigateur. Phase 3b à
+          venir : Supabase pour partager entre tous les postes.
         </p>
       </div>
     </div>
+  );
+}
+
+function ActionCard({
+  href,
+  title,
+  description,
+  icon,
+  accent = false,
+}: {
+  href: string;
+  title: string;
+  description: string;
+  icon: string;
+  accent?: boolean;
+}) {
+  return (
+    <Link href={href} className="group block">
+      <Card
+        className={
+          'h-full elevation-soft elevation-hover ' +
+          (accent
+            ? 'border-accent/40 bg-accent-soft group-hover:border-accent'
+            : 'group-hover:border-primary')
+        }
+      >
+        <CardHeader className="pb-3">
+          <div className="text-2xl mb-1">{icon}</div>
+          <CardTitle className="text-base">{title}</CardTitle>
+          <CardDescription className="text-xs">{description}</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0 pb-4">
+          <span
+            className={
+              'inline-flex items-center gap-1 text-[11px] font-semibold ' +
+              (accent ? 'text-accent' : 'text-primary')
+            }
+          >
+            Démarrer
+            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
+              →
+            </span>
+          </span>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
