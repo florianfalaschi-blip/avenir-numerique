@@ -94,6 +94,22 @@ export default function HomePage() {
               </CardContent>
             </Card>
           </Link>
+          <Link href="/factures" className="group block">
+            <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
+              <CardHeader>
+                <CardTitle className="text-lg">Factures</CardTitle>
+                <CardDescription>
+                  Émission, suivi des paiements, échéances et relances.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                  Gérer la facturation
+                  <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
+                </span>
+              </CardContent>
+            </Card>
+          </Link>
           <Link href="/clients" className="group block">
             <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
               <CardHeader>

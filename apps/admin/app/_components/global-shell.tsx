@@ -7,6 +7,7 @@ const navItems = [
   { href: '/', label: 'Accueil' },
   { href: '/devis', label: 'Devis' },
   { href: '/commandes', label: 'Commandes' },
+  { href: '/factures', label: 'Factures' },
   { href: '/clients', label: 'Clients' },
   { href: '/calculateurs/rollup', label: 'Roll-up' },
   { href: '/calculateurs/plaques', label: 'Plaques' },
@@ -23,7 +24,7 @@ const navItems = [
  */
 export function GlobalShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isPrint = pathname.endsWith('/imprimer');
+  const isPrint = pathname.endsWith('/imprimer') || pathname.endsWith('/imprimer/');
 
   if (isPrint) {
     return (

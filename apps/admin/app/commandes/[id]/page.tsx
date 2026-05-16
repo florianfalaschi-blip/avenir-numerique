@@ -25,6 +25,12 @@ import {
   type EtapeStatut,
   type EtapeProduction,
 } from '@/lib/commandes';
+import {
+  useFactures,
+  newFactureId,
+  type Facture,
+} from '@/lib/factures';
+import { useDevis } from '@/lib/devis';
 import { CALC_LABELS } from '@/lib/default-params';
 
 const STATUTS_CMD: CommandeStatut[] = [
@@ -49,7 +55,12 @@ export default function CommandeDetailPage({
   const { getCommande, updateCommande, deleteCommande, hydrated } = useCommandes();
   const { getClient } = useClients();
 
+  const { addFacture, factureForCommande, nextNumero: nextFactureNumero } =
+    useFactures();
+  const { getDevis } = useDevis();
+
   const commande = getCommande(id);
+  const factureLiee = commande ? factureForCommande(commande.id) : undefined;
   const [notes, setNotes] = useState(commande?.notes_production ?? '');
 
   if (!hydrated) {
@@ -134,6 +145,32 @@ export default function CommandeDetailPage({
     router.push('/commandes');
   };
 
+  const handleGenererFacture = () => {
+    // Source devis pour récupérer le TVA et autre meta du calcul
+    const devis = getDevis(commande.devis_id);
+    const tvaPct =
+      (devis?.result as { tva_pct?: number } | null | undefined)?.tva_pct ?? 20;
+    const newFct: Facture = {
+      id: newFactureId(),
+      numero: nextFactureNumero(),
+      commande_id: commande.id,
+      commande_numero: commande.numero,
+      devis_numero: commande.devis_numero,
+      client_id: commande.client_id,
+      calculateur: commande.calculateur,
+      date_creation: Date.now(),
+      statut: 'brouillon',
+      montant_ht: commande.snapshot_prix_ht,
+      montant_ttc: commande.snapshot_prix_ttc,
+      tva_pct: tvaPct,
+      quantite: commande.snapshot_quantite,
+      paiements: [],
+      snapshot_recap: commande.snapshot_recap,
+    };
+    addFacture(newFct);
+    router.push(`/factures/${newFct.id}`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-sm">
@@ -163,11 +200,33 @@ export default function CommandeDetailPage({
                 {commande.devis_numero}
               </Link>
             </span>
+            {factureLiee && (
+              <span className="text-xs text-muted-foreground">
+                · Facture{' '}
+                <Link
+                  href={`/factures/${factureLiee.id}`}
+                  className="font-mono text-primary hover:underline"
+                >
+                  {factureLiee.numero}
+                </Link>
+              </span>
+            )}
           </div>
           <p className="text-muted-foreground text-sm">
             Créée le {date.toLocaleDateString('fr-FR')} à{' '}
             {date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
           </p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {factureLiee ? (
+            <Link href={`/factures/${factureLiee.id}`}>
+              <Button variant="accent">💰 Voir la facture {factureLiee.numero}</Button>
+            </Link>
+          ) : commande.statut === 'livre' ? (
+            <Button variant="accent" onClick={handleGenererFacture}>
+              💰 Générer la facture
+            </Button>
+          ) : null}
         </div>
       </div>
 

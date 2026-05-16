@@ -40,6 +40,7 @@ const VERSIONS: Record<string, string> = {
   'data.clients': 'v3', // v3 : carnet d'adresses unifié (adresses[] avec usages multiples)
   'data.devis': 'v1',
   'data.commandes': 'v1',
+  'data.factures': 'v1',
   'config.entreprise': 'v1',
 };
 
