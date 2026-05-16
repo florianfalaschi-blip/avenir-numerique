@@ -15,6 +15,7 @@ import {
 import { ContactsEditor } from './contacts-editor';
 import { TagsEditor } from './tags-editor';
 import { DocumentsEditor } from './documents-editor';
+import { AdressesEditor } from './adresses-editor';
 
 /**
  * Formulaire client complet, partagé entre /clients/nouveau et
@@ -47,8 +48,7 @@ export function ClientForm({
       created_at: c.created_at,
       email: c.email,
       telephone: c.telephone,
-      adresse_facturation: c.adresse_facturation,
-      adresses_livraison: c.adresses_livraison,
+      adresses: c.adresses,
       contacts: c.contacts,
       tags: c.tags,
       documents: c.documents,
@@ -62,20 +62,6 @@ export function ClientForm({
       date_premier_contact: c.date_premier_contact,
       compte_comptable: c.compte_comptable,
     } as Client);
-  };
-
-  const setAddrField = (field: 'ligne1' | 'ligne2' | 'cp' | 'ville' | 'pays', val: string) => {
-    onChange({
-      ...c,
-      adresse_facturation: {
-        ligne1: c.adresse_facturation?.ligne1 ?? '',
-        ligne2: c.adresse_facturation?.ligne2 ?? '',
-        cp: c.adresse_facturation?.cp ?? '',
-        ville: c.adresse_facturation?.ville ?? '',
-        pays: c.adresse_facturation?.pays ?? 'France',
-        [field]: val,
-      },
-    });
   };
 
   return (
@@ -205,52 +191,11 @@ export function ClientForm({
         }
       />
 
-      {/* === ADRESSE DE FACTURATION === */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Adresse de facturation</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Field label="Ligne 1">
-            <Input
-              value={c.adresse_facturation?.ligne1 ?? ''}
-              onChange={(e) => setAddrField('ligne1', e.target.value)}
-            />
-          </Field>
-          <Field label="Ligne 2" hint="Optionnel">
-            <Input
-              value={c.adresse_facturation?.ligne2 ?? ''}
-              onChange={(e) => setAddrField('ligne2', e.target.value)}
-            />
-          </Field>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Field label="CP">
-              <Input
-                value={c.adresse_facturation?.cp ?? ''}
-                onChange={(e) => setAddrField('cp', e.target.value)}
-              />
-            </Field>
-            <Field label="Ville" className="md:col-span-2">
-              <Input
-                value={c.adresse_facturation?.ville ?? ''}
-                onChange={(e) => setAddrField('ville', e.target.value)}
-              />
-            </Field>
-          </div>
-          <Field label="Pays">
-            <Select
-              value={c.adresse_facturation?.pays ?? 'France'}
-              onChange={(e) => setAddrField('pays', e.target.value)}
-            >
-              <option value="France">France</option>
-              <option value="Belgique">Belgique</option>
-              <option value="Suisse">Suisse</option>
-              <option value="Luxembourg">Luxembourg</option>
-              <option value="Autre">Autre</option>
-            </Select>
-          </Field>
-        </CardContent>
-      </Card>
+      {/* === CARNET D'ADRESSES === */}
+      <AdressesEditor
+        value={c.adresses}
+        onChange={(adresses) => onChange({ ...c, adresses })}
+      />
 
       {/* === CONDITIONS COMMERCIALES === */}
       <Card>

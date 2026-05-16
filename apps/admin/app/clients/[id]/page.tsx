@@ -260,23 +260,74 @@ export default function ClientDetailPage({
             </CardContent>
           </Card>
 
-          {/* Adresse facturation */}
-          {client.adresse_facturation && client.adresse_facturation.ligne1 && (
+          {/* Carnet d'adresses */}
+          {client.adresses.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Adresse de facturation</CardTitle>
+                <CardTitle className="text-base">
+                  Carnet d&apos;adresses ({client.adresses.length})
+                </CardTitle>
               </CardHeader>
-              <CardContent className="text-sm space-y-0.5">
-                <p>{client.adresse_facturation.ligne1}</p>
-                {client.adresse_facturation.ligne2 && (
-                  <p>{client.adresse_facturation.ligne2}</p>
-                )}
-                <p>
-                  {client.adresse_facturation.cp} {client.adresse_facturation.ville}
-                </p>
-                <p className="text-muted-foreground">
-                  {client.adresse_facturation.pays ?? 'France'}
-                </p>
+              <CardContent className="space-y-3">
+                {client.adresses.map((a) => (
+                  <div
+                    key={a.id}
+                    className="rounded-md border bg-secondary/20 p-3 text-sm space-y-1"
+                  >
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {a.label && (
+                          <span className="font-medium">{a.label}</span>
+                        )}
+                        {a.usage_facturation && (
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                              a.defaut_facturation
+                                ? 'bg-primary/15 text-primary border border-primary/30'
+                                : 'bg-secondary text-muted-foreground border border-border'
+                            }`}
+                            title={
+                              a.defaut_facturation
+                                ? 'Adresse de facturation par défaut'
+                                : 'Peut servir à la facturation'
+                            }
+                          >
+                            {a.defaut_facturation ? '★ ' : ''}📄 Facturation
+                          </span>
+                        )}
+                        {a.usage_livraison && (
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                              a.defaut_livraison
+                                ? 'bg-primary/15 text-primary border border-primary/30'
+                                : 'bg-secondary text-muted-foreground border border-border'
+                            }`}
+                            title={
+                              a.defaut_livraison
+                                ? 'Adresse de livraison par défaut'
+                                : 'Peut servir à la livraison'
+                            }
+                          >
+                            {a.defaut_livraison ? '★ ' : ''}📦 Livraison
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-xs space-y-0.5 text-foreground/80">
+                      <p>{a.ligne1}</p>
+                      {a.ligne2 && <p>{a.ligne2}</p>}
+                      <p>
+                        {a.cp} {a.ville}
+                      </p>
+                      <p className="text-muted-foreground">{a.pays ?? 'France'}</p>
+                    </div>
+                    {a.notes && (
+                      <p className="text-xs italic text-muted-foreground pt-1 border-t">
+                        {a.notes}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </CardContent>
             </Card>
           )}

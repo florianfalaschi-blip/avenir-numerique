@@ -8,12 +8,30 @@ import { useSettings } from './settings';
 
 export type ClientType = 'b2c' | 'b2b';
 
+/**
+ * Adresse dans le carnet d'adresses du client.
+ * Une même adresse peut servir à la facturation, à la livraison, ou aux deux.
+ * `defaut_facturation` / `defaut_livraison` désignent l'adresse à utiliser
+ * par défaut sur les nouveaux devis (au plus 1 par usage).
+ */
 export interface Adresse {
+  id: string;
+  /** Libellé court de l'adresse (ex. "Siège", "Entrepôt Lyon", "Magasin Paris"). */
+  label?: string;
   ligne1: string;
   ligne2?: string;
   cp: string;
   ville: string;
   pays?: string;
+  /** Si true, peut servir d'adresse de facturation. */
+  usage_facturation?: boolean;
+  /** Si true, peut servir d'adresse de livraison. */
+  usage_livraison?: boolean;
+  /** Si true, adresse de facturation par défaut (au plus 1 par client). */
+  defaut_facturation?: boolean;
+  /** Si true, adresse de livraison par défaut (au plus 1 par client). */
+  defaut_livraison?: boolean;
+  notes?: string;
 }
 
 /**
@@ -90,8 +108,11 @@ export interface ClientBase {
   type: ClientType;
   email: string;
   telephone?: string;
-  adresse_facturation?: Adresse;
-  adresses_livraison: Adresse[];
+  /**
+   * Carnet d'adresses unifié. Chaque adresse peut servir à la facturation,
+   * à la livraison ou aux deux, via les flags `usage_*`.
+   */
+  adresses: Adresse[];
 
   /** Contacts associés (souvent multiple pour les B2B). */
   contacts: Contact[];
@@ -186,6 +207,10 @@ export function newDocumentId(): string {
   return `doc_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 }
 
+export function newAdresseId(): string {
+  return `adresse_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+}
+
 /** Construit un client vide B2C. */
 export function emptyClientB2C(): ClientB2C {
   const now = Date.now();
@@ -195,7 +220,7 @@ export function emptyClientB2C(): ClientB2C {
     prenom: '',
     nom: '',
     email: '',
-    adresses_livraison: [],
+    adresses: [],
     contacts: [],
     tags: [],
     documents: [],
@@ -212,7 +237,7 @@ export function emptyClientB2B(): ClientB2B {
     type: 'b2b',
     raison_sociale: '',
     email: '',
-    adresses_livraison: [],
+    adresses: [],
     contacts: [],
     tags: [],
     documents: [],
@@ -228,6 +253,43 @@ export function emptyContact(): Contact {
     prenom: '',
     nom: '',
   };
+}
+
+/** Construit une adresse vide (cochée pour les deux usages par défaut). */
+export function emptyAdresse(): Adresse {
+  return {
+    id: newAdresseId(),
+    ligne1: '',
+    cp: '',
+    ville: '',
+    pays: 'France',
+    usage_facturation: true,
+    usage_livraison: true,
+  };
+}
+
+/** Renvoie l'adresse de facturation par défaut (ou la 1re marquée usage_facturation). */
+export function getAdresseFacturationDefaut(c: Client): Adresse | undefined {
+  return (
+    c.adresses.find((a) => a.defaut_facturation && a.usage_facturation) ??
+    c.adresses.find((a) => a.usage_facturation)
+  );
+}
+
+/** Renvoie l'adresse de livraison par défaut (ou la 1re marquée usage_livraison). */
+export function getAdresseLivraisonDefaut(c: Client): Adresse | undefined {
+  return (
+    c.adresses.find((a) => a.defaut_livraison && a.usage_livraison) ??
+    c.adresses.find((a) => a.usage_livraison)
+  );
+}
+
+/** Formate une adresse en chaîne lisible (lignes séparées par virgule). */
+export function formatAdresseInline(a: Adresse): string {
+  const parts = [a.ligne1, a.ligne2, `${a.cp} ${a.ville}`.trim(), a.pays ?? 'France'].filter(
+    (p) => p && p.trim().length > 0
+  );
+  return parts.join(', ');
 }
 
 // ============================================================
