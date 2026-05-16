@@ -22,7 +22,7 @@ const FINITION_TYPES: { value: BobinesFinitionType; label: string }[] = [
 
 
 export default function ParametresBobinesPage() {
-  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom } = useSettingsDraft(
+  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom, updatedAt } = useSettingsDraft(
     'bobines',
     defaultBobinesParams,
     { resetConfirmMessage: 'Réinitialiser tous les paramètres Bobines aux valeurs par défaut ?' }
@@ -33,6 +33,7 @@ export default function ParametresBobinesPage() {
       <SettingsHeader
         title="Paramètres Bobines / Étiquettes"
         subtitle="Matériaux adhésifs (vinyle, polyester…), machines, finitions et marges."
+        updatedAt={updatedAt}
       />
 
       {/* === MATÉRIAUX — délégué à la page catalogue partagée === */}

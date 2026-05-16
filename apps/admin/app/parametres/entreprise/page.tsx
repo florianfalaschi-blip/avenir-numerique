@@ -11,7 +11,7 @@ import {
 } from '../_shared';
 
 export default function ParametresEntreprisePage() {
-  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom } = useSettingsDraft(
+  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom, updatedAt } = useSettingsDraft(
     'config.entreprise',
     defaultEntreprise,
     {
@@ -24,6 +24,7 @@ export default function ParametresEntreprisePage() {
       <SettingsHeader
         title="Informations entreprise"
         subtitle="Coordonnées légales et bancaires affichées dans l'en-tête et le pied de page des devis et factures."
+        updatedAt={updatedAt}
       />
 
       {/* === IDENTITÉ LÉGALE === */}

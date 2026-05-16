@@ -14,7 +14,7 @@ import {
 } from '../_shared';
 
 export default function ParametresRollupPage() {
-  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom } = useSettingsDraft(
+  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom, updatedAt } = useSettingsDraft(
     'rollup',
     defaultRollupParams,
     { resetConfirmMessage: 'Réinitialiser tous les paramètres Roll-up aux valeurs par défaut ?' }
@@ -25,6 +25,7 @@ export default function ParametresRollupPage() {
       <SettingsHeader
         title="Paramètres Roll-up"
         subtitle="Bâches, structures, machines, marges et dégressif. Les modifications s’appliquent immédiatement au calculateur après enregistrement."
+        updatedAt={updatedAt}
       />
 
       {/* === BÂCHES === */}

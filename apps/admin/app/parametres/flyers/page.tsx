@@ -23,7 +23,7 @@ const FINITION_TYPES: { value: FlyersFinitionType; label: string }[] = [
 
 
 export default function ParametresFlyersPage() {
-  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom } = useSettingsDraft(
+  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom, updatedAt } = useSettingsDraft(
     'flyers',
     defaultFlyersParams,
     { resetConfirmMessage: 'Réinitialiser tous les paramètres Flyers aux valeurs par défaut ?' }
@@ -34,6 +34,7 @@ export default function ParametresFlyersPage() {
       <SettingsHeader
         title="Paramètres Flyers / Affiches"
         subtitle="Machines (offset + numérique), papiers, finitions, seuil offset et marges séparées."
+        updatedAt={updatedAt}
       />
 
       {/* === MACHINES === */}

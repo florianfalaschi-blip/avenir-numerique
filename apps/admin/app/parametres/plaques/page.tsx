@@ -22,7 +22,7 @@ const FINITION_TYPES: { value: FinitionType; label: string }[] = [
 ];
 
 export default function ParametresPlaquesPage() {
-  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom } = useSettingsDraft(
+  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom, updatedAt } = useSettingsDraft(
     'plaques',
     defaultPlaquesParams,
     { resetConfirmMessage: 'Réinitialiser tous les paramètres Plaques aux valeurs par défaut ?' }
@@ -33,6 +33,7 @@ export default function ParametresPlaquesPage() {
       <SettingsHeader
         title="Paramètres Plaques / Signalétique"
         subtitle="Matériaux (PVC, Forex, Dibond…), machine Mutoh, découpe Zund, finitions et marges."
+        updatedAt={updatedAt}
       />
 
       {/* === MATÉRIAUX (avec formats d'achat nestés) === */}

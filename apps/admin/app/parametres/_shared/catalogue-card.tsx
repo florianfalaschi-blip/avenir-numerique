@@ -41,17 +41,18 @@ export function CatalogueCard<T extends { id: string; nom: string }>({
 }) {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="px-4 pt-3 pb-2 space-y-0">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <CardTitle className="text-xl">{title}</CardTitle>
-          <Button variant="outline" size="sm" onClick={onAdd}>
+          <CardTitle className="text-base">{title}</CardTitle>
+          <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" onClick={onAdd}>
             {addLabel}
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
+      <CardContent className="px-4 pb-3 pt-0">
+        {/* [&_input]:h-8 réduit la hauteur des Input dans les rows */}
+        <div className="space-y-1 [&_input]:h-8 [&_input]:text-sm [&_input]:px-2">
+          <div className="grid grid-cols-12 gap-1.5 text-[10px] font-medium text-muted-foreground/80 uppercase tracking-wide px-1 pb-0.5">
             {columns.map((c) => (
               <div key={c.label} className={spanClass(c.span)}>
                 {c.label}
@@ -60,17 +61,17 @@ export function CatalogueCard<T extends { id: string; nom: string }>({
             <div className="col-span-1" />
           </div>
           {items.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-3">
+            <p className="text-xs text-muted-foreground py-2">
               Aucun élément. Clique « {addLabel} » pour en créer un.
             </p>
           ) : (
             items.map((item, i) => (
-              <div key={item.id} className="grid grid-cols-12 gap-2 items-center">
+              <div key={item.id} className="grid grid-cols-12 gap-1.5 items-center">
                 {renderRow(item, i)}
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="col-span-1 text-muted-foreground hover:text-destructive"
+                  className="col-span-1 h-7 w-7 text-muted-foreground hover:text-destructive"
                   onClick={() => onRemove(i)}
                   aria-label={`Supprimer ${item.nom}`}
                   disabled={items.length <= minItems}
@@ -85,7 +86,7 @@ export function CatalogueCard<T extends { id: string; nom: string }>({
               </div>
             ))
           )}
-          {hint && <div className="text-xs text-muted-foreground pt-1">{hint}</div>}
+          {hint && <div className="text-[11px] text-muted-foreground pt-1">{hint}</div>}
         </div>
       </CardContent>
     </Card>

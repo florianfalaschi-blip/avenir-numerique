@@ -41,7 +41,7 @@ const FACONNAGE_TYPES: { value: BrochuresReliureType | 'plieuse'; label: string 
 
 
 export default function ParametresBrochuresPage() {
-  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom } = useSettingsDraft(
+  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom, updatedAt } = useSettingsDraft(
     'brochures',
     defaultBrochuresParams,
     {
@@ -55,6 +55,7 @@ export default function ParametresBrochuresPage() {
       <SettingsHeader
         title="Paramètres Brochures"
         subtitle="Machines impression + façonnage, reliures, papiers, finitions et marges prorata techno."
+        updatedAt={updatedAt}
       />
 
       {/* === MACHINES IMPRESSION === */}

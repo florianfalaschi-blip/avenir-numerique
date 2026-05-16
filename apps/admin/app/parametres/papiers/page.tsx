@@ -27,7 +27,7 @@ function updatePapier(
 }
 
 export default function ParametresPapiersPage() {
-  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom } = useSettingsDraft<
+  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom, updatedAt } = useSettingsDraft<
     SharedPapierConfig[]
   >('shared.papiers', defaultSharedPapiers, {
     resetConfirmMessage: 'Réinitialiser le catalogue papiers aux valeurs par défaut ?',
@@ -38,6 +38,7 @@ export default function ParametresPapiersPage() {
       <SettingsHeader
         title="Catalogue Papiers"
         subtitle="Catalogue partagé utilisé par les calculateurs Flyers et Brochures. Chaque papier garde l'horodatage de sa dernière modification."
+        updatedAt={updatedAt}
       />
 
       <Card>

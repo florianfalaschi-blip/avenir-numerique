@@ -26,6 +26,7 @@ export function useSettingsDraft<T>(
     reset,
     hydrated,
     isCustom,
+    updatedAt,
   } = useSettings(slug, defaults);
 
   const [draft, setDraft] = useState<T>(persisted);
@@ -76,5 +77,6 @@ export function useSettingsDraft<T>(
     savedAt,
     isCustom,
     hydrated,
+    updatedAt,
   };
 }

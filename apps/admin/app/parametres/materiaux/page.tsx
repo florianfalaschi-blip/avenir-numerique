@@ -80,6 +80,12 @@ export default function ParametresMateriauxPage() {
       <SettingsHeader
         title="Catalogue Matériaux"
         subtitle="Matériaux Plaques (PVC, Forex, Dibond…) et Bobines (vinyle, polyester…). Horodatage par matériau."
+        updatedAt={
+          // Date max entre plaques et bobines
+          [plaques.updatedAt, bobines.updatedAt]
+            .filter((d): d is string => Boolean(d))
+            .reduce<string | null>((a, b) => (a === null || b > a ? b : a), null)
+        }
       />
 
       {/* === MATÉRIAUX PLAQUES === */}

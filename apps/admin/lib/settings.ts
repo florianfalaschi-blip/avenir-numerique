@@ -27,22 +27,23 @@ import { getSupabase } from './supabase';
 export async function loadFromSupabase<T>(slug: string, defaults: T): Promise<{
   value: T;
   isCustom: boolean;
+  updatedAt: string | null;
 }> {
   try {
     const { data, error } = await getSupabase()
       .from('app_settings')
-      .select('value')
+      .select('value, updated_at')
       .eq('key', slug)
       .maybeSingle();
     if (error) {
       console.error(`[settings] load failed for "${slug}":`, error.message);
-      return { value: defaults, isCustom: false };
+      return { value: defaults, isCustom: false, updatedAt: null };
     }
-    if (!data) return { value: defaults, isCustom: false };
-    return { value: data.value as T, isCustom: true };
+    if (!data) return { value: defaults, isCustom: false, updatedAt: null };
+    return { value: data.value as T, isCustom: true, updatedAt: data.updated_at };
   } catch (e) {
     console.error(`[settings] load exception for "${slug}":`, e);
-    return { value: defaults, isCustom: false };
+    return { value: defaults, isCustom: false, updatedAt: null };
   }
 }
 
@@ -84,6 +85,8 @@ interface UseSettingsResult<T> {
   reset: () => void;
   hydrated: boolean;
   isCustom: boolean;
+  /** ISO date string de la dernière modif côté Supabase. null si pas encore custom. */
+  updatedAt: string | null;
 }
 
 /**
@@ -101,6 +104,7 @@ export function useSettings<T>(slug: string, defaults: T): UseSettingsResult<T> 
   const [value, setValue] = useState<T>(defaults);
   const [hydrated, setHydrated] = useState(false);
   const [isCustom, setIsCustom] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const lastSavedRef = useRef<T>(defaults);
 
   // Reset hydrated lorsqu'on change de slug (rare)
@@ -114,6 +118,7 @@ export function useSettings<T>(slug: string, defaults: T): UseSettingsResult<T> 
       // Pas connecté : on garde les defaults, on indique "non hydraté" depuis Supabase
       setValue(defaults);
       setIsCustom(false);
+      setUpdatedAt(null);
       setHydrated(false);
       return;
     }
@@ -123,6 +128,7 @@ export function useSettings<T>(slug: string, defaults: T): UseSettingsResult<T> 
       if (cancelled) return;
       setValue(result.value);
       setIsCustom(result.isCustom);
+      setUpdatedAt(result.updatedAt);
       lastSavedRef.current = result.value;
       setHydrated(true);
     })();
@@ -135,6 +141,7 @@ export function useSettings<T>(slug: string, defaults: T): UseSettingsResult<T> 
   const update = (next: T) => {
     setValue(next);
     setIsCustom(true);
+    setUpdatedAt(new Date().toISOString()); // optimistic — Supabase pose le sien aussi
     lastSavedRef.current = next;
     void saveToSupabase(slug, next);
   };
@@ -142,11 +149,118 @@ export function useSettings<T>(slug: string, defaults: T): UseSettingsResult<T> 
   const reset = () => {
     setValue(defaults);
     setIsCustom(false);
+    setUpdatedAt(null);
     lastSavedRef.current = defaults;
     void deleteFromSupabase(slug);
   };
 
-  return { value, update, reset, hydrated, isCustom };
+  return { value, update, reset, hydrated, isCustom, updatedAt };
+}
+
+// ============================================================
+// Hook batch : meta (updated_at) pour plusieurs clés à la fois
+// ============================================================
+
+/**
+ * Récupère les `updated_at` de plusieurs clés d'un coup, sans charger le JSON
+ * entier. Pratique pour la page index /parametres qui affiche un statut
+ * "modifié le …" sur chaque carte.
+ *
+ * Retourne un map `{ slug: ISO string | undefined }`. Les clés absentes de
+ * Supabase ne sont pas dans le map (= jamais modifiées).
+ */
+export function useSettingsMeta(
+  slugs: readonly string[]
+): { meta: Record<string, string>; loading: boolean } {
+  const { user } = useAuth();
+  const [meta, setMeta] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const key = slugs.join('|'); // stable dep pour effet
+
+  useEffect(() => {
+    if (!user) {
+      setMeta({});
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      try {
+        const { data, error } = await getSupabase()
+          .from('app_settings')
+          .select('key, updated_at')
+          .in('key', [...slugs]);
+        if (cancelled) return;
+        if (error) {
+          console.error('[settings] meta load failed:', error.message);
+          setLoading(false);
+          return;
+        }
+        const next: Record<string, string> = {};
+        (data ?? []).forEach((row) => {
+          next[row.key] = row.updated_at;
+        });
+        setMeta(next);
+        setLoading(false);
+      } catch (e) {
+        if (!cancelled) {
+          console.error('[settings] meta exception:', e);
+          setLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, user?.id]);
+
+  return { meta, loading };
+}
+
+// ============================================================
+// Formatage des dates de modification
+// ============================================================
+
+/**
+ * Formate une date de dernière modif pour affichage compact.
+ * - < 1h → "à l'instant" / "il y a X min"
+ * - < 24h → "il y a Xh"
+ * - < 7j → "il y a X j"
+ * - sinon → "le DD/MM/YYYY"
+ */
+export function formatLastModified(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const diffMs = Date.now() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60_000);
+  const diffHours = Math.floor(diffMin / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffMin < 1) return "à l'instant";
+  if (diffMin < 60) return `il y a ${diffMin} min`;
+  if (diffHours < 24) return `il y a ${diffHours}h`;
+  if (diffDays < 7) return `il y a ${diffDays} j`;
+  return `le ${new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date)}`;
+}
+
+/** Version longue pour les tooltips : "16/05/2026 à 14:32". */
+export function formatLastModifiedFull(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
 }
 
 // ============================================================
