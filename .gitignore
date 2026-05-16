@@ -1,45 +1,82 @@
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
+# ============================================================
+# AVENIR NUMERIQUE - .gitignore
+# ============================================================
 
-# Build outputs
+# === Dépendances ===
+node_modules/
+.pnpm-store/
+.yarn/
+package-lock.json
+yarn.lock
+
+# === Build & cache ===
 .next/
+out/
 dist/
 build/
-out/
-
-# Turbo
 .turbo/
+.swc/
+*.tsbuildinfo
 
-# Environment variables
+# === Variables d'environnement (SENSIBLES !) ===
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env*.local
+.env.*.local
+.env.development
+.env.production
+*.env
 
-# Logs
+# === IDE / Editeur ===
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# === Logs ===
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Editor
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Testing
+# === Tests ===
 coverage/
-playwright-report/
+.nyc_output/
 test-results/
+playwright-report/
+playwright/.cache/
 
-# Misc
-*.tsbuildinfo
+# === Supabase ===
+supabase/.branches/
+supabase/.temp/
+
+# === Sentry ===
+.sentryclirc
+
+# === Autres ===
+*.tgz
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# === Fichiers temporaires utilisateur ===
+*.tmp
+*.bak
+*.backup
+*.old

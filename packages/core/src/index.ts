@@ -1,25 +1,107 @@
 /**
- * @avenir/core — Moteurs de calcul Avenir Numérique
- *
- * Ce package contient les 5 calculateurs TypeScript purs :
- * - Roll-up
- * - Plaques / Signalétique
- * - Flyers / Affiches
- * - Bobines / Étiquettes
- * - Brochures
- *
- * Ces modules sont partagés entre apps/admin et apps/web.
- * Aucune dépendance UI. Aucune dépendance réseau.
- * Entrée : objet de configuration + paramètres
- * Sortie : objet de résultat détaillé (coûts par poste, prix HT, prix TTC)
+ * @avenir/core — Moteurs de calcul métier
  */
 
-// Calculateurs (à implémenter par le collègue)
-export * from './calculateurs/rollup'
-export * from './calculateurs/plaques'
-export * from './calculateurs/flyers'
-export * from './calculateurs/bobines'
-export * from './calculateurs/brochures'
+export const VERSION = '0.1.0';
 
-// Types partagés
-export * from './types'
+// Calepinage (helper partagé)
+export { calepiner } from './calculators/calepinage';
+export type { CalepinageInput, CalepinageOutput } from './calculators/calepinage';
+
+// Roll-up
+export { calcRollup, RollupCalcError } from './calculators/rollup';
+export type {
+  RollupInput,
+  RollupParams,
+  RollupResult,
+  BacheConfig,
+  StructureConfig,
+  MachineConfig,
+  DegressifSeuil,
+} from './types/rollup';
+
+// Plaques
+export { calcPlaques, PlaquesCalcError } from './calculators/plaques';
+export type {
+  PlaquesInput,
+  PlaquesParams,
+  PlaquesResult,
+  CalepinageResult,
+  MateriauConfig,
+  FormatAchatMateriau,
+  MachineImpressionConfig,
+  MachineDecoupeConfig,
+  FinitionConfig,
+  FinitionType,
+  TailleStandard,
+  TailleStandardConfig,
+  DegressifSeuilPlaques,
+  DimensionMode,
+  DecoupeMode,
+} from './types/plaques';
+
+// Flyers / Affiches
+export { calcFlyers, FlyersCalcError } from './calculators/flyers';
+export type {
+  FlyersInput,
+  FlyersParams,
+  FlyersResult,
+  FlyersImpressionDetail,
+  FlyersMachineConfig,
+  FlyersPapierConfig,
+  FlyersPapierFormat,
+  FlyersFormatStandardConfig,
+  FlyersFinitionConfig,
+  FlyersFinitionType,
+  FlyersDegressifSeuil,
+  FlyersDimensionMode,
+  FlyersTailleStandard,
+  RectoVerso,
+  TechnoMode,
+  Techno,
+} from './types/flyers';
+
+// Bobines / Étiquettes
+export { calcBobines, BobinesCalcError } from './calculators/bobines';
+export type {
+  BobinesInput,
+  BobinesParams,
+  BobinesResult,
+  BobinesMatiereResult,
+  BobinesMateriauConfig,
+  BobinesRouleauConfig,
+  BobinesMachineImpressionConfig,
+  BobinesMachineDecoupeConfig,
+  BobinesFinitionConfig,
+  BobinesFinitionType,
+  BobinesDegressifSeuil,
+  BobinesForme,
+  BobinesConditionnement,
+  BobinesDecoupeMode,
+  BobinesMethodeCalcul,
+} from './types/bobines';
+
+// Brochures
+export { calcBrochures, BrochuresCalcError } from './calculators/brochures';
+export type {
+  BrochuresInput,
+  BrochuresParams,
+  BrochuresResult,
+  BrochuresImpressionDetail,
+  BrochuresMachineImpressionConfig,
+  BrochuresMachineFaconnageConfig,
+  BrochuresReliureConfig,
+  BrochuresPapierConfig,
+  BrochuresPapierFormat,
+  BrochuresFormatStandardConfig,
+  BrochuresFinitionConfig,
+  BrochuresFinitionType,
+  BrochuresDegressifSeuil,
+  BrochuresDimensionMode,
+  BrochuresTailleStandard,
+  BrochuresCouleur,
+  BrochuresTechnoMode,
+  BrochuresTechno,
+  BrochuresPoste,
+  BrochuresReliureType,
+} from './types/brochures';

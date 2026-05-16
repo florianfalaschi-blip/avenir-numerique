@@ -1,19 +1,22 @@
 /**
- * @avenir/ui — Composants UI partagés
+ * @avenir/ui — Composants UI partagés (admin + e-commerce)
  *
- * Basé sur shadcn/ui + Tailwind CSS.
- * Ces composants sont utilisés par apps/admin et apps/web.
- *
- * Installer shadcn/ui dans chaque app avec :
- *   npx shadcn-ui@latest init
- *
- * Les composants seront ajoutés ici au fur et à mesure.
+ * Basé sur shadcn/ui (composants copy-paste, customisables).
+ * Style : Tailwind CSS avec variables CSS pour le thème.
  */
 
-// Exemples à venir :
-// export { Button } from './button'
-// export { Input } from './input'
-// export { Badge } from './badge'
-// export { StatusBadge } from './status-badge'
+export { cn } from './lib/utils';
 
-export {}
+// Composants de base
+export { Button, buttonVariants, type ButtonProps } from './components/button';
+export { Input, type InputProps } from './components/input';
+export { Label, type LabelProps } from './components/label';
+export { Pill, type PillProps } from './components/pill';
+export {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from './components/card';

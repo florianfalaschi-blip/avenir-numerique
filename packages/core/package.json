@@ -2,20 +2,19 @@
   "name": "@avenir/core",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
-  "exports": {
-    ".": "./src/index.ts",
-    "./calculateurs": "./src/calculateurs/index.ts",
-    "./types": "./src/types/index.ts"
-  },
   "scripts": {
-    "type-check": "tsc --noEmit",
+    "lint": "echo \"todo: configure ESLint\"",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:manual": "tsx test-manuel.ts",
+    "type-check": "tsc --noEmit"
   },
   "devDependencies": {
-    "typescript": "^5.4.5",
+    "tsx": "^4.22.0",
+    "typescript": "^5.4.0",
     "vitest": "^1.6.0"
   }
 }

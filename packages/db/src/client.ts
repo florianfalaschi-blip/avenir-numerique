@@ -1,32 +1,41 @@
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from './types/database'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from './types';
+
+export type AvenirSupabaseClient = SupabaseClient<Database>;
 
 /**
- * Client Supabase côté serveur (service role — jamais exposé au client)
+ * Factory client Supabase typé — côté navigateur (anon key).
+ *
+ * Usage :
+ * ```ts
+ * const supabase = createSupabaseBrowserClient(
+ *   process.env.NEXT_PUBLIC_SUPABASE_URL!,
+ *   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+ * );
+ * ```
  */
-export function createServerClient() {
-  const url = process.env['NEXT_PUBLIC_SUPABASE_URL']
-  const key = process.env['SUPABASE_SERVICE_ROLE_KEY']
-
-  if (!url || !key) {
-    throw new Error('Variables SUPABASE manquantes dans .env')
-  }
-
-  return createClient<Database>(url, key, {
-    auth: { persistSession: false },
-  })
+export function createSupabaseBrowserClient(
+  url: string,
+  anonKey: string
+): AvenirSupabaseClient {
+  return createClient<Database>(url, anonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
 }
 
 /**
- * Client Supabase côté navigateur (anon key)
+ * Factory client Supabase — côté serveur (service role key).
+ * NE JAMAIS exposer côté client/navigateur.
  */
-export function createBrowserClient() {
-  const url = process.env['NEXT_PUBLIC_SUPABASE_URL']
-  const key = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']
-
-  if (!url || !key) {
-    throw new Error('Variables SUPABASE manquantes dans .env')
-  }
-
-  return createClient<Database>(url, key)
+export function createSupabaseServerClient(
+  url: string,
+  serviceRoleKey: string
+): AvenirSupabaseClient {
+  return createClient<Database>(url, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
 }

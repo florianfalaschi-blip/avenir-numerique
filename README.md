@@ -1,106 +1,134 @@
-# Avenir Numérique — Plateforme e-commerce d'imprimerie
+# 🖨️ Avenir Numérique — Plateforme e-commerce & Back-office
 
-Monorepo Turborepo — Site e-commerce multi-marques + Back-office
+> Plateforme intégrée de gestion commerciale et site e-commerce pour Avenir Numérique, imprimerie professionnelle.
 
-## Structure
+[![Status](https://img.shields.io/badge/Status-Phase%200%20%E2%80%94%20Planification-blue)]()
+[![License](https://img.shields.io/badge/License-Propri%C3%A9taire-red)]()
 
-```
-avenir-numerique/
-├── apps/
-│   ├── admin/          ← Back-office (port 3001)
-│   └── web/            ← Site e-commerce public (port 3000)
-├── packages/
-│   ├── core/           ← Moteurs de calcul TypeScript (5 calculateurs)
-│   ├── db/             ← Types Supabase + migrations SQL
-│   └── ui/             ← Composants shadcn/ui partagés
-├── .github/workflows/  ← CI GitHub Actions
-├── turbo.json
-└── package.json
-```
+---
 
-## Stack technique
+## 🎯 Vue d'ensemble
+
+Cette plateforme remplace progressivement l'outil monolithique actuel et apporte :
+
+- 🏢 **Back-office complet** : 5 calculateurs métier, gestion devis, clients, production, expédition, facturation
+- 🛒 **Site e-commerce B2B + B2C** : catalogue, configurateur de prix, panier, BAT en ligne, espace client
+- 🔄 **Sync temps réel** entre les deux applications via Supabase
+- 🇫🇷 **Souveraineté européenne** : hébergement Scaleway, données Supabase en région Frankfurt
+
+## 📐 Stack technique
 
 | Couche | Choix |
-|--------|-------|
-| Backend / BDD | Supabase (PostgreSQL) |
-| Langage | TypeScript strict |
-| Framework front | Next.js 15 (App Router) |
+|---|---|
+| Langage | TypeScript |
+| Framework | Next.js 15 (App Router) |
 | UI | shadcn/ui + Tailwind CSS |
-| Formulaires | React Hook Form + Zod |
-| Tests | Vitest + Playwright |
-| Hébergement | Scaleway |
-| Emails | Resend |
+| Backend / DB | Supabase (PostgreSQL + Auth + Storage + Realtime + Edge Functions) |
+| Forms | React Hook Form + Zod |
+| Tests | Vitest (unit) + Playwright (e2e) |
+| Monorepo | Turborepo |
+| Hébergement | Scaleway Containers 🇫🇷 |
+| Email | Resend |
 | Paiement | Stripe |
 | Monitoring | Sentry |
 | Analytics | Plausible |
 
-## Installation
+Voir [`docs/STACK_TECHNIQUE.pdf`](./docs/STACK_TECHNIQUE.pdf) pour la version complète.
+
+## 🏗️ Structure du monorepo
+
+```
+avenir-numerique/
+├── apps/
+│   ├── admin/              # Back-office (calculateurs, devis, prod, clients)
+│   └── web/                # Site e-commerce public
+├── packages/
+│   ├── core/               # Moteurs de calcul (TS pur, testés)
+│   ├── db/                 # Types Supabase générés, repositories
+│   └── ui/                 # Composants UI partagés
+├── docs/                   # Documentation métier
+├── .github/                # CI/CD workflows
+├── turbo.json              # Config Turborepo
+└── package.json            # Workspaces racine
+```
+
+## 📋 Documentation métier
+
+| Document | Contenu |
+|---|---|
+| [`docs/SPEC_Calculateurs.md`](./docs/SPEC_Calculateurs.md) | Spécifications des 5 calculateurs avec formules |
+| [`docs/WORKFLOWS.md`](./docs/WORKFLOWS.md) | Parcours client + interne |
+| [`docs/STACK_TECHNIQUE.pdf`](./docs/STACK_TECHNIQUE.pdf) | Stack technique définitif |
+
+## 🚀 Roadmap
+
+### ✅ Phase 0 — Préparation (FAIT)
+- [x] Spécifications calculateurs
+- [x] Workflows utilisateurs
+- [x] Stack technique validé
+- [x] Création du dépôt GitHub
+
+### ⏳ Phase 1 — Brief & chiffrage
+- [ ] Brief freelance
+- [ ] Réception devis (cible : 25-50k€ HT)
+- [ ] Sélection prestataire
+
+### ⏳ Phase 2 — Fondations techniques (2-3 semaines)
+- [ ] Setup monorepo Turborepo + Next.js + TypeScript
+- [ ] Configuration Supabase (réutilisation projet existant)
+- [ ] CI/CD GitHub Actions
+- [ ] Tests sur les moteurs de calcul
+
+### ⏳ Phase 3 — Back-office (4-6 semaines)
+- [ ] Réécriture des 5 calculateurs en TypeScript
+- [ ] Pages clients / devis / production / historique
+- [ ] Génération PDF (devis, factures, BAT)
+
+### ⏳ Phase 4 — Site e-commerce (4-6 semaines)
+- [ ] Catalogue + configurateur
+- [ ] Panier + checkout Stripe
+- [ ] Espace client
+- [ ] Emails transactionnels
+
+### ⏳ Phase 5 — Ops & lancement (2-3 semaines)
+- [ ] Intégration transporteurs
+- [ ] Reporting / dashboards
+- [ ] Tests utilisateurs
+- [ ] Mise en production
+
+## 💻 Développement local
 
 ```bash
-# Cloner le repo
-git clone https://github.com/florianfalaschi-blip/avenir-numerique.git
-cd avenir-numerique
-
 # Installer les dépendances
-npm install
+pnpm install
 
-# Copier les variables d'environnement
-cp .env.example apps/admin/.env.local
-cp .env.example apps/web/.env.local
-# Puis remplir les valeurs dans chaque .env.local
+# Lancer en mode dev
+pnpm dev
+
+# Lancer les tests
+pnpm test
+
+# Build production
+pnpm build
 ```
 
-## Développement
+## 🔐 Variables d'environnement
 
-```bash
-# Lancer toutes les apps en parallèle
-npm run dev
+Voir `.env.example` pour la liste complète. Variables sensibles requises :
 
-# Admin uniquement (port 3001)
-cd apps/admin && npm run dev
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (back-office uniquement)
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `RESEND_API_KEY`
+- `SENTRY_DSN`
 
-# Site web uniquement (port 3000)
-cd apps/web && npm run dev
-```
+## 📞 Contact
 
-## Base de données
+**Florian Falaschi** — Avenir Numérique
+📧 florian.falaschi@avenirnumerique.fr
 
-```bash
-# Initialiser Supabase en local
-cd packages/db
-npx supabase init
-npx supabase start
-npx supabase db push  # Applique les migrations
+---
 
-# Regénérer les types TypeScript depuis le schéma
-npm run generate-types
-```
-
-## Tests
-
-```bash
-# Tests unitaires (tous)
-npm run test
-
-# Tests unitaires en watch
-cd packages/core && npm run test:watch
-
-# Tests e2e
-cd apps/web && npm run test:e2e
-```
-
-## Architecture multi-tenant
-
-Chaque commande / client / devis porte :
-- `tenant_id` → la **marque** (ex: avenir-numerique, imprim-eco)
-- `entity_id` → l'**entité juridique** (Entité A, Entité B)
-
-La RLS Supabase assure l'isolation stricte : un client de la marque A ne peut jamais accéder aux données de la marque B.
-
-## Modules à développer
-
-Voir la feuille de route dans les specs :
-- `SPEC_Calculateurs_Avenir_Numerique.md`
-- `SPEC_WORKFLOWS_Avenir_Numerique.md`
-- `SPEC_STACK_TECHNIQUE_Avenir_Numerique.pdf`
-- `CDC_Site_e-commerce.docx`
+© 2026 Avenir Numérique — Tous droits réservés. Code propriétaire.
