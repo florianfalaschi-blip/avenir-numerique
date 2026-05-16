@@ -18,6 +18,7 @@ import { useEffect, useState } from 'react';
 const PREFIX_CALC = 'avenir.calc';
 const PREFIX_SHARED = 'avenir.shared';
 const PREFIX_DATA = 'avenir.data';
+const PREFIX_CONFIG = 'avenir.config';
 
 /**
  * Version du shape des paramètres par slug.
@@ -38,6 +39,7 @@ const VERSIONS: Record<string, string> = {
   'shared.papiers': 'v1',
   'data.clients': 'v3', // v3 : carnet d'adresses unifié (adresses[] avec usages multiples)
   'data.devis': 'v1',
+  'config.entreprise': 'v1',
 };
 
 export function settingsKey(slug: string): string {
@@ -49,6 +51,9 @@ export function settingsKey(slug: string): string {
   } else if (slug.startsWith('data.')) {
     prefix = PREFIX_DATA;
     cleanSlug = slug.replace(/^data\./, '');
+  } else if (slug.startsWith('config.')) {
+    prefix = PREFIX_CONFIG;
+    cleanSlug = slug.replace(/^config\./, '');
   } else {
     prefix = PREFIX_CALC;
     cleanSlug = slug;

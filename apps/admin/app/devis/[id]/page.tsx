@@ -125,13 +125,16 @@ export default function DevisDetailPage({
             {date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
-        {client && (
-          <Link href={`/calculateurs/${devis.calculateur}?devis_pour=${client.id}`}>
-            <Button variant="outline">
-              Re-calculer pour ce client →
-            </Button>
+        <div className="flex gap-2 flex-wrap">
+          <Link href={`/devis/${devis.id}/imprimer`}>
+            <Button variant="accent">🖨️ Imprimer / PDF</Button>
           </Link>
-        )}
+          {client && (
+            <Link href={`/calculateurs/${devis.calculateur}?devis_pour=${client.id}`}>
+              <Button variant="outline">Re-calculer pour ce client →</Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

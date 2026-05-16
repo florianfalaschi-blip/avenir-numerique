@@ -55,3 +55,42 @@
     @apply tracking-tight;
   }
 }
+
+/* ===========================================================
+   PRINT — règles spécifiques pour la génération PDF
+   (utilisées via Imprimer → Enregistrer comme PDF du navigateur).
+   =========================================================== */
+@page {
+  size: A4;
+  margin: 1.5cm 1.5cm 2cm 1.5cm;
+}
+
+@media print {
+  /* Couleurs et fonds forcés pour rendu fidèle */
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* Réinitialise les marges pour utiliser tout l'A4 */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+  /* Pas de fond coloré sur les cartes en print */
+  .print-no-bg {
+    background: transparent !important;
+  }
+  /* Évite les coupures de page au milieu d'éléments */
+  .print-keep {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  /* Liens en noir pur (pas de bleu underline) */
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+}

@@ -30,12 +30,17 @@ const SHARED_CATALOGUES: {
   },
   {
     slug: 'materiaux',
-    // Pas de clé localStorage propre — la page Matériaux édite directement
-    // plaques.materiaux + bobines.materiaux. On marque "modifié" si l'un des deux l'est.
     storageKey: 'plaques+bobines',
     label: 'Catalogue Matériaux',
     description: 'Matériaux Plaques (PVC, Forex, Dibond…) et Bobines (vinyle, polyester…).',
     badge: 'Plaques · Bobines',
+  },
+  {
+    slug: 'entreprise',
+    storageKey: 'config.entreprise',
+    label: 'Informations entreprise',
+    description: 'Raison sociale, SIRET, TVA, IBAN, logo, mentions légales — imprimés sur les devis.',
+    badge: 'PDF Devis',
   },
 ];
 
@@ -50,6 +55,7 @@ export default function ParametresPage() {
     next['shared.papiers'] = hasCustomSettings('shared.papiers');
     next['plaques+bobines'] =
       hasCustomSettings('plaques') || hasCustomSettings('bobines');
+    next['config.entreprise'] = hasCustomSettings('config.entreprise');
     setCustom(next);
   }, []);
 
@@ -68,7 +74,7 @@ export default function ParametresPage() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Catalogues partagés
         </h2>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {SHARED_CATALOGUES.map((sc) => {
             const isCustom = custom[sc.storageKey];
             return (
