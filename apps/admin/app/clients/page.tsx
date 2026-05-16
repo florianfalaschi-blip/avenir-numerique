@@ -74,13 +74,13 @@ export default function ClientsListPage() {
       )}
 
       <Card>
-        <CardHeader>
+        <CardHeader className="px-3 pt-2.5 pb-2.5 space-y-0">
           <Input
             type="search"
             placeholder="Rechercher (nom, raison sociale, email, tag…)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-md"
+            className="max-w-md h-9 text-sm"
           />
         </CardHeader>
         <CardContent className="p-0">

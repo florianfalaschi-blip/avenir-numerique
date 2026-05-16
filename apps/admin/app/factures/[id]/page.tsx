@@ -229,10 +229,10 @@ export default function FactureDetailPage({
         <div className="lg:col-span-2 space-y-6">
           {/* Client */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Client</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Client</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0">
               {client ? (
                 <Link
                   href={`/clients/${client.id}`}
@@ -260,13 +260,13 @@ export default function FactureDetailPage({
 
           {/* Paiements */}
           <Card>
-            <CardHeader>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
               <div className="flex items-baseline justify-between gap-2 flex-wrap">
                 <div>
-                  <CardTitle className="text-xl">
+                  <CardTitle className="text-sm">
                     Paiements ({facture.paiements.length})
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-[11px]">
                     Encaissé : {fmtEur(paye)} sur {fmtEur(facture.montant_ttc)} TTC
                     {restant > 0.01 && (
                       <span className="text-accent font-medium">
@@ -279,6 +279,7 @@ export default function FactureDetailPage({
                 <Button
                   variant="outline"
                   size="sm"
+                  className="h-6 px-2 text-[11px]"
                   onClick={handleAddPaiement}
                   disabled={facture.statut === 'brouillon' || estPayee(facture)}
                   title={
@@ -291,9 +292,9 @@ export default function FactureDetailPage({
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0">
               {facture.paiements.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-2">
+                <p className="text-xs text-muted-foreground py-1">
                   Aucun paiement enregistré.
                 </p>
               ) : (
@@ -313,12 +314,12 @@ export default function FactureDetailPage({
 
           {/* Notes */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Notes</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Notes</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0">
               <textarea
-                className="flex w-full min-h-20 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex w-full min-h-16 rounded-md border border-input bg-background px-2 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={notes}
                 placeholder="Spécificités, conditions particulières…"
                 onChange={(e) => setNotes(e.target.value)}
@@ -330,11 +331,11 @@ export default function FactureDetailPage({
           {/* Snapshot */}
           {facture.snapshot_recap && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Détail (snapshot)</CardTitle>
+              <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+                <CardTitle className="text-sm">Détail (snapshot)</CardTitle>
               </CardHeader>
-              <CardContent>
-                <pre className="text-xs whitespace-pre-wrap bg-secondary/30 p-3 rounded font-mono">
+              <CardContent className="px-3 pb-2.5 pt-0">
+                <pre className="text-xs whitespace-pre-wrap bg-secondary/30 p-2 rounded font-mono">
                   {facture.snapshot_recap}
                 </pre>
               </CardContent>
@@ -346,10 +347,10 @@ export default function FactureDetailPage({
         <aside className="space-y-6 lg:sticky lg:top-6 lg:self-start">
           {/* Montant + barre de progression */}
           <Card className="border-accent/30">
-            <CardHeader>
-              <CardTitle className="text-base">Montant</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Montant</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="px-3 pb-2.5 pt-0 space-y-2.5">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">HT</span>
                 <span>{fmtEur(facture.montant_ht)}</span>
@@ -395,10 +396,10 @@ export default function FactureDetailPage({
 
           {/* Statut */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Statut</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Statut</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0">
               <Select
                 value={facture.statut}
                 onChange={(e) => handleStatutChange(e.target.value as FactureStatut)}
@@ -421,10 +422,10 @@ export default function FactureDetailPage({
           {/* Échéance */}
           {facture.date_emission && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Échéance</CardTitle>
+              <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+                <CardTitle className="text-sm">Échéance</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-3 pb-2.5 pt-0 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
                 <Field label="Date d'échéance">
                   <Input
                     type="date"
@@ -447,15 +448,15 @@ export default function FactureDetailPage({
 
           {/* Danger zone */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base text-destructive">Supprimer</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm text-destructive">Supprimer</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0">
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={handleDelete}
-                className="w-full"
+                className="w-full h-7 text-xs"
               >
                 Supprimer cette facture
               </Button>
@@ -477,7 +478,7 @@ function PaiementRow({
   onDelete: () => void;
 }) {
   return (
-    <li className="rounded-md border bg-secondary/20 p-3 space-y-2">
+    <li className="rounded-md border bg-secondary/20 p-2 space-y-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0">
       <div className="grid grid-cols-12 gap-2 items-center">
         <Input
           type="date"

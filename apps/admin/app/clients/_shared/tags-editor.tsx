@@ -35,7 +35,7 @@ export function TagsEditor({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className="flex gap-2">
         <Input
           value={input}
@@ -47,9 +47,9 @@ export function TagsEditor({
               add(input);
             }
           }}
-          className="max-w-xs"
+          className="max-w-xs h-7 text-xs px-2"
         />
-        <Button type="button" variant="outline" size="sm" onClick={() => add(input)}>
+        <Button type="button" variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={() => add(input)}>
           Ajouter
         </Button>
       </div>

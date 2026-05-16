@@ -182,10 +182,10 @@ export default function ClientDetailPage({
         <div className="lg:col-span-2 space-y-6">
           {/* Identité */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Identité & coordonnées</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Identité & coordonnées</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm space-y-2">
+            <CardContent className="px-3 pb-2.5 pt-0 text-sm space-y-1.5">
               {client.type === 'b2b' && (
                 <>
                   {client.siret && (
@@ -212,12 +212,12 @@ export default function ClientDetailPage({
 
           {/* Contacts */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">
                 Contacts ({client.contacts.length})
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0">
               {client.contacts.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Aucun contact rattaché.
@@ -263,12 +263,12 @@ export default function ClientDetailPage({
           {/* Carnet d'adresses */}
           {client.adresses.length > 0 && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
+              <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+                <CardTitle className="text-sm">
                   Carnet d&apos;adresses ({client.adresses.length})
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="px-3 pb-2.5 pt-0 space-y-2.5">
                 {client.adresses.map((a) => (
                   <div
                     key={a.id}
@@ -338,10 +338,10 @@ export default function ClientDetailPage({
             client.remise_habituelle_pct !== undefined ||
             client.compte_comptable) && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Conditions commerciales</CardTitle>
+              <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+                <CardTitle className="text-sm">Conditions commerciales</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm space-y-2">
+              <CardContent className="px-3 pb-2.5 pt-0 text-sm space-y-1.5">
                 {client.delai_paiement && (
                   <Row
                     label="Délai de paiement"
@@ -374,12 +374,12 @@ export default function ClientDetailPage({
           {/* Documents */}
           {client.documents.length > 0 && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
+              <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+                <CardTitle className="text-sm">
                   Documents ({client.documents.length})
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-3 pb-2.5 pt-0">
                 <ul className="divide-y">
                   {client.documents.map((doc) => (
                     <li key={doc.id} className="py-2">
@@ -421,11 +421,11 @@ export default function ClientDetailPage({
           {/* Notes */}
           {client.notes && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Notes internes</CardTitle>
+              <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+                <CardTitle className="text-sm">Notes internes</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm whitespace-pre-wrap">{client.notes}</p>
+              <CardContent className="px-3 pb-2.5 pt-0">
+                <p className="text-xs whitespace-pre-wrap">{client.notes}</p>
               </CardContent>
             </Card>
           )}
@@ -435,10 +435,10 @@ export default function ClientDetailPage({
         <aside className="space-y-6 lg:sticky lg:top-6 lg:self-start">
           {principal && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Contact principal</CardTitle>
+              <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+                <CardTitle className="text-sm">Contact principal</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm space-y-1">
+              <CardContent className="px-3 pb-2.5 pt-0 text-sm space-y-1">
                 <p className="font-medium">
                   {`${principal.prenom} ${principal.nom}`.trim() || '—'}
                 </p>
@@ -458,8 +458,8 @@ export default function ClientDetailPage({
           )}
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Devis ({devis.length})</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Devis ({devis.length})</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {devis.length === 0 ? (
@@ -501,17 +501,17 @@ export default function ClientDetailPage({
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base text-destructive">
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm text-destructive">
                 Zone de danger
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0">
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={handleDelete}
-                className="w-full"
+                className="w-full h-7 text-xs"
               >
                 Supprimer ce client
               </Button>

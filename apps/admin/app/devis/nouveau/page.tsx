@@ -92,11 +92,11 @@ export default function NouveauDevisPage() {
 
       {/* === ÉTAPE 1 — CLIENT === */}
       <Card>
-        <CardHeader>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
           <div className="flex items-baseline justify-between gap-2 flex-wrap">
             <div>
-              <CardTitle className="text-xl">1. Client</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-sm">1. Client</CardTitle>
+              <CardDescription className="text-[11px]">
                 Sélectionne un client existant ou crée-le en quelques secondes.
               </CardDescription>
             </div>
@@ -110,11 +110,11 @@ export default function NouveauDevisPage() {
             )}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-3 pb-2.5 pt-0">
           {!hydrated ? (
-            <p className="text-sm text-muted-foreground">Chargement…</p>
+            <p className="text-xs text-muted-foreground">Chargement…</p>
           ) : selectedClient ? (
-            <div className="rounded-md border bg-secondary/20 px-4 py-3 flex items-center gap-3">
+            <div className="rounded-md border bg-secondary/20 px-3 py-2 flex items-center gap-3">
               <span
                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                   clientTypeBadge(selectedClient.type).className
@@ -141,12 +141,13 @@ export default function NouveauDevisPage() {
               onSave={handleQuickSave}
             />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <Input
                 type="search"
                 placeholder="Rechercher un client…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                className="h-9 text-sm"
               />
               {filteredClients.length > 0 ? (
                 <ul className="max-h-72 overflow-y-auto divide-y rounded-md border">
@@ -182,11 +183,12 @@ export default function NouveauDevisPage() {
                     : 'Aucun client ne correspond.'}
                 </p>
               )}
-              <div className="pt-2 flex flex-wrap gap-2">
+              <div className="pt-1 flex flex-wrap gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="h-6 px-2 text-[11px]"
                   onClick={() => setQuickCreate('b2c')}
                 >
                   + Nouveau B2C
@@ -195,12 +197,13 @@ export default function NouveauDevisPage() {
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="h-6 px-2 text-[11px]"
                   onClick={() => setQuickCreate('b2b')}
                 >
                   + Nouveau B2B
                 </Button>
                 <Link href="/clients/nouveau">
-                  <Button type="button" variant="ghost" size="sm">
+                  <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-[11px]">
                     Création détaillée
                   </Button>
                 </Link>
@@ -212,15 +215,15 @@ export default function NouveauDevisPage() {
 
       {/* === ÉTAPE 2 — CALCULATEUR === */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">2. Produit / calculateur</CardTitle>
-          <CardDescription>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+          <CardTitle className="text-sm">2. Produit / calculateur</CardTitle>
+          <CardDescription className="text-[11px]">
             Le calculateur s&apos;ouvrira avec l&apos;ID client en paramètre.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-3 pb-2.5 pt-0">
           <div
-            className={`grid gap-3 md:grid-cols-2 lg:grid-cols-3 ${
+            className={`grid gap-2.5 md:grid-cols-2 lg:grid-cols-3 ${
               !selectedClientId ? 'opacity-50 pointer-events-none' : ''
             }`}
           >
@@ -228,21 +231,21 @@ export default function NouveauDevisPage() {
               <button
                 key={slug}
                 onClick={() => handleChooseCalc(slug)}
-                className="rounded-md border p-4 text-left hover:border-primary hover:shadow-sm transition-all"
+                className="rounded-md border p-3 text-left hover:border-primary hover:shadow-sm transition-all"
                 disabled={!selectedClientId}
               >
-                <p className="font-medium">{CALC_LABELS[slug]}</p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="font-medium text-sm">{CALC_LABELS[slug]}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {CALC_DESCRIPTIONS[slug]}
                 </p>
-                <p className="text-xs text-primary mt-2 font-medium">
+                <p className="text-xs text-primary mt-1.5 font-medium">
                   Ouvrir le calculateur →
                 </p>
               </button>
             ))}
           </div>
           {!selectedClientId && (
-            <p className="text-xs text-muted-foreground mt-3">
+            <p className="text-xs text-muted-foreground mt-2">
               Sélectionne d&apos;abord un client ci-dessus.
             </p>
           )}
@@ -270,12 +273,12 @@ function QuickCreateClient({
   onSave: () => void;
 }) {
   return (
-    <div className="space-y-4 rounded-md border bg-secondary/20 p-4">
-      <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+    <div className="space-y-3 rounded-md border bg-secondary/20 p-3 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
+      <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
         Création rapide — {type === 'b2c' ? 'B2C particulier' : 'B2B entreprise'}
       </div>
       {type === 'b2c' ? (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-2.5 md:grid-cols-2">
           <Field label="Prénom">
             <Input
               value={b2c.prenom}
@@ -297,7 +300,7 @@ function QuickCreateClient({
           </Field>
         </div>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-2.5 md:grid-cols-2">
           <Field label="Raison sociale" className="md:col-span-2">
             <Input
               value={b2b.raison_sociale}
@@ -320,10 +323,10 @@ function QuickCreateClient({
         </div>
       )}
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+        <Button type="button" variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={onCancel}>
           Annuler
         </Button>
-        <Button type="button" variant="accent" size="sm" onClick={onSave}>
+        <Button type="button" variant="accent" size="sm" className="h-7 px-2 text-xs" onClick={onSave}>
           Créer le client
         </Button>
       </div>

@@ -67,29 +67,32 @@ export function AdressesEditor({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div>
-            <CardTitle className="text-xl">Carnet d&apos;adresses ({value.length})</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-sm">Carnet d&apos;adresses ({value.length})</CardTitle>
+            <CardDescription className="text-[11px]">
               Une adresse peut servir à la facturation, à la livraison ou aux deux. Marque
               une adresse par défaut pour chaque usage.
             </CardDescription>
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={add}>
+          <Button type="button" variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={add}>
             + Ajouter une adresse
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="px-3 pb-2.5 pt-0 space-y-2.5">
         {value.length === 0 && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Aucune adresse. Ajoute au moins une adresse pour permettre la facturation et la
             livraison sur les devis.
           </p>
         )}
         {value.map((a, i) => (
-          <div key={a.id} className="rounded-md border bg-secondary/20 p-3 space-y-3">
+          <div
+            key={a.id}
+            className="rounded-md border bg-secondary/20 p-2 space-y-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0"
+          >
             {/* En-tête : label + boutons */}
             <div className="flex items-center gap-2 flex-wrap">
               <Input
@@ -102,7 +105,7 @@ export function AdressesEditor({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-muted-foreground hover:text-destructive shrink-0"
+                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-destructive shrink-0"
                 onClick={() => remove(i)}
               >
                 ✕ Supprimer
@@ -110,44 +113,46 @@ export function AdressesEditor({
             </div>
 
             {/* Adresse postale */}
-            <Field label="Ligne 1">
-              <Input
-                value={a.ligne1}
-                onChange={(e) => update(i, { ligne1: e.target.value })}
-              />
-            </Field>
-            <Field label="Ligne 2" hint="Optionnel (complément, bâtiment…)">
-              <Input
-                value={a.ligne2 ?? ''}
-                onChange={(e) => update(i, { ligne2: e.target.value || undefined })}
-              />
-            </Field>
-            <div className="grid gap-3 md:grid-cols-3">
-              <Field label="CP">
+            <div className="space-y-2 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
+              <Field label="Ligne 1">
                 <Input
-                  value={a.cp}
-                  onChange={(e) => update(i, { cp: e.target.value })}
+                  value={a.ligne1}
+                  onChange={(e) => update(i, { ligne1: e.target.value })}
                 />
               </Field>
-              <Field label="Ville" className="md:col-span-2">
+              <Field label="Ligne 2" hint="Optionnel (complément, bâtiment…)">
                 <Input
-                  value={a.ville}
-                  onChange={(e) => update(i, { ville: e.target.value })}
+                  value={a.ligne2 ?? ''}
+                  onChange={(e) => update(i, { ligne2: e.target.value || undefined })}
                 />
+              </Field>
+              <div className="grid gap-2.5 md:grid-cols-3">
+                <Field label="CP">
+                  <Input
+                    value={a.cp}
+                    onChange={(e) => update(i, { cp: e.target.value })}
+                  />
+                </Field>
+                <Field label="Ville" className="md:col-span-2">
+                  <Input
+                    value={a.ville}
+                    onChange={(e) => update(i, { ville: e.target.value })}
+                  />
+                </Field>
+              </div>
+              <Field label="Pays">
+                <Select
+                  value={a.pays ?? 'France'}
+                  onChange={(e) => update(i, { pays: e.target.value })}
+                >
+                  <option value="France">France</option>
+                  <option value="Belgique">Belgique</option>
+                  <option value="Suisse">Suisse</option>
+                  <option value="Luxembourg">Luxembourg</option>
+                  <option value="Autre">Autre</option>
+                </Select>
               </Field>
             </div>
-            <Field label="Pays">
-              <Select
-                value={a.pays ?? 'France'}
-                onChange={(e) => update(i, { pays: e.target.value })}
-              >
-                <option value="France">France</option>
-                <option value="Belgique">Belgique</option>
-                <option value="Suisse">Suisse</option>
-                <option value="Luxembourg">Luxembourg</option>
-                <option value="Autre">Autre</option>
-              </Select>
-            </Field>
 
             {/* Usages + défauts */}
             <div className="grid gap-3 sm:grid-cols-2 pt-2">
@@ -213,12 +218,14 @@ export function AdressesEditor({
             </div>
 
             {/* Notes */}
-            <Field label="Notes" hint="ex. Quai 3, accès camion uniquement…">
-              <Input
-                value={a.notes ?? ''}
-                onChange={(e) => update(i, { notes: e.target.value || undefined })}
-              />
-            </Field>
+            <div className="[&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
+              <Field label="Notes" hint="ex. Quai 3, accès camion uniquement…">
+                <Input
+                  value={a.notes ?? ''}
+                  onChange={(e) => update(i, { notes: e.target.value || undefined })}
+                />
+              </Field>
+            </div>
           </div>
         ))}
         <p className="text-xs text-muted-foreground pt-1">

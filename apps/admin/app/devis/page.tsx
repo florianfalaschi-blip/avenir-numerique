@@ -114,8 +114,8 @@ export default function DevisListPage() {
 
       {/* Filters + Table */}
       <Card>
-        <CardHeader>
-          <div className="flex flex-wrap gap-3 items-end">
+        <CardHeader className="px-3 pt-2.5 pb-2.5 space-y-0">
+          <div className="flex flex-wrap gap-2 items-end [&_input]:h-9 [&_input]:text-sm [&_select]:h-9 [&_select]:text-sm">
             <div className="flex-1 min-w-64">
               <Input
                 type="search"
@@ -173,7 +173,7 @@ export default function DevisListPage() {
           ) : (
             <>
               {/* Header de tableau */}
-              <div className="grid grid-cols-12 gap-3 px-6 py-2.5 border-b bg-secondary/40 text-[10px] uppercase tracking-[0.06em] font-semibold text-muted-foreground">
+              <div className="grid grid-cols-12 gap-3 px-6 py-2 border-b bg-secondary/40 text-[10px] uppercase tracking-wide font-medium text-muted-foreground/80">
                 <span className="col-span-2">Numéro</span>
                 <span className="col-span-3">Client</span>
                 <span className="col-span-2">Produit · qté</span>

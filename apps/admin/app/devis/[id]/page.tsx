@@ -181,10 +181,10 @@ export default function DevisDetailPage({
         <div className="lg:col-span-2 space-y-6">
           {/* Client */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Client</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Client</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0">
               {client ? (
                 <Link
                   href={`/clients/${client.id}`}
@@ -217,43 +217,43 @@ export default function DevisDetailPage({
 
           {/* Snapshot du calcul */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">
                 Calculateur {CALC_LABELS[devis.calculateur]} · quantité {devis.quantite}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-[11px]">
                 Snapshot du calcul figé au moment de l&apos;enregistrement.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0">
               {devis.recap ? (
-                <pre className="text-xs whitespace-pre-wrap bg-secondary/30 p-3 rounded font-mono">
+                <pre className="text-xs whitespace-pre-wrap bg-secondary/30 p-2 rounded font-mono">
                   {devis.recap}
                 </pre>
               ) : (
-                <p className="text-sm text-muted-foreground">Pas de récapitulatif.</p>
+                <p className="text-xs text-muted-foreground">Pas de récapitulatif.</p>
               )}
             </CardContent>
           </Card>
 
           {/* Personnalisations prix */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Ajustement du prix</CardTitle>
-              <CardDescription>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Ajustement du prix</CardTitle>
+              <CardDescription className="text-[11px]">
                 Override manuel ou remise commerciale supplémentaire.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="px-3 pb-2.5 pt-0 space-y-2.5 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   id="override-enabled"
                   checked={overrideEnabled}
                   onChange={(e) => setOverrideEnabled(e.target.checked)}
-                  className="h-4 w-4 rounded border-input accent-primary"
+                  className="h-3.5 w-3.5 rounded border-input accent-primary"
                 />
-                <label htmlFor="override-enabled" className="text-sm cursor-pointer">
+                <label htmlFor="override-enabled" className="text-xs cursor-pointer normal-case tracking-normal text-foreground">
                   Override manuel du prix HT
                 </label>
               </div>
@@ -282,7 +282,7 @@ export default function DevisDetailPage({
                   />
                 </Field>
               )}
-              <div className="rounded-md bg-accent/10 p-3 text-sm space-y-1">
+              <div className="rounded-md bg-accent/10 p-2 text-xs space-y-1">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Prix HT initial</span>
                   <span>{fmtEur(devis.prix_ht)}</span>
@@ -298,7 +298,7 @@ export default function DevisDetailPage({
                   )}</span>
                 </div>
               </div>
-              <Button onClick={handleSavePriceOverride} variant="default" size="sm">
+              <Button onClick={handleSavePriceOverride} variant="default" size="sm" className="h-7 px-2 text-xs">
                 Appliquer l&apos;ajustement
               </Button>
             </CardContent>
@@ -306,12 +306,12 @@ export default function DevisDetailPage({
 
           {/* Notes */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Notes</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Notes</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="px-3 pb-2.5 pt-0">
               <textarea
-                className="flex w-full min-h-24 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex w-full min-h-16 rounded-md border border-input bg-background px-2 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={notes}
                 placeholder="Spécificités client, conditions, etc."
                 onChange={(e) => setNotes(e.target.value)}
@@ -325,10 +325,10 @@ export default function DevisDetailPage({
         <aside className="space-y-6 lg:sticky lg:top-6 lg:self-start">
           {/* Prix HT/TTC */}
           <Card className="border-accent/30">
-            <CardHeader>
-              <CardTitle className="text-base">Montant</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Montant</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="px-3 pb-2.5 pt-0 space-y-2">
               <div className="flex justify-between items-baseline gap-3">
                 <span className="text-sm text-muted-foreground">HT effectif</span>
                 <span className="text-xl font-bold">{fmtEur(effectivePrice)}</span>
@@ -352,10 +352,10 @@ export default function DevisDetailPage({
 
           {/* Statut */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Statut</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Statut</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="px-3 pb-2.5 pt-0 space-y-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0">
               <Select
                 value={devis.statut}
                 onChange={(e) => handleStatutChange(e.target.value as DevisStatut)}
@@ -377,17 +377,17 @@ export default function DevisDetailPage({
 
           {/* Danger zone */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base text-destructive">
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm text-destructive">
                 Supprimer
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0">
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={handleDelete}
-                className="w-full"
+                className="w-full h-7 text-xs"
               >
                 Supprimer ce devis
               </Button>

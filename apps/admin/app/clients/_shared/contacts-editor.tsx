@@ -28,23 +28,23 @@ export function ContactsEditor({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <CardTitle className="text-xl">Contacts ({value.length})</CardTitle>
-          <Button type="button" variant="outline" size="sm" onClick={add}>
+          <CardTitle className="text-sm">Contacts ({value.length})</CardTitle>
+          <Button type="button" variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={add}>
             + Ajouter un contact
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="px-3 pb-2.5 pt-0 space-y-2.5">
         {value.length === 0 && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Aucun contact. Pour un client B2B, ajoute le directeur achats, la
             comptabilité, etc. Tu peux marquer un contact comme principal.
           </p>
         )}
         {value.map((c, i) => (
-          <div key={c.id} className="rounded-md border bg-secondary/20 p-3 space-y-3">
+          <div key={c.id} className="rounded-md border bg-secondary/20 p-2 space-y-2">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <label className="flex items-center gap-2 text-xs cursor-pointer">
                 <input
@@ -66,14 +66,14 @@ export function ContactsEditor({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-muted-foreground hover:text-destructive"
+                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-destructive"
                 onClick={() => remove(i)}
               >
                 ✕ Supprimer
               </Button>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-2.5 md:grid-cols-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
               <Field label="Prénom">
                 <Input
                   value={c.prenom}

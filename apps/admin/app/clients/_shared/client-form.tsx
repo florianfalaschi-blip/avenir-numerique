@@ -68,13 +68,15 @@ export function ClientForm({
     <div className="space-y-6">
       {showTypeToggle && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Type de client</CardTitle>
+          <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+            <CardTitle className="text-sm">Type de client</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 pb-2.5 pt-0">
             <div className="flex gap-2">
               <Button
                 type="button"
+                size="sm"
+                className="h-7 px-2 text-xs"
                 variant={c.type === 'b2c' ? 'default' : 'outline'}
                 onClick={() => switchType('b2c')}
               >
@@ -82,6 +84,8 @@ export function ClientForm({
               </Button>
               <Button
                 type="button"
+                size="sm"
+                className="h-7 px-2 text-xs"
                 variant={c.type === 'b2b' ? 'default' : 'outline'}
                 onClick={() => switchType('b2b')}
               >
@@ -94,12 +98,12 @@ export function ClientForm({
 
       {/* === IDENTITÉ === */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Identité</CardTitle>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+          <CardTitle className="text-sm">Identité</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="px-3 pb-2.5 pt-0 space-y-2.5 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
           {c.type === 'b2c' ? (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-2.5 md:grid-cols-2">
               <Field label="Prénom">
                 <Input
                   value={c.prenom}
@@ -123,7 +127,7 @@ export function ClientForm({
                   }
                 />
               </Field>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-2.5 md:grid-cols-2">
                 <Field label="SIRET" hint="14 chiffres (optionnel)">
                   <Input
                     value={c.siret ?? ''}
@@ -150,15 +154,15 @@ export function ClientForm({
 
       {/* === COORDONNÉES GÉNÉRALES === */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Coordonnées générales</CardTitle>
-          <CardDescription>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+          <CardTitle className="text-sm">Coordonnées générales</CardTitle>
+          <CardDescription className="text-[11px]">
             Email et téléphone principaux du client (le standard de l&apos;entreprise par
             exemple). Les contacts individuels sont gérés ci-dessous.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
+        <CardContent className="px-3 pb-2.5 pt-0">
+          <div className="grid gap-2.5 md:grid-cols-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
             <Field label="Email">
               <Input
                 type="email"
@@ -199,15 +203,15 @@ export function ClientForm({
 
       {/* === CONDITIONS COMMERCIALES === */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Conditions commerciales</CardTitle>
-          <CardDescription>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+          <CardTitle className="text-sm">Conditions commerciales</CardTitle>
+          <CardDescription className="text-[11px]">
             Modalités de paiement et remise habituelle (utilisée par défaut sur les nouveaux
             devis).
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        <CardContent className="px-3 pb-2.5 pt-0 space-y-2.5">
+          <div className="grid gap-2.5 md:grid-cols-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
             <Field label="Délai de paiement">
               <Select
                 value={c.delai_paiement ?? ''}
@@ -285,11 +289,11 @@ export function ClientForm({
 
       {/* === SUIVI COMMERCIAL === */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Suivi commercial</CardTitle>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+          <CardTitle className="text-sm">Suivi commercial</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        <CardContent className="px-3 pb-2.5 pt-0 space-y-2.5">
+          <div className="grid gap-2.5 md:grid-cols-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
             <Field label="Commercial assigné" hint="Nom du commercial référent">
               <Input
                 value={c.commercial_assigne ?? ''}
@@ -351,8 +355,8 @@ export function ClientForm({
             </Field>
           </div>
 
-          <div className="space-y-2 pt-2">
-            <label className="text-sm font-medium leading-none">Tags</label>
+          <div className="space-y-1.5 pt-1">
+            <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/80 leading-none">Tags</label>
             <TagsEditor value={c.tags} onChange={(tags) => onChange({ ...c, tags })} />
           </div>
         </CardContent>
@@ -366,12 +370,12 @@ export function ClientForm({
 
       {/* === NOTES === */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Notes internes</CardTitle>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+          <CardTitle className="text-sm">Notes internes</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-3 pb-2.5 pt-0">
           <textarea
-            className="flex w-full min-h-24 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex w-full min-h-16 rounded-md border border-input bg-background px-2 py-1.5 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             value={c.notes ?? ''}
             placeholder="Spécificités, préférences, historique commercial…"
             onChange={(e) => onChange({ ...c, notes: e.target.value || undefined })}
