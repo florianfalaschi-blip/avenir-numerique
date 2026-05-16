@@ -1,6 +1,9 @@
 'use client';
 
-import { useSettings } from './settings';
+import { useEffect } from 'react';
+import type { Database } from '@avenir/db';
+import { useAuth } from './auth';
+import { createTableStore } from './table-store';
 
 // ============================================================
 // TYPES
@@ -158,6 +161,8 @@ export interface ClientB2B extends ClientBase {
 
 export type Client = ClientB2C | ClientB2B;
 
+type ClientRow = Database['public']['Tables']['clients']['Row'];
+
 // ============================================================
 // HELPERS
 // ============================================================
@@ -293,37 +298,110 @@ export function formatAdresseInline(a: Adresse): string {
 }
 
 // ============================================================
+// MAPPERS Row ↔ Client
+// ============================================================
+
+/** Champs « plats » du client qui sont stockés en colonnes dédiées dans la table. */
+const FLAT_FIELDS = ['id', 'created_at', 'updated_at'] as const;
+
+function rowToClient(row: ClientRow): Client {
+  const data = (row.data as Record<string, unknown>) ?? {};
+  // Le type discriminant + tous les champs métier sont dans `data` jsonb.
+  // On reconstitue l'objet complet en mergeant les colonnes plates par-dessus.
+  const merged = {
+    ...data,
+    id: row.id,
+    created_at: new Date(row.created_at).getTime(),
+    updated_at: new Date(row.updated_at).getTime(),
+  } as unknown as Client;
+  return merged;
+}
+
+function clientToInsertRow(c: Client): Record<string, unknown> {
+  const { id, created_at, updated_at, ...rest } = c;
+  return {
+    id,
+    data: rest as unknown,
+    created_at: new Date(created_at).toISOString(),
+    updated_at: new Date(updated_at).toISOString(),
+  };
+}
+
+function clientChangesToUpdateRow(
+  changes: Partial<Client>,
+  current: Client
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  if (changes.updated_at !== undefined) {
+    out.updated_at = new Date(changes.updated_at).toISOString();
+  }
+  // Recompose le data jsonb complet si un champ non-plat change
+  const flatKeys = new Set<string>(FLAT_FIELDS);
+  let hasDataChange = false;
+  for (const k of Object.keys(changes)) {
+    if (!flatKeys.has(k)) {
+      hasDataChange = true;
+      break;
+    }
+  }
+  if (hasDataChange) {
+    const merged = { ...current, ...changes } as Client;
+    const { id: _id, created_at: _ca, updated_at: _ua, ...rest } = merged;
+    out.data = rest as unknown;
+  }
+  return out;
+}
+
+// ============================================================
+// STORE
+// ============================================================
+
+const clientsStore = createTableStore<Client, ClientRow>({
+  table: 'clients',
+  rowToEntity: rowToClient,
+  entityToInsertRow: clientToInsertRow,
+  changesToUpdateRow: clientChangesToUpdateRow,
+});
+
+/** Permet à `migration.ts` (ou autre) de déclencher un re-fetch. */
+export const clientsStoreRefresh = clientsStore.refresh;
+
+// ============================================================
 // HOOK
 // ============================================================
 
 export function useClients() {
-  const { value, update, reset, hydrated } = useSettings<Client[]>('data.clients', []);
+  const { user } = useAuth();
+  const state = clientsStore.useStore();
+
+  // Charge depuis Supabase au montage + quand user change
+  useEffect(() => {
+    clientsStore.ensureLoadedFor(user);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addClient = (client: Client) => {
-    update([...value, { ...client, updated_at: Date.now() }]);
+    clientsStore.addItem({ ...client, updated_at: Date.now() } as Client);
   };
 
   const updateClient = (id: string, changes: Partial<Client>) => {
-    update(
-      value.map((c) =>
-        c.id === id ? ({ ...c, ...changes, updated_at: Date.now() } as Client) : c
-      )
-    );
+    clientsStore.updateItem(id, { ...changes, updated_at: Date.now() } as Partial<Client>);
   };
 
-  const deleteClient = (id: string) => {
-    update(value.filter((c) => c.id !== id));
-  };
+  const deleteClient = (id: string) => clientsStore.deleteItem(id);
 
-  const getClient = (id: string): Client | undefined => value.find((c) => c.id === id);
+  const getClient = (id: string): Client | undefined =>
+    state.items.find((c) => c.id === id);
 
   return {
-    clients: value,
+    clients: state.items,
     addClient,
     updateClient,
     deleteClient,
     getClient,
-    resetAll: reset,
-    hydrated,
+    /** @deprecated — purge locale uniquement, ne supprime pas dans Supabase. Pour purge réelle, utilise le SQL editor. */
+    resetAll: clientsStore.reset,
+    hydrated: state.hydrated,
+    /** Force un re-fetch depuis Supabase. */
+    refresh: () => clientsStore.refresh(user),
   };
 }
