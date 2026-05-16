@@ -487,19 +487,19 @@ function LignesCard({
               <>
                 {/* Backdrop click pour fermer */}
                 <div
-                  className="fixed inset-0 z-10"
+                  className="fixed inset-0 z-40"
                   onClick={() => setAddMenuOpen(false)}
                   aria-hidden
                 />
-                <div className="absolute right-0 top-full mt-1 z-20 min-w-44 rounded-md border bg-popover shadow-md py-1">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground/80 font-medium px-3 py-1.5">
+                <div className="absolute right-0 top-full mt-1 z-50 min-w-52 rounded-md border border-border bg-card shadow-lg py-1">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground/80 font-medium px-3 py-1.5 border-b border-border/60 mb-0.5">
                     Choisir un calculateur
                   </p>
                   {CALC_SLUGS.map((calc) => (
                     <button
                       key={calc}
                       type="button"
-                      className="w-full text-left px-3 py-1.5 text-xs hover:bg-secondary transition-colors flex items-center gap-2"
+                      className="w-full text-left px-3 py-1.5 text-xs hover:bg-secondary transition-colors flex items-center gap-2 text-foreground"
                       onClick={() => {
                         setAddMenuOpen(false);
                         onAddLigne(calc);
