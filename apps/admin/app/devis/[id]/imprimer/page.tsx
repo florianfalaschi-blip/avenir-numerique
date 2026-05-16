@@ -127,9 +127,6 @@ export default function DevisImprimerPage({
               alt={entreprise.raison_sociale}
               className="max-h-20 max-w-48 mb-2"
             />
-            <h1 className="text-xl font-bold tracking-tight">
-              {entreprise.raison_sociale}
-            </h1>
             {entreprise.forme_juridique && (
               <p className="text-xs text-muted-foreground">
                 {entreprise.forme_juridique}
@@ -201,11 +198,6 @@ export default function DevisImprimerPage({
                 )}
                 {adresseFact ? (
                   <div className="mt-1">
-                    {adresseFact.label && (
-                      <p className="text-xs italic text-muted-foreground">
-                        {adresseFact.label}
-                      </p>
-                    )}
                     <p>{adresseFact.ligne1}</p>
                     {adresseFact.ligne2 && <p>{adresseFact.ligne2}</p>}
                     <p>
@@ -241,9 +233,6 @@ export default function DevisImprimerPage({
                 Adresse de livraison
               </h2>
               <div className="text-sm space-y-0.5">
-                {adresseLivr.label && (
-                  <p className="font-medium">{adresseLivr.label}</p>
-                )}
                 <p>{adresseLivr.ligne1}</p>
                 {adresseLivr.ligne2 && <p>{adresseLivr.ligne2}</p>}
                 <p>
