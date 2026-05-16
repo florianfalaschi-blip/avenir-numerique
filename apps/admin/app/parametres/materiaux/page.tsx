@@ -161,6 +161,26 @@ export default function ParametresMateriauxPage() {
                 </Button>
               </div>
 
+              {/* Fournisseur Plaques */}
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground shrink-0 w-24">
+                  Fournisseur
+                </label>
+                <Input
+                  className="max-w-md"
+                  value={m.fournisseur ?? ''}
+                  placeholder="ex. 3A Composites, Evonik, Bachmann…"
+                  onChange={(e) =>
+                    plaques.patch((d) => ({
+                      ...d,
+                      materiaux: updateMatPlaques(d.materiaux, mi, {
+                        fournisseur: e.target.value === '' ? undefined : e.target.value,
+                      }),
+                    }))
+                  }
+                />
+              </div>
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -384,6 +404,26 @@ export default function ParametresMateriauxPage() {
                 >
                   ✕
                 </Button>
+              </div>
+
+              {/* Fournisseur Bobines */}
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground shrink-0 w-24">
+                  Fournisseur
+                </label>
+                <Input
+                  className="max-w-md"
+                  value={m.fournisseur ?? ''}
+                  placeholder="ex. Avery Dennison, Ritrama, Mactac…"
+                  onChange={(e) =>
+                    bobines.patch((d) => ({
+                      ...d,
+                      materiaux: updateMatBobines(d.materiaux, mi, {
+                        fournisseur: e.target.value === '' ? undefined : e.target.value,
+                      }),
+                    }))
+                  }
+                />
               </div>
 
               {/* Prix m² conditionnel */}

@@ -22,6 +22,7 @@ export const defaultSharedPapiers: SharedPapierConfig[] = [
   {
     id: 'couche_brillant_135',
     nom: 'Couché brillant 135g',
+    fournisseur: 'Antalis',
     grammage: 135,
     formats_achat: [
       { largeur_mm: 320, hauteur_mm: 464, prix_paquet_ht: 21, feuilles_par_paquet: 500 },
@@ -32,6 +33,7 @@ export const defaultSharedPapiers: SharedPapierConfig[] = [
   {
     id: 'couche_mat_135',
     nom: 'Couché mat 135g',
+    fournisseur: 'Antalis',
     grammage: 135,
     formats_achat: [
       { largeur_mm: 320, hauteur_mm: 464, prix_paquet_ht: 22, feuilles_par_paquet: 500 },
@@ -41,6 +43,7 @@ export const defaultSharedPapiers: SharedPapierConfig[] = [
   {
     id: 'couche_brillant_170',
     nom: 'Couché brillant 170g',
+    fournisseur: 'Inapa',
     grammage: 170,
     formats_achat: [
       { largeur_mm: 320, hauteur_mm: 464, prix_paquet_ht: 27, feuilles_par_paquet: 500 },
@@ -51,6 +54,7 @@ export const defaultSharedPapiers: SharedPapierConfig[] = [
   {
     id: 'couche_mat_170',
     nom: 'Couché mat 170g',
+    fournisseur: 'Inapa',
     grammage: 170,
     formats_achat: [
       { largeur_mm: 320, hauteur_mm: 464, prix_paquet_ht: 28, feuilles_par_paquet: 500 },
@@ -61,6 +65,7 @@ export const defaultSharedPapiers: SharedPapierConfig[] = [
   {
     id: 'couverture_300',
     nom: 'Couché 300g (couverture brochure)',
+    fournisseur: 'Antalis',
     grammage: 300,
     formats_achat: [
       { largeur_mm: 320, hauteur_mm: 450, prix_paquet_ht: 90, feuilles_par_paquet: 250 },
@@ -70,6 +75,7 @@ export const defaultSharedPapiers: SharedPapierConfig[] = [
   {
     id: 'recycle_350',
     nom: 'Recyclé 350g (numérique uniquement)',
+    fournisseur: 'Igepa',
     grammage: 350,
     formats_achat: [
       { largeur_mm: 320, hauteur_mm: 464, prix_paquet_ht: 60, feuilles_par_paquet: 250 },

@@ -72,6 +72,8 @@ export interface FlyersPapierFormat {
 export interface FlyersPapierConfig {
   id: string;
   nom: string;
+  /** Nom du fournisseur / papetier (info admin, optionnel). */
+  fournisseur?: string;
   grammage: number;
   /** Liste des formats d'achat (≥ 1) */
   formats_achat: FlyersPapierFormat[];

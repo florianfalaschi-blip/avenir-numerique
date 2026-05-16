@@ -144,6 +144,25 @@ export default function ParametresPapiersPage() {
                 </Button>
               </div>
 
+              {/* Fournisseur (sub-line) */}
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground shrink-0 w-24">
+                  Fournisseur
+                </label>
+                <Input
+                  className="max-w-md"
+                  value={p.fournisseur ?? ''}
+                  placeholder="ex. Antalis, Inapa, Igepa…"
+                  onChange={(e) =>
+                    patch((d) =>
+                      updatePapier(d, pi, {
+                        fournisseur: e.target.value === '' ? undefined : e.target.value,
+                      })
+                    )
+                  }
+                />
+              </div>
+
               {/* Formats d'achat */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">

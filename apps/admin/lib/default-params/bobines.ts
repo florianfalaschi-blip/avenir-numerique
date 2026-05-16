@@ -5,6 +5,7 @@ export const defaultBobinesParams: BobinesParams = {
     {
       id: 'vinyle_blanc',
       nom: 'Vinyle blanc adhésif',
+      fournisseur: 'Avery Dennison',
       type: 'adhesif',
       methode_calcul: 'calepinage',
       rouleaux: [
@@ -15,6 +16,7 @@ export const defaultBobinesParams: BobinesParams = {
     {
       id: 'vinyle_transparent',
       nom: 'Vinyle transparent adhésif',
+      fournisseur: 'Avery Dennison',
       type: 'adhesif',
       methode_calcul: 'calepinage',
       rouleaux: [{ largeur_mm: 1000, longueur_m: 50, prix_rouleau_ht: 75 }],
@@ -22,6 +24,7 @@ export const defaultBobinesParams: BobinesParams = {
     {
       id: 'papier_simple',
       nom: 'Papier adhésif standard (m²)',
+      fournisseur: 'Ritrama',
       type: 'papier',
       methode_calcul: 'm2',
       rouleaux: [],
@@ -30,6 +33,7 @@ export const defaultBobinesParams: BobinesParams = {
     {
       id: 'polyester_metallise',
       nom: 'Polyester métallisé',
+      fournisseur: 'Mactac',
       type: 'film',
       methode_calcul: 'auto',
       rouleaux: [{ largeur_mm: 1000, longueur_m: 50, prix_rouleau_ht: 140 }],
