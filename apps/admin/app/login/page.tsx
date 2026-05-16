@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Button,
@@ -22,11 +22,12 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Si déjà connecté, redirige immédiatement
-  if (user) {
-    if (typeof window !== 'undefined') router.replace('/');
-    return null;
-  }
+  // Si déjà connecté, redirige (dans un effet, pas pendant le rendu)
+  useEffect(() => {
+    if (user) {
+      router.replace('/');
+    }
+  }, [user, router]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
