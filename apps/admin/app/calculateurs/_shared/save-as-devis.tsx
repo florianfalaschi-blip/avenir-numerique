@@ -84,10 +84,18 @@ export function SaveAsDevisCard({
       statut: 'brouillon',
       date_creation: Date.now(),
       notes: notes.trim() || undefined,
+      // Pré-remplit la remise habituelle du client (modifiable ensuite
+      // sur la page détail devis).
+      remise_manuelle_pct:
+        client.remise_habituelle_pct && client.remise_habituelle_pct > 0
+          ? client.remise_habituelle_pct
+          : undefined,
     };
     addDevis(devis);
     router.push(`/devis/${devis.id}`);
   };
+
+  const remiseHabituelle = client.remise_habituelle_pct ?? 0;
 
   return (
     <Card className="border-accent/30 bg-accent/5">
@@ -97,6 +105,12 @@ export function SaveAsDevisCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {remiseHabituelle > 0 && (
+          <p className="text-xs text-muted-foreground bg-background/50 rounded px-2 py-1.5 border">
+            💡 Remise habituelle du client : <strong>-{remiseHabituelle} %</strong> — sera
+            pré-appliquée au devis (modifiable ensuite).
+          </p>
+        )}
         <div className="space-y-1.5">
           <label
             htmlFor="devis-notes"

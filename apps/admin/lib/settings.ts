@@ -36,7 +36,7 @@ const VERSIONS: Record<string, string> = {
   bobines: 'v2',
   brochures: 'v2',
   'shared.papiers': 'v1',
-  'data.clients': 'v1',
+  'data.clients': 'v2', // v2 : contacts[] + tags[] + documents[] + conditions commerciales
   'data.devis': 'v1',
 };
 

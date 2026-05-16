@@ -87,10 +87,28 @@ export default function ClientsListPage() {
                         {badge.label}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{clientLabel(c)}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium truncate">{clientLabel(c)}</p>
+                          {c.tags.slice(0, 3).map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center rounded-full bg-primary/10 text-primary border border-primary/30 px-1.5 py-0 text-[10px] font-medium"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {c.tags.length > 3 && (
+                            <span className="text-[10px] text-muted-foreground">
+                              +{c.tags.length - 3}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground truncate">
                           {c.email}
                           {c.telephone ? ` · ${c.telephone}` : ''}
+                          {c.contacts.length > 0
+                            ? ` · ${c.contacts.length} contact${c.contacts.length > 1 ? 's' : ''}`
+                            : ''}
                         </p>
                       </div>
                       <span
