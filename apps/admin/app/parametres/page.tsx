@@ -14,8 +14,6 @@ const CALC_DESCRIPTIONS: Record<CalcSlug, string> = {
   brochures: 'Machines impression + façonnage, reliures, papiers, marges prorata techno.',
 };
 
-const ROLLUP_READY = true;
-
 export default function ParametresPage() {
   const [custom, setCustom] = useState<Record<CalcSlug, boolean>>({
     rollup: false,
@@ -49,51 +47,32 @@ export default function ParametresPage() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {CALC_SLUGS.map((slug) => {
-          const ready = slug === 'rollup' ? ROLLUP_READY : false;
           const isCustom = custom[slug];
 
-          const card = (
-            <Card
-              className={
-                ready
-                  ? 'h-full transition group-hover:border-primary group-hover:shadow-md'
-                  : 'h-full opacity-60'
-              }
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-lg">{CALC_LABELS[slug]}</CardTitle>
-                  {ready && isCustom && (
-                    <span className="inline-flex items-center rounded-full bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent border border-accent/30">
-                      modifié
-                    </span>
-                  )}
-                </div>
-                <CardDescription>{CALC_DESCRIPTIONS[slug]}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {ready ? (
+          return (
+            <Link key={slug} href={`/parametres/${slug}`} className="group block">
+              <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-lg">{CALC_LABELS[slug]}</CardTitle>
+                    {isCustom && (
+                      <span className="inline-flex items-center rounded-full bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent border border-accent/30">
+                        modifié
+                      </span>
+                    )}
+                  </div>
+                  <CardDescription>{CALC_DESCRIPTIONS[slug]}</CardDescription>
+                </CardHeader>
+                <CardContent>
                   <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
                     Modifier les paramètres
                     <span aria-hidden className="transition group-hover:translate-x-0.5">
                       →
                     </span>
                   </span>
-                ) : (
-                  <span className="text-xs font-medium text-muted-foreground">
-                    🚧 Édition à venir (Phase 3a v2)
-                  </span>
-                )}
-              </CardContent>
-            </Card>
-          );
-
-          return ready ? (
-            <Link key={slug} href={`/parametres/${slug}`} className="group block">
-              {card}
+                </CardContent>
+              </Card>
             </Link>
-          ) : (
-            <div key={slug}>{card}</div>
           );
         })}
       </div>
