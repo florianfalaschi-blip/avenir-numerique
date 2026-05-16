@@ -82,6 +82,8 @@ export interface MachineImpressionConfig {
   nom: string;
   vitesse_m2_h: number;
   taux_horaire_ht: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface MachineDecoupeConfig {
@@ -91,6 +93,8 @@ export interface MachineDecoupeConfig {
   prix_metre_lineaire_ht: number;
   /** Forfait minimum HT (plancher) */
   forfait_minimum_ht: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 /** Type de tarification d'une finition */
@@ -102,6 +106,8 @@ export interface FinitionConfig {
   type: FinitionType;
   /** Prix selon le type (forfait/unitaire/m2/par_oeillet) */
   prix_ht: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface DegressifSeuilPlaques {
@@ -121,6 +127,13 @@ export interface PlaquesParams {
   tva_pct: number;
   degressif: DegressifSeuilPlaques[];
   prix_plancher_ht?: number;
+  /**
+   * Timestamps Unix ms de dernière modification par champ scalaire
+   * (frais_fixes_ht, bat_prix_ht, marge_pct, tva_pct, prix_plancher_ht,
+   * machine_impression.*, machine_decoupe.*).
+   * Optionnel et rétro-compatible.
+   */
+  meta?: Record<string, number>;
 }
 
 // ============================================================

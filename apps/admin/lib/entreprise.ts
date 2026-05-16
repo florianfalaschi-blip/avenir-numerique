@@ -43,6 +43,11 @@ export interface EntrepriseConfig {
   mentions_devis?: string;
   /** URL du logo (image affichée en en-tête du PDF). */
   logo_url?: string;
+  /**
+   * Timestamps Unix ms de dernière modif par champ.
+   * Optionnel et rétro-compatible.
+   */
+  meta?: Record<string, number>;
 }
 
 export const defaultEntreprise: EntrepriseConfig = {

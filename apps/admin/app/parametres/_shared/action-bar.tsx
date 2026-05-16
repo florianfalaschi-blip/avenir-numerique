@@ -27,7 +27,7 @@ export function ActionBar({
           ) : showSavedFlash ? (
             <span className="text-green-600 font-medium">✓ Enregistré</span>
           ) : isCustom ? (
-            <span>Paramètres personnalisés actifs (stockés localement)</span>
+            <span>Paramètres personnalisés actifs (synchronisés dans le cloud)</span>
           ) : (
             <span>Paramètres par défaut</span>
           )}

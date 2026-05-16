@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@avenir/ui';
+import { fmtModifiedShort } from './fmt-modified';
 
 export interface CatalogueColumn {
   label: string;
@@ -16,9 +17,14 @@ export interface CatalogueColumn {
  * avec un en-tête de colonnes, des boutons +Ajouter et ✕ par ligne.
  *
  * `T` doit avoir au moins { id: string; nom: string } pour la clé React et le
- * label de confirmation.
+ * label de confirmation. Si `T` a aussi `lastModifiedAt?: number`, la date est
+ * affichée dans une petite colonne à droite (avant le bouton supprimer).
+ *
+ * Layout d'une row : [inputs (flex-1 12-col grid) | date (w-14) | delete (w-7)]
  */
-export function CatalogueCard<T extends { id: string; nom: string }>({
+export function CatalogueCard<
+  T extends { id: string; nom: string; lastModifiedAt?: number }
+>({
   title,
   items,
   onAdd,
@@ -41,36 +47,55 @@ export function CatalogueCard<T extends { id: string; nom: string }>({
 }) {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <CardTitle className="text-xl">{title}</CardTitle>
-          <Button variant="outline" size="sm" onClick={onAdd}>
+          <CardTitle className="text-sm">{title}</CardTitle>
+          <Button variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={onAdd}>
             {addLabel}
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
-            {columns.map((c) => (
-              <div key={c.label} className={spanClass(c.span)}>
-                {c.label}
-              </div>
-            ))}
-            <div className="col-span-1" />
+      <CardContent className="px-3 pb-2.5 pt-0">
+        {/* Compactage uniforme : Input + Select à h-7 / text-xs / px-2 */}
+        <div className="space-y-0.5 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0">
+          {/* === En-tête de colonnes === */}
+          <div className="flex items-center gap-1.5 text-[9px] font-medium text-muted-foreground/70 uppercase tracking-wide px-1 pb-0.5">
+            <div className="flex-1 grid grid-cols-12 gap-1.5">
+              {columns.map((c) => (
+                <div key={c.label} className={spanClass(c.span)}>
+                  {c.label}
+                </div>
+              ))}
+            </div>
+            <div className="w-14 shrink-0 text-right">Modifié</div>
+            <div className="w-7 shrink-0" aria-hidden />
           </div>
+
+          {/* === Rows === */}
           {items.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-3">
+            <p className="text-xs text-muted-foreground py-2">
               Aucun élément. Clique « {addLabel} » pour en créer un.
             </p>
           ) : (
             items.map((item, i) => (
-              <div key={item.id} className="grid grid-cols-12 gap-2 items-center">
-                {renderRow(item, i)}
+              <div key={item.id} className="flex items-center gap-1.5">
+                <div className="flex-1 grid grid-cols-12 gap-1.5 items-center">
+                  {renderRow(item, i)}
+                </div>
+                <span
+                  className="w-14 shrink-0 text-[10px] text-muted-foreground/70 text-right whitespace-nowrap tabular-nums"
+                  title={
+                    item.lastModifiedAt
+                      ? new Date(item.lastModifiedAt).toLocaleString('fr-FR')
+                      : 'Jamais modifié'
+                  }
+                >
+                  {fmtModifiedShort(item.lastModifiedAt)}
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="col-span-1 text-muted-foreground hover:text-destructive"
+                  className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
                   onClick={() => onRemove(i)}
                   aria-label={`Supprimer ${item.nom}`}
                   disabled={items.length <= minItems}
@@ -85,7 +110,7 @@ export function CatalogueCard<T extends { id: string; nom: string }>({
               </div>
             ))
           )}
-          {hint && <div className="text-xs text-muted-foreground pt-1">{hint}</div>}
+          {hint && <div className="text-[11px] text-muted-foreground pt-1">{hint}</div>}
         </div>
       </CardContent>
     </Card>

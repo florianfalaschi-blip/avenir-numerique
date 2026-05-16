@@ -1,17 +1,47 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Input } from '@avenir/ui';
-import { Field } from '../../calculateurs/_shared/components';
-import { defaultEntreprise } from '@/lib/entreprise';
+import { Card, CardContent, CardHeader, CardTitle } from '@avenir/ui';
+import { defaultEntreprise, type EntrepriseConfig } from '@/lib/entreprise';
 import {
   ActionBar,
+  ScalarsEditor,
   SettingsHeader,
   SettingsPageContainer,
+  fmtModifiedShort,
+  stampScalar,
   useSettingsDraft,
 } from '../_shared';
 
+/** Génère un row ScalarsEditor pour un champ texte/email/tel de EntrepriseConfig. */
+function textRow(
+  draft: EntrepriseConfig,
+  patch: (u: (d: EntrepriseConfig) => EntrepriseConfig) => void,
+  key: keyof EntrepriseConfig,
+  label: string,
+  opts: { hint?: string; placeholder?: string; type?: 'text' | 'number' } = {}
+) {
+  const value = draft[key];
+  const stringValue =
+    typeof value === 'string' || typeof value === 'number' ? value : (value ?? '');
+  return {
+    key: String(key),
+    label,
+    type: opts.type ?? 'text',
+    hint: opts.hint,
+    placeholder: opts.placeholder,
+    value: stringValue as string | number,
+    modifiedAt: draft.meta?.[String(key)],
+    onChange: (v: string) =>
+      patch((d) =>
+        stampScalar(d, String(key), {
+          [key]: v === '' ? undefined : v,
+        } as Partial<EntrepriseConfig>)
+      ),
+  };
+}
+
 export default function ParametresEntreprisePage() {
-  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom } = useSettingsDraft(
+  const { draft, patch, save, cancel, reset, dirty, savedAt, isCustom, updatedAt } = useSettingsDraft(
     'config.entreprise',
     defaultEntreprise,
     {
@@ -24,230 +54,103 @@ export default function ParametresEntreprisePage() {
       <SettingsHeader
         title="Informations entreprise"
         subtitle="Coordonnées légales et bancaires affichées dans l'en-tête et le pied de page des devis et factures."
+        updatedAt={updatedAt}
       />
 
       {/* === IDENTITÉ LÉGALE === */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Identité légale</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Raison sociale" className="md:col-span-2">
-              <Input
-                value={draft.raison_sociale}
-                onChange={(e) => patch((d) => ({ ...d, raison_sociale: e.target.value }))}
-              />
-            </Field>
-            <Field label="Forme juridique" hint="ex. SARL, SAS, EI">
-              <Input
-                value={draft.forme_juridique ?? ''}
-                onChange={(e) =>
-                  patch((d) => ({ ...d, forme_juridique: e.target.value || undefined }))
-                }
-              />
-            </Field>
-            <Field label="Capital social" hint="ex. 10 000 €">
-              <Input
-                value={draft.capital_social ?? ''}
-                onChange={(e) =>
-                  patch((d) => ({ ...d, capital_social: e.target.value || undefined }))
-                }
-              />
-            </Field>
-            <Field label="SIRET">
-              <Input
-                value={draft.siret ?? ''}
-                placeholder="123 456 789 00012"
-                onChange={(e) => patch((d) => ({ ...d, siret: e.target.value || undefined }))}
-              />
-            </Field>
-            <Field label="RCS" hint="ex. Paris B 123 456 789">
-              <Input
-                value={draft.rcs ?? ''}
-                onChange={(e) => patch((d) => ({ ...d, rcs: e.target.value || undefined }))}
-              />
-            </Field>
-            <Field label="Code APE / NAF">
-              <Input
-                value={draft.ape ?? ''}
-                placeholder="1812Z"
-                onChange={(e) => patch((d) => ({ ...d, ape: e.target.value || undefined }))}
-              />
-            </Field>
-            <Field label="TVA intracommunautaire">
-              <Input
-                value={draft.tva_intra ?? ''}
-                placeholder="FR12345678901"
-                onChange={(e) =>
-                  patch((d) => ({ ...d, tva_intra: e.target.value || undefined }))
-                }
-              />
-            </Field>
-          </div>
-        </CardContent>
-      </Card>
+      <ScalarsEditor
+        title="Identité légale"
+        rows={[
+          textRow(draft, patch, 'raison_sociale', 'Raison sociale'),
+          textRow(draft, patch, 'forme_juridique', 'Forme juridique', {
+            hint: 'ex. SARL, SAS, EI',
+          }),
+          textRow(draft, patch, 'capital_social', 'Capital social', {
+            hint: 'ex. 10 000 €',
+          }),
+          textRow(draft, patch, 'siret', 'SIRET', { placeholder: '123 456 789 00012' }),
+          textRow(draft, patch, 'rcs', 'RCS', { hint: 'ex. Paris B 123 456 789' }),
+          textRow(draft, patch, 'ape', 'Code APE / NAF', { placeholder: '1812Z' }),
+          textRow(draft, patch, 'tva_intra', 'TVA intracommunautaire', {
+            placeholder: 'FR12345678901',
+          }),
+        ]}
+      />
 
       {/* === ADRESSE === */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Adresse</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Field label="Ligne 1">
-            <Input
-              value={draft.adresse_ligne1 ?? ''}
-              onChange={(e) =>
-                patch((d) => ({ ...d, adresse_ligne1: e.target.value || undefined }))
-              }
-            />
-          </Field>
-          <Field label="Ligne 2" hint="Optionnel">
-            <Input
-              value={draft.adresse_ligne2 ?? ''}
-              onChange={(e) =>
-                patch((d) => ({ ...d, adresse_ligne2: e.target.value || undefined }))
-              }
-            />
-          </Field>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Field label="CP">
-              <Input
-                value={draft.adresse_cp ?? ''}
-                onChange={(e) =>
-                  patch((d) => ({ ...d, adresse_cp: e.target.value || undefined }))
-                }
-              />
-            </Field>
-            <Field label="Ville" className="md:col-span-2">
-              <Input
-                value={draft.adresse_ville ?? ''}
-                onChange={(e) =>
-                  patch((d) => ({ ...d, adresse_ville: e.target.value || undefined }))
-                }
-              />
-            </Field>
-          </div>
-          <Field label="Pays">
-            <Input
-              value={draft.adresse_pays ?? ''}
-              onChange={(e) =>
-                patch((d) => ({ ...d, adresse_pays: e.target.value || undefined }))
-              }
-            />
-          </Field>
-        </CardContent>
-      </Card>
+      <ScalarsEditor
+        title="Adresse"
+        rows={[
+          textRow(draft, patch, 'adresse_ligne1', 'Adresse — ligne 1'),
+          textRow(draft, patch, 'adresse_ligne2', 'Adresse — ligne 2', { hint: 'Optionnel' }),
+          textRow(draft, patch, 'adresse_cp', 'Code postal'),
+          textRow(draft, patch, 'adresse_ville', 'Ville'),
+          textRow(draft, patch, 'adresse_pays', 'Pays'),
+        ]}
+      />
 
       {/* === CONTACT === */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Contact</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Email">
-              <Input
-                type="email"
-                value={draft.email ?? ''}
-                onChange={(e) => patch((d) => ({ ...d, email: e.target.value || undefined }))}
-              />
-            </Field>
-            <Field label="Téléphone">
-              <Input
-                type="tel"
-                value={draft.telephone ?? ''}
-                onChange={(e) =>
-                  patch((d) => ({ ...d, telephone: e.target.value || undefined }))
-                }
-              />
-            </Field>
-            <Field label="Site web" hint="Sans http://" className="md:col-span-2">
-              <Input
-                value={draft.site_web ?? ''}
-                placeholder="avenirnumerique.fr"
-                onChange={(e) =>
-                  patch((d) => ({ ...d, site_web: e.target.value || undefined }))
-                }
-              />
-            </Field>
-          </div>
-        </CardContent>
-      </Card>
+      <ScalarsEditor
+        title="Contact"
+        rows={[
+          textRow(draft, patch, 'email', 'Email'),
+          textRow(draft, patch, 'telephone', 'Téléphone'),
+          textRow(draft, patch, 'site_web', 'Site web', {
+            hint: 'Sans http://',
+            placeholder: 'avenirnumerique.fr',
+          }),
+        ]}
+      />
 
       {/* === BANQUE === */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Coordonnées bancaires</CardTitle>
-          <CardDescription>
-            Affichées en pied de page des devis pour faciliter les paiements par virement.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Banque" className="md:col-span-2">
-              <Input
-                value={draft.banque ?? ''}
-                placeholder="ex. Crédit Mutuel"
-                onChange={(e) => patch((d) => ({ ...d, banque: e.target.value || undefined }))}
-              />
-            </Field>
-            <Field label="IBAN" className="md:col-span-2">
-              <Input
-                value={draft.iban ?? ''}
-                placeholder="FR76 1234 5678 9012 3456 7890 123"
-                onChange={(e) => patch((d) => ({ ...d, iban: e.target.value || undefined }))}
-              />
-            </Field>
-            <Field label="BIC / SWIFT">
-              <Input
-                value={draft.bic ?? ''}
-                placeholder="CMCIFR2A"
-                onChange={(e) => patch((d) => ({ ...d, bic: e.target.value || undefined }))}
-              />
-            </Field>
-          </div>
-        </CardContent>
-      </Card>
+      <ScalarsEditor
+        title="Coordonnées bancaires"
+        rows={[
+          textRow(draft, patch, 'banque', 'Banque', { placeholder: 'ex. Crédit Mutuel' }),
+          textRow(draft, patch, 'iban', 'IBAN', {
+            placeholder: 'FR76 1234 5678 9012 3456 7890 123',
+          }),
+          textRow(draft, patch, 'bic', 'BIC / SWIFT', { placeholder: 'CMCIFR2A' }),
+        ]}
+      />
 
       {/* === LOGO === */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Logo</CardTitle>
-          <CardDescription>
-            URL d&apos;une image (Drive, hébergement web…) affichée en en-tête du devis. Phase
-            3b (Supabase Storage) : upload réel à venir.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Field label="URL du logo">
-            <Input
-              type="url"
-              value={draft.logo_url ?? ''}
-              placeholder="https://..."
-              onChange={(e) =>
-                patch((d) => ({ ...d, logo_url: e.target.value || undefined }))
-              }
-            />
-          </Field>
-        </CardContent>
-      </Card>
+      <ScalarsEditor
+        title="Logo"
+        rows={[textRow(draft, patch, 'logo_url', 'URL du logo', { placeholder: 'https://...' })]}
+      />
 
-      {/* === MENTIONS LÉGALES DEVIS === */}
+      {/* === MENTIONS LÉGALES — textarea (pas un scalaire simple) === */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Mentions de pied de page</CardTitle>
-          <CardDescription>
-            Conditions et mentions imprimées en pied de page de chaque devis.
-          </CardDescription>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <CardTitle className="text-sm">Mentions de pied de page</CardTitle>
+            <span
+              className="text-[10px] text-muted-foreground/70 tabular-nums"
+              title={
+                draft.meta?.mentions_devis
+                  ? new Date(draft.meta.mentions_devis).toLocaleString('fr-FR')
+                  : 'Jamais modifié'
+              }
+            >
+              {fmtModifiedShort(draft.meta?.mentions_devis)}
+            </span>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-3 pt-0 pb-2.5">
+          <p className="text-[11px] text-muted-foreground/80 mb-1.5">
+            Conditions et mentions imprimées en pied de page de chaque devis.
+          </p>
           <textarea
-            className="flex w-full min-h-28 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex w-full min-h-20 rounded-md border border-input bg-background px-2 py-1.5 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             value={draft.mentions_devis ?? ''}
             placeholder="ex. Devis valable 30 jours. CGV disponibles sur demande. Pénalités de retard au taux légal en vigueur."
             onChange={(e) =>
-              patch((d) => ({ ...d, mentions_devis: e.target.value || undefined }))
+              patch((d) =>
+                stampScalar(d, 'mentions_devis', {
+                  mentions_devis: e.target.value || undefined,
+                })
+              )
             }
           />
         </CardContent>
@@ -264,3 +167,4 @@ export default function ParametresEntreprisePage() {
     </SettingsPageContainer>
   );
 }
+

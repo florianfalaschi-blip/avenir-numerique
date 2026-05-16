@@ -16,6 +16,19 @@
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
+-- Reset (idempotent) : supprime tout avant de recréer.
+-- Ordre : tables avec FK d'abord (factures → commandes → devis → clients).
+-- ⚠️  Détruit toutes les données — OK en setup initial, pas en prod.
+-- ---------------------------------------------------------------------------
+DROP TABLE IF EXISTS public.factures CASCADE;
+DROP TABLE IF EXISTS public.commandes CASCADE;
+DROP TABLE IF EXISTS public.devis CASCADE;
+DROP TABLE IF EXISTS public.clients CASCADE;
+DROP TABLE IF EXISTS public.app_settings CASCADE;
+DROP TABLE IF EXISTS public.entreprise CASCADE;
+DROP FUNCTION IF EXISTS public.set_updated_at() CASCADE;
+
+-- ---------------------------------------------------------------------------
 -- Helper : trigger updated_at
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.set_updated_at()

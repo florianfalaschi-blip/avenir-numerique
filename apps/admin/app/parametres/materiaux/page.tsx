@@ -8,11 +8,16 @@ import type {
   BobinesParams,
 } from '@avenir/core';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@avenir/ui';
-import { Field, Select } from '../../calculateurs/_shared/components';
-import { fmtModifiedAt } from '../../calculateurs/_shared/format';
+import { Select } from '../../calculateurs/_shared/components';
 import { defaultPlaquesParams } from '@/lib/default-params/plaques';
 import { defaultBobinesParams } from '@/lib/default-params/bobines';
-import { ActionBar, SettingsHeader, SettingsPageContainer, useSettingsDraft } from '../_shared';
+import {
+  ActionBar,
+  SettingsHeader,
+  SettingsPageContainer,
+  fmtModifiedShort,
+  useSettingsDraft,
+} from '../_shared';
 
 const METHODES_CALCUL: { value: BobinesMethodeCalcul; label: string }[] = [
   { value: 'calepinage', label: 'Calepinage rouleau' },
@@ -80,18 +85,25 @@ export default function ParametresMateriauxPage() {
       <SettingsHeader
         title="Catalogue Matériaux"
         subtitle="Matériaux Plaques (PVC, Forex, Dibond…) et Bobines (vinyle, polyester…). Horodatage par matériau."
+        updatedAt={
+          // Date max entre plaques et bobines
+          [plaques.updatedAt, bobines.updatedAt]
+            .filter((d): d is string => Boolean(d))
+            .reduce<string | null>((a, b) => (a === null || b > a ? b : a), null)
+        }
       />
 
       {/* === MATÉRIAUX PLAQUES === */}
       <Card>
-        <CardHeader>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-xl">
+            <CardTitle className="text-sm">
               Matériaux Plaques ({plaques.draft.materiaux.length})
             </CardTitle>
             <Button
               variant="outline"
               size="sm"
+              className="h-6 px-2 text-[11px]"
               onClick={() =>
                 plaques.patch((d: PlaquesParams) => ({
                   ...d,
@@ -113,12 +125,15 @@ export default function ParametresMateriauxPage() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="px-3 pb-2.5 pt-0 space-y-2">
           {plaques.draft.materiaux.map((m, mi) => (
-            <div key={m.id} className="rounded-md border bg-secondary/20 p-3 space-y-3">
-              <div className="grid grid-cols-12 gap-2 items-center">
+            <div
+              key={m.id}
+              className="rounded-md border bg-secondary/20 p-2.5 space-y-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80"
+            >
+              <div className="grid grid-cols-12 gap-1.5 items-center">
                 <Input
-                  className="col-span-6"
+                  className="col-span-8"
                   value={m.nom}
                   placeholder="Nom"
                   onChange={(e) =>
@@ -128,21 +143,20 @@ export default function ParametresMateriauxPage() {
                     }))
                   }
                 />
-                <div
-                  className="col-span-3 text-xs text-muted-foreground"
+                <span
+                  className="col-span-3 text-[10px] text-muted-foreground/70 whitespace-nowrap tabular-nums text-right"
                   title={
                     m.lastModifiedAt
                       ? new Date(m.lastModifiedAt).toLocaleString('fr-FR')
                       : 'Jamais modifié'
                   }
                 >
-                  Modifié : {fmtModifiedAt(m.lastModifiedAt)}
-                </div>
-                <div className="col-span-2" />
+                  {fmtModifiedShort(m.lastModifiedAt)}
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="col-span-1 text-muted-foreground hover:text-destructive justify-self-end"
+                  className="col-span-1 h-7 w-7 text-muted-foreground hover:text-destructive justify-self-end"
                   onClick={() =>
                     plaques.patch((d) => ({
                       ...d,
@@ -163,9 +177,7 @@ export default function ParametresMateriauxPage() {
 
               {/* Fournisseur Plaques */}
               <div className="flex items-center gap-2">
-                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground shrink-0 w-24">
-                  Fournisseur
-                </label>
+                <label className="shrink-0 w-24">Fournisseur</label>
                 <Input
                   className="max-w-md"
                   value={m.fournisseur ?? ''}
@@ -181,14 +193,15 @@ export default function ParametresMateriauxPage() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <div className="text-[9px] font-medium text-muted-foreground/70 uppercase tracking-wide">
                     Formats d&apos;achat
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="h-6 px-2 text-[11px]"
                     onClick={() =>
                       plaques.patch((d) => ({
                         ...d,
@@ -204,14 +217,14 @@ export default function ParametresMateriauxPage() {
                     + Format
                   </Button>
                 </div>
-                <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
+                <div className="grid grid-cols-12 gap-1.5 text-[9px] font-medium text-muted-foreground/70 uppercase tracking-wide px-1">
                   <div className="col-span-4">Largeur (cm)</div>
                   <div className="col-span-4">Hauteur (cm)</div>
                   <div className="col-span-3">Prix HT (€)</div>
                   <div className="col-span-1" />
                 </div>
                 {m.formats_achat.map((f, fi) => (
-                  <div key={fi} className="grid grid-cols-12 gap-2 items-center">
+                  <div key={fi} className="grid grid-cols-12 gap-1.5 items-center">
                     <Input
                       className="col-span-4"
                       type="number"
@@ -275,7 +288,7 @@ export default function ParametresMateriauxPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="col-span-1 text-muted-foreground hover:text-destructive"
+                      className="col-span-1 h-7 w-7 text-muted-foreground hover:text-destructive"
                       onClick={() =>
                         plaques.patch((d) => ({
                           ...d,
@@ -301,14 +314,15 @@ export default function ParametresMateriauxPage() {
 
       {/* === MATÉRIAUX BOBINES === */}
       <Card>
-        <CardHeader>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-xl">
+            <CardTitle className="text-sm">
               Matériaux Bobines ({bobines.draft.materiaux.length})
             </CardTitle>
             <Button
               variant="outline"
               size="sm"
+              className="h-6 px-2 text-[11px]"
               onClick={() =>
                 bobines.patch((d: BobinesParams) => ({
                   ...d,
@@ -330,10 +344,13 @@ export default function ParametresMateriauxPage() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="px-3 pb-2.5 pt-0 space-y-2">
           {bobines.draft.materiaux.map((m, mi) => (
-            <div key={m.id} className="rounded-md border bg-secondary/20 p-3 space-y-3">
-              <div className="grid grid-cols-12 gap-2 items-center">
+            <div
+              key={m.id}
+              className="rounded-md border bg-secondary/20 p-2.5 space-y-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80"
+            >
+              <div className="grid grid-cols-12 gap-1.5 items-center">
                 <Input
                   className="col-span-4"
                   value={m.nom}
@@ -374,20 +391,20 @@ export default function ParametresMateriauxPage() {
                     </option>
                   ))}
                 </Select>
-                <div
-                  className="col-span-3 text-xs text-muted-foreground"
+                <span
+                  className="col-span-3 text-[10px] text-muted-foreground/70 whitespace-nowrap tabular-nums text-right"
                   title={
                     m.lastModifiedAt
                       ? new Date(m.lastModifiedAt).toLocaleString('fr-FR')
                       : 'Jamais modifié'
                   }
                 >
-                  Modifié : {fmtModifiedAt(m.lastModifiedAt)}
-                </div>
+                  {fmtModifiedShort(m.lastModifiedAt)}
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="col-span-1 text-muted-foreground hover:text-destructive justify-self-end"
+                  className="col-span-1 h-7 w-7 text-muted-foreground hover:text-destructive justify-self-end"
                   onClick={() =>
                     bobines.patch((d) => ({
                       ...d,
@@ -408,9 +425,7 @@ export default function ParametresMateriauxPage() {
 
               {/* Fournisseur Bobines */}
               <div className="flex items-center gap-2">
-                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground shrink-0 w-24">
-                  Fournisseur
-                </label>
+                <label className="shrink-0 w-24">Fournisseur</label>
                 <Input
                   className="max-w-md"
                   value={m.fournisseur ?? ''}
@@ -428,8 +443,12 @@ export default function ParametresMateriauxPage() {
 
               {/* Prix m² conditionnel */}
               {(m.methode_calcul === 'm2' || m.methode_calcul === 'auto') && (
-                <Field label="Prix au m² HT (€) — utilisé si méthode « m² »">
+                <div className="flex items-center gap-2">
+                  <label className="shrink-0 w-24 normal-case tracking-normal text-[10px] text-muted-foreground/80">
+                    Prix au m² HT (€)
+                  </label>
                   <Input
+                    className="max-w-[8rem]"
                     type="number"
                     min={0}
                     step={0.1}
@@ -447,18 +466,22 @@ export default function ParametresMateriauxPage() {
                       })
                     }
                   />
-                </Field>
+                  <span className="text-[10px] text-muted-foreground/70">
+                    utilisé si méthode « m² »
+                  </span>
+                </div>
               )}
 
               {/* Rouleaux */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <div className="text-[9px] font-medium text-muted-foreground/70 uppercase tracking-wide">
                     Rouleaux disponibles
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="h-6 px-2 text-[11px]"
                     onClick={() =>
                       bobines.patch((d) => ({
                         ...d,
@@ -475,19 +498,19 @@ export default function ParametresMateriauxPage() {
                   </Button>
                 </div>
                 {m.rouleaux.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[11px] text-muted-foreground">
                     Aucun rouleau. Ce matériau ne supporte pas le calepinage rouleau.
                   </p>
                 ) : (
                   <>
-                    <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
+                    <div className="grid grid-cols-12 gap-1.5 text-[9px] font-medium text-muted-foreground/70 uppercase tracking-wide px-1">
                       <div className="col-span-4">Largeur (mm)</div>
                       <div className="col-span-4">Longueur (m)</div>
                       <div className="col-span-3">Prix HT (€)</div>
                       <div className="col-span-1" />
                     </div>
                     {m.rouleaux.map((r, ri) => (
-                      <div key={ri} className="grid grid-cols-12 gap-2 items-center">
+                      <div key={ri} className="grid grid-cols-12 gap-1.5 items-center">
                         <Input
                           className="col-span-4"
                           type="number"
@@ -551,7 +574,7 @@ export default function ParametresMateriauxPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="col-span-1 text-muted-foreground hover:text-destructive"
+                          className="col-span-1 h-7 w-7 text-muted-foreground hover:text-destructive"
                           onClick={() =>
                             bobines.patch((d) => ({
                               ...d,
@@ -574,7 +597,7 @@ export default function ParametresMateriauxPage() {
         </CardContent>
       </Card>
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-[11px] text-muted-foreground">
         💡 Le timestamp <em>Modifié</em> se met à jour automatiquement quand tu changes un champ.
         Il n&apos;est persisté qu&apos;après <strong>Enregistrer</strong>. Le bouton{' '}
         <em>Annuler</em> revient à la version sauvegardée.

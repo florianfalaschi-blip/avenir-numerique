@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@avenir/ui';
+import { useMemo } from 'react';
+import { Card, CardContent } from '@avenir/ui';
 import { CALC_SLUGS, CALC_LABELS, type CalcSlug } from '@/lib/default-params';
-import { hasCustomSettings } from '@/lib/settings';
+import { formatLastModified, formatLastModifiedFull, useSettingsMeta } from '@/lib/settings';
 
 const CALC_DESCRIPTIONS: Record<CalcSlug, string> = {
   rollup: 'Bâches, structures, machine Epson, marge, dégressif, BAT.',
@@ -14,154 +14,192 @@ const CALC_DESCRIPTIONS: Record<CalcSlug, string> = {
   brochures: 'Machines impression + façonnage, reliures, marges prorata, plieuse.',
 };
 
-const SHARED_CATALOGUES: {
+interface SharedCatalogue {
   slug: string;
-  storageKey: string;
+  /** Clé(s) Supabase qui composent ce paramétrage — la date affichée est la plus récente. */
+  storageKeys: string[];
   label: string;
   description: string;
   badge: string;
-}[] = [
+}
+
+const SHARED_CATALOGUES: SharedCatalogue[] = [
   {
     slug: 'papiers',
-    storageKey: 'shared.papiers',
+    storageKeys: ['shared.papiers'],
     label: 'Catalogue Papiers',
     description: 'Catalogue partagé utilisé par les calculateurs Flyers et Brochures.',
     badge: 'Flyers · Brochures',
   },
   {
     slug: 'materiaux',
-    storageKey: 'plaques+bobines',
+    storageKeys: ['plaques', 'bobines'],
     label: 'Catalogue Matériaux',
     description: 'Matériaux Plaques (PVC, Forex, Dibond…) et Bobines (vinyle, polyester…).',
     badge: 'Plaques · Bobines',
   },
   {
     slug: 'entreprise',
-    storageKey: 'config.entreprise',
+    storageKeys: ['config.entreprise'],
     label: 'Informations entreprise',
     description: 'Raison sociale, SIRET, TVA, IBAN, logo, mentions légales — imprimés sur les devis.',
     badge: 'PDF Devis',
   },
 ];
 
-export default function ParametresPage() {
-  const [custom, setCustom] = useState<Record<string, boolean>>({});
+/** Toutes les clés à interroger pour récupérer les dates. */
+const ALL_SLUGS: readonly string[] = [
+  ...CALC_SLUGS,
+  'shared.papiers',
+  'config.entreprise',
+];
 
-  useEffect(() => {
-    const next: Record<string, boolean> = {};
+/** Renvoie la date max parmi plusieurs clés (ou undefined si aucune). */
+function maxDate(meta: Record<string, string>, keys: string[]): string | undefined {
+  const dates = keys.map((k) => meta[k]).filter(Boolean) as string[];
+  if (dates.length === 0) return undefined;
+  return dates.reduce((a, b) => (a > b ? a : b));
+}
+
+export default function ParametresPage() {
+  const { meta } = useSettingsMeta(ALL_SLUGS);
+
+  // Précalcule les dates par carte
+  const calcDates = useMemo(() => {
+    const map: Record<CalcSlug, string | undefined> = {} as Record<CalcSlug, string | undefined>;
     CALC_SLUGS.forEach((slug) => {
-      next[slug] = hasCustomSettings(slug);
+      map[slug] = meta[slug];
     });
-    next['shared.papiers'] = hasCustomSettings('shared.papiers');
-    next['plaques+bobines'] =
-      hasCustomSettings('plaques') || hasCustomSettings('bobines');
-    next['config.entreprise'] = hasCustomSettings('config.entreprise');
-    setCustom(next);
-  }, []);
+    return map;
+  }, [meta]);
+
+  const sharedDates = useMemo(() => {
+    const map: Record<string, string | undefined> = {};
+    SHARED_CATALOGUES.forEach((sc) => {
+      map[sc.slug] = maxDate(meta, sc.storageKeys);
+    });
+    return map;
+  }, [meta]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Paramètres</h1>
-        <p className="text-muted-foreground mt-2 max-w-2xl">
-          Configure les catalogues et tarifs. Les modifications sont stockées localement dans ton
-          navigateur (Phase 3a). Elles seront synchronisées dans Supabase en Phase 3b.
+        <p className="text-muted-foreground mt-1.5 text-sm max-w-2xl">
+          Catalogues, tarifs et marges. Synchronisés dans le cloud — modifs visibles sur tous les
+          postes.
         </p>
       </div>
 
       {/* === CATALOGUES PARTAGÉS === */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <section className="space-y-2.5">
+        <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/80">
           Catalogues partagés
         </h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {SHARED_CATALOGUES.map((sc) => {
-            const isCustom = custom[sc.storageKey];
-            return (
-              <Link
-                key={sc.slug}
-                href={`/parametres/${sc.slug}`}
-                className="group block"
-              >
-                <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-lg">{sc.label}</CardTitle>
-                      {isCustom && (
-                        <span className="inline-flex items-center rounded-full bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent border border-accent/30">
-                          modifié
-                        </span>
-                      )}
-                    </div>
-                    <CardDescription>{sc.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-                      Modifier
-                      <span aria-hidden className="transition group-hover:translate-x-0.5">
-                        →
-                      </span>
-                    </span>
-                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground/80 border border-border rounded px-2 py-0.5">
-                      {sc.badge}
-                    </span>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {SHARED_CATALOGUES.map((sc) => (
+            <ParamCard
+              key={sc.slug}
+              href={`/parametres/${sc.slug}`}
+              label={sc.label}
+              description={sc.description}
+              badge={sc.badge}
+              updatedAt={sharedDates[sc.slug]}
+            />
+          ))}
         </div>
       </section>
 
       {/* === PARAMÈTRES PAR CALCULATEUR === */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <section className="space-y-2.5">
+        <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/80">
           Paramètres par calculateur
         </h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {CALC_SLUGS.map((slug) => {
-            const isCustom = custom[slug];
-            return (
-              <Link key={slug} href={`/parametres/${slug}`} className="group block">
-                <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-lg">{CALC_LABELS[slug]}</CardTitle>
-                      {isCustom && (
-                        <span className="inline-flex items-center rounded-full bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent border border-accent/30">
-                          modifié
-                        </span>
-                      )}
-                    </div>
-                    <CardDescription>{CALC_DESCRIPTIONS[slug]}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-                      Modifier les paramètres
-                      <span aria-hidden className="transition group-hover:translate-x-0.5">
-                        →
-                      </span>
-                    </span>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {CALC_SLUGS.map((slug) => (
+            <ParamCard
+              key={slug}
+              href={`/parametres/${slug}`}
+              label={CALC_LABELS[slug]}
+              description={CALC_DESCRIPTIONS[slug]}
+              updatedAt={calcDates[slug]}
+              compact
+            />
+          ))}
         </div>
       </section>
-
-      <div className="rounded-lg border border-dashed bg-secondary/30 p-4 text-sm text-muted-foreground max-w-3xl">
-        <p>
-          <strong className="text-foreground">⚠️ Stockage local (Phase 3a)</strong> — Les
-          paramètres modifiés sont enregistrés dans le{' '}
-          <code className="text-foreground">localStorage</code> de ce navigateur. Si tu vides le
-          cache ou utilises un autre ordinateur, tu retrouves les valeurs par défaut.
-        </p>
-        <p className="mt-2">
-          <strong className="text-foreground">🔜 Synchronisation (Phase 3b)</strong> — Une fois
-          Supabase branché, les paramètres seront partagés entre tous les postes en temps réel.
-        </p>
-      </div>
     </div>
+  );
+}
+
+/**
+ * Carte de paramétrage compacte avec date de dernière modif.
+ * - `compact` : version plus dense (utilisée pour les 5 calculateurs).
+ */
+function ParamCard({
+  href,
+  label,
+  description,
+  badge,
+  updatedAt,
+  compact = false,
+}: {
+  href: string;
+  label: string;
+  description: string;
+  badge?: string;
+  updatedAt?: string;
+  compact?: boolean;
+}) {
+  const relativeDate = formatLastModified(updatedAt);
+  const fullDate = formatLastModifiedFull(updatedAt);
+  const isCustom = Boolean(updatedAt);
+
+  return (
+    <Link href={href} className="group block">
+      <Card className="h-full transition group-hover:border-primary group-hover:shadow-sm">
+        <CardContent className={compact ? 'p-3.5 space-y-1.5' : 'p-4 space-y-2'}>
+          <div className="flex items-start justify-between gap-2">
+            <h3 className={compact ? 'text-sm font-semibold leading-tight' : 'text-base font-semibold leading-tight'}>
+              {label}
+            </h3>
+            {isCustom && (
+              <span
+                className="shrink-0 inline-flex items-center rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent border border-accent/30"
+                title={fullDate ?? ''}
+              >
+                ●
+              </span>
+            )}
+          </div>
+          <p className={compact ? 'text-xs text-muted-foreground line-clamp-2' : 'text-xs text-muted-foreground'}>
+            {description}
+          </p>
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary">
+              Modifier
+              <span aria-hidden className="transition group-hover:translate-x-0.5">
+                →
+              </span>
+            </span>
+            <div className="flex items-center gap-1.5">
+              {badge && (
+                <span className="text-[9px] uppercase tracking-wide text-muted-foreground/70 border border-border rounded px-1.5 py-0.5">
+                  {badge}
+                </span>
+              )}
+              {relativeDate && (
+                <span
+                  className="text-[10px] text-muted-foreground/80 whitespace-nowrap"
+                  title={fullDate ?? ''}
+                >
+                  {relativeDate}
+                </span>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }

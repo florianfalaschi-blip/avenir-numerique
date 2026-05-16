@@ -32,12 +32,16 @@ export interface BacheConfig {
   id: string;
   nom: string;
   prix_m2_ht: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface StructureConfig {
   id: string;
   nom: string;
   prix_unitaire_ht: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface MachineConfig {
@@ -47,6 +51,8 @@ export interface MachineConfig {
   vitesse_m2_h: number;
   /** Coût horaire de la machine en €/h */
   taux_horaire_ht: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface DegressifSeuil {
@@ -73,6 +79,12 @@ export interface RollupParams {
   degressif: DegressifSeuil[];
   /** Prix de vente HT minimum (plancher de sécurité, optionnel) */
   prix_plancher_ht?: number;
+  /**
+   * Timestamps Unix ms de dernière modification par champ scalaire
+   * (frais_fixes_ht, bat_prix_ht, marge_pct, tva_pct, prix_plancher_ht).
+   * Optionnel et rétro-compatible.
+   */
+  meta?: Record<string, number>;
 }
 
 // ============================================================
