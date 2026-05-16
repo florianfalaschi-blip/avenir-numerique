@@ -58,6 +58,8 @@ export interface FlyersMachineConfig {
   /** Taux horaire opérateur (séparé de la machine) */
   operateur_taux_horaire_ht: number;
   actif: boolean;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 /** Un format d'achat de papier */
@@ -109,6 +111,8 @@ export interface FlyersFinitionConfig {
   cout_fournisseur_ht?: number;
   /** Marge appliquée sur la prestation sous-traitée (en %) */
   marge_sous_traitance_pct?: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface FlyersDegressifSeuil {
@@ -132,6 +136,13 @@ export interface FlyersParams {
   tva_pct: number;
   degressif: FlyersDegressifSeuil[];
   prix_plancher_ht?: number;
+  /**
+   * Timestamps Unix ms de dernière modification par champ scalaire racine
+   * (seuil_offset_quantite_min, frais_fixes_ht, bat_prix_ht,
+   * marge_pct_offset, marge_pct_numerique, tva_pct, prix_plancher_ht).
+   * Optionnel et rétro-compatible.
+   */
+  meta?: Record<string, number>;
 }
 
 // ============================================================

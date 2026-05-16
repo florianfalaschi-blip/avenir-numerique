@@ -87,6 +87,8 @@ export interface BobinesMachineImpressionConfig {
   operateur_taux_horaire_ht: number;
   /** % de gâches matière */
   gaches_pct: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface BobinesMachineDecoupeConfig {
@@ -98,6 +100,8 @@ export interface BobinesMachineDecoupeConfig {
   operateur_taux_horaire_ht: number;
   /** Forfait de cliquage / préparation par référence (modifiable par devis) */
   forfait_cliquage_ht: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export type BobinesFinitionType = 'forfait' | 'unitaire' | 'm2';
@@ -111,6 +115,8 @@ export interface BobinesFinitionConfig {
   sous_traite: boolean;
   cout_fournisseur_ht?: number;
   marge_sous_traitance_pct?: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface BobinesDegressifSeuil {
@@ -133,6 +139,14 @@ export interface BobinesParams {
   tva_pct: number;
   degressif: BobinesDegressifSeuil[];
   prix_plancher_ht?: number;
+  /**
+   * Timestamps Unix ms de dernière modification par champ scalaire racine
+   * (espace_entre_etiquettes_mm, forfait_rembobinage_ht, frais_fixes_ht,
+   * bat_prix_ht, marge_pct, tva_pct, prix_plancher_ht, machine_impression.*,
+   * machine_decoupe.*).
+   * Optionnel et rétro-compatible.
+   */
+  meta?: Record<string, number>;
 }
 
 // ============================================================

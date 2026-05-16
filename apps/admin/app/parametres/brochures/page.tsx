@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import type {
   BrochuresFinitionType,
-  BrochuresParams,
   BrochuresReliureType,
   BrochuresTechno,
 } from '@avenir/core';
@@ -14,8 +13,13 @@ import {
   ActionBar,
   CatalogueCard,
   DegressifEditor,
+  ScalarsEditor,
   SettingsHeader,
   SettingsPageContainer,
+  fmtModifiedShort,
+  stampRow,
+  stampScalar,
+  stamped,
   useSettingsDraft,
 } from '../_shared';
 
@@ -60,21 +64,22 @@ export default function ParametresBrochuresPage() {
 
       {/* === MACHINES IMPRESSION === */}
       <Card>
-        <CardHeader>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-xl">Machines d&apos;impression</CardTitle>
+            <CardTitle className="text-sm">Machines d&apos;impression</CardTitle>
             <Button
               variant="outline"
               size="sm"
+              className="h-6 px-2 text-[11px]"
               onClick={() =>
                 patch((d) => ({
                   ...d,
                   machines_impression: [
                     ...d.machines_impression,
-                    {
+                    stamped({
                       id: `machine_${Date.now()}`,
                       nom: 'Nouvelle machine',
-                      techno: 'numerique',
+                      techno: 'numerique' as BrochuresTechno,
                       format_max_mm: { largeur: 330, hauteur: 488 },
                       vitesse_feuilles_h: 1000,
                       taux_horaire_ht: 60,
@@ -83,7 +88,7 @@ export default function ParametresBrochuresPage() {
                       gaches_pct: 2,
                       operateur_taux_horaire_ht: 30,
                       actif: true,
-                    },
+                    }),
                   ],
                 }))
               }
@@ -92,40 +97,52 @@ export default function ParametresBrochuresPage() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="px-3 pt-0 pb-2.5 space-y-2">
           {draft.machines_impression.map((m, mi) => (
-            <div key={m.id} className="rounded-md border bg-secondary/20 p-3 space-y-3">
+            <div key={m.id} className="rounded-md border bg-secondary/20 p-2.5 space-y-2">
               <div className="flex items-center gap-2">
                 <Input
-                  className="flex-1"
+                  className="flex-1 h-7 text-xs px-2"
                   value={m.nom}
                   onChange={(e) =>
-                    patch((d) => {
-                      const next = [...d.machines_impression];
-                      next[mi] = { ...next[mi]!, nom: e.target.value };
-                      return { ...d, machines_impression: next };
-                    })
+                    patch((d) => ({
+                      ...d,
+                      machines_impression: stampRow(d.machines_impression, mi, {
+                        nom: e.target.value,
+                      }),
+                    }))
                   }
                 />
-                <label className="flex items-center gap-1.5 text-sm shrink-0 cursor-pointer">
+                <label className="flex items-center gap-1.5 text-xs shrink-0 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={m.actif}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.machines_impression];
-                        next[mi] = { ...next[mi]!, actif: e.target.checked };
-                        return { ...d, machines_impression: next };
-                      })
+                      patch((d) => ({
+                        ...d,
+                        machines_impression: stampRow(d.machines_impression, mi, {
+                          actif: e.target.checked,
+                        }),
+                      }))
                     }
                     className="h-4 w-4 rounded border-input accent-primary"
                   />
                   Active
                 </label>
+                <span
+                  className="text-[10px] text-muted-foreground/70 whitespace-nowrap tabular-nums"
+                  title={
+                    m.lastModifiedAt
+                      ? new Date(m.lastModifiedAt).toLocaleString('fr-FR')
+                      : 'Jamais modifié'
+                  }
+                >
+                  {fmtModifiedShort(m.lastModifiedAt)}
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-muted-foreground hover:text-destructive"
+                  className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
                   onClick={() =>
                     patch((d) => ({
                       ...d,
@@ -139,19 +156,18 @@ export default function ParametresBrochuresPage() {
                 </Button>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2">
                 <Field label="Techno">
                   <Select
+                    className="h-7 text-xs px-2 py-0"
                     value={m.techno}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.machines_impression];
-                        next[mi] = {
-                          ...next[mi]!,
+                      patch((d) => ({
+                        ...d,
+                        machines_impression: stampRow(d.machines_impression, mi, {
                           techno: e.target.value as BrochuresTechno,
-                        };
-                        return { ...d, machines_impression: next };
-                      })
+                        }),
+                      }))
                     }
                   >
                     <option value="numerique">Numérique</option>
@@ -165,17 +181,15 @@ export default function ParametresBrochuresPage() {
                     step={10}
                     value={m.format_max_mm.largeur}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.machines_impression];
-                        next[mi] = {
-                          ...next[mi]!,
+                      patch((d) => ({
+                        ...d,
+                        machines_impression: stampRow(d.machines_impression, mi, {
                           format_max_mm: {
-                            ...next[mi]!.format_max_mm,
+                            ...m.format_max_mm,
                             largeur: Number(e.target.value) || 0,
                           },
-                        };
-                        return { ...d, machines_impression: next };
-                      })
+                        }),
+                      }))
                     }
                   />
                 </Field>
@@ -186,17 +200,15 @@ export default function ParametresBrochuresPage() {
                     step={10}
                     value={m.format_max_mm.hauteur}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.machines_impression];
-                        next[mi] = {
-                          ...next[mi]!,
+                      patch((d) => ({
+                        ...d,
+                        machines_impression: stampRow(d.machines_impression, mi, {
                           format_max_mm: {
-                            ...next[mi]!.format_max_mm,
+                            ...m.format_max_mm,
                             hauteur: Number(e.target.value) || 0,
                           },
-                        };
-                        return { ...d, machines_impression: next };
-                      })
+                        }),
+                      }))
                     }
                   />
                 </Field>
@@ -207,14 +219,12 @@ export default function ParametresBrochuresPage() {
                     step={100}
                     value={m.vitesse_feuilles_h}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.machines_impression];
-                        next[mi] = {
-                          ...next[mi]!,
+                      patch((d) => ({
+                        ...d,
+                        machines_impression: stampRow(d.machines_impression, mi, {
                           vitesse_feuilles_h: Number(e.target.value) || 0,
-                        };
-                        return { ...d, machines_impression: next };
-                      })
+                        }),
+                      }))
                     }
                   />
                 </Field>
@@ -225,14 +235,12 @@ export default function ParametresBrochuresPage() {
                     step={1}
                     value={m.taux_horaire_ht}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.machines_impression];
-                        next[mi] = {
-                          ...next[mi]!,
+                      patch((d) => ({
+                        ...d,
+                        machines_impression: stampRow(d.machines_impression, mi, {
                           taux_horaire_ht: Number(e.target.value) || 0,
-                        };
-                        return { ...d, machines_impression: next };
-                      })
+                        }),
+                      }))
                     }
                   />
                 </Field>
@@ -243,14 +251,12 @@ export default function ParametresBrochuresPage() {
                     step={1}
                     value={m.operateur_taux_horaire_ht}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.machines_impression];
-                        next[mi] = {
-                          ...next[mi]!,
+                      patch((d) => ({
+                        ...d,
+                        machines_impression: stampRow(d.machines_impression, mi, {
                           operateur_taux_horaire_ht: Number(e.target.value) || 0,
-                        };
-                        return { ...d, machines_impression: next };
-                      })
+                        }),
+                      }))
                     }
                   />
                 </Field>
@@ -261,14 +267,12 @@ export default function ParametresBrochuresPage() {
                     step={1}
                     value={m.cout_calage_ht}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.machines_impression];
-                        next[mi] = {
-                          ...next[mi]!,
+                      patch((d) => ({
+                        ...d,
+                        machines_impression: stampRow(d.machines_impression, mi, {
                           cout_calage_ht: Number(e.target.value) || 0,
-                        };
-                        return { ...d, machines_impression: next };
-                      })
+                        }),
+                      }))
                     }
                   />
                 </Field>
@@ -280,32 +284,28 @@ export default function ParametresBrochuresPage() {
                     step={0.5}
                     value={m.gaches_pct}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.machines_impression];
-                        next[mi] = {
-                          ...next[mi]!,
+                      patch((d) => ({
+                        ...d,
+                        machines_impression: stampRow(d.machines_impression, mi, {
                           gaches_pct: Number(e.target.value) || 0,
-                        };
-                        return { ...d, machines_impression: next };
-                      })
+                        }),
+                      }))
                     }
                   />
                 </Field>
               </div>
 
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
                 <input
                   type="checkbox"
                   checked={m.recto_verso_calage_unique}
                   onChange={(e) =>
-                    patch((d) => {
-                      const next = [...d.machines_impression];
-                      next[mi] = {
-                        ...next[mi]!,
+                    patch((d) => ({
+                      ...d,
+                      machines_impression: stampRow(d.machines_impression, mi, {
                         recto_verso_calage_unique: e.target.checked,
-                      };
-                      return { ...d, machines_impression: next };
-                    })
+                      }),
+                    }))
                   }
                   className="h-4 w-4 rounded border-input accent-primary"
                 />
@@ -325,15 +325,15 @@ export default function ParametresBrochuresPage() {
             ...d,
             machines_faconnage: [
               ...d.machines_faconnage,
-              {
+              stamped({
                 id: `faconnage_${Date.now()}`,
                 nom: 'Nouvelle machine',
-                type: 'agrafe',
+                type: 'agrafe' as BrochuresReliureType | 'plieuse',
                 vitesse_h: 1000,
                 taux_horaire_ht: 40,
                 operateur_taux_horaire_ht: 30,
                 cout_consommables_unitaire_ht: 0,
-              },
+              }),
             ],
           }))
         }
@@ -356,25 +356,24 @@ export default function ParametresBrochuresPage() {
               className="col-span-3"
               value={m.nom}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.machines_faconnage];
-                  next[i] = { ...next[i]!, nom: e.target.value };
-                  return { ...d, machines_faconnage: next };
-                })
+                patch((d) => ({
+                  ...d,
+                  machines_faconnage: stampRow(d.machines_faconnage, i, {
+                    nom: e.target.value,
+                  }),
+                }))
               }
             />
             <Select
               className="col-span-2"
               value={m.type}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.machines_faconnage];
-                  next[i] = {
-                    ...next[i]!,
+                patch((d) => ({
+                  ...d,
+                  machines_faconnage: stampRow(d.machines_faconnage, i, {
                     type: e.target.value as BrochuresReliureType | 'plieuse',
-                  };
-                  return { ...d, machines_faconnage: next };
-                })
+                  }),
+                }))
               }
             >
               {FACONNAGE_TYPES.map((t) => (
@@ -390,11 +389,12 @@ export default function ParametresBrochuresPage() {
               step={100}
               value={m.vitesse_h}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.machines_faconnage];
-                  next[i] = { ...next[i]!, vitesse_h: Number(e.target.value) || 0 };
-                  return { ...d, machines_faconnage: next };
-                })
+                patch((d) => ({
+                  ...d,
+                  machines_faconnage: stampRow(d.machines_faconnage, i, {
+                    vitesse_h: Number(e.target.value) || 0,
+                  }),
+                }))
               }
             />
             <Input
@@ -404,11 +404,12 @@ export default function ParametresBrochuresPage() {
               step={1}
               value={m.taux_horaire_ht}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.machines_faconnage];
-                  next[i] = { ...next[i]!, taux_horaire_ht: Number(e.target.value) || 0 };
-                  return { ...d, machines_faconnage: next };
-                })
+                patch((d) => ({
+                  ...d,
+                  machines_faconnage: stampRow(d.machines_faconnage, i, {
+                    taux_horaire_ht: Number(e.target.value) || 0,
+                  }),
+                }))
               }
             />
             <Input
@@ -418,14 +419,12 @@ export default function ParametresBrochuresPage() {
               step={0.01}
               value={m.cout_consommables_unitaire_ht}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.machines_faconnage];
-                  next[i] = {
-                    ...next[i]!,
+                patch((d) => ({
+                  ...d,
+                  machines_faconnage: stampRow(d.machines_faconnage, i, {
                     cout_consommables_unitaire_ht: Number(e.target.value) || 0,
-                  };
-                  return { ...d, machines_faconnage: next };
-                })
+                  }),
+                }))
               }
             />
           </>
@@ -434,27 +433,28 @@ export default function ParametresBrochuresPage() {
 
       {/* === RELIURES === */}
       <Card>
-        <CardHeader>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-xl">Reliures</CardTitle>
+            <CardTitle className="text-sm">Reliures</CardTitle>
             <Button
               variant="outline"
               size="sm"
+              className="h-6 px-2 text-[11px]"
               onClick={() =>
                 patch((d) => ({
                   ...d,
                   reliures: [
                     ...d.reliures,
-                    {
+                    stamped({
                       id: `reliure_${Date.now()}`,
                       nom: 'Nouvelle reliure',
-                      type: 'agrafe',
+                      type: 'agrafe' as BrochuresReliureType,
                       pages_multiple: 4,
                       pages_min: 8,
                       pages_max: 64,
                       machine_faconnage_id: d.machines_faconnage[0]?.id ?? '',
                       sous_traite: false,
-                    },
+                    }),
                   ],
                 }))
               }
@@ -463,34 +463,31 @@ export default function ParametresBrochuresPage() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="px-3 pt-0 pb-2.5 space-y-2">
           {draft.reliures.map((r, ri) => (
-            <div key={r.id} className="rounded-md border bg-secondary/20 p-3 space-y-3">
-              <div className="grid grid-cols-12 gap-2 items-center">
+            <div key={r.id} className="rounded-md border bg-secondary/20 p-2.5 space-y-2">
+              <div className="grid grid-cols-12 gap-2 items-center [&_input]:h-7 [&_input]:text-xs [&_input]:px-2">
                 <Input
-                  className="col-span-7"
+                  className="col-span-6"
                   value={r.nom}
                   placeholder="Nom de la reliure"
                   onChange={(e) =>
-                    patch((d) => {
-                      const next = [...d.reliures];
-                      next[ri] = { ...next[ri]!, nom: e.target.value };
-                      return { ...d, reliures: next };
-                    })
+                    patch((d) => ({
+                      ...d,
+                      reliures: stampRow(d.reliures, ri, { nom: e.target.value }),
+                    }))
                   }
                 />
                 <Select
-                  className="col-span-4"
+                  className="col-span-4 h-7 text-xs px-2 py-0"
                   value={r.type}
                   onChange={(e) =>
-                    patch((d) => {
-                      const next = [...d.reliures];
-                      next[ri] = {
-                        ...next[ri]!,
+                    patch((d) => ({
+                      ...d,
+                      reliures: stampRow(d.reliures, ri, {
                         type: e.target.value as BrochuresReliureType,
-                      };
-                      return { ...d, reliures: next };
-                    })
+                      }),
+                    }))
                   }
                 >
                   {RELIURE_TYPES.map((t) => (
@@ -499,10 +496,20 @@ export default function ParametresBrochuresPage() {
                     </option>
                   ))}
                 </Select>
+                <span
+                  className="col-span-1 text-[10px] text-muted-foreground/70 text-right whitespace-nowrap tabular-nums"
+                  title={
+                    r.lastModifiedAt
+                      ? new Date(r.lastModifiedAt).toLocaleString('fr-FR')
+                      : 'Jamais modifié'
+                  }
+                >
+                  {fmtModifiedShort(r.lastModifiedAt)}
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="col-span-1 text-muted-foreground hover:text-destructive"
+                  className="col-span-1 h-7 w-7 text-muted-foreground hover:text-destructive"
                   onClick={() =>
                     patch((d) => ({
                       ...d,
@@ -516,7 +523,7 @@ export default function ParametresBrochuresPage() {
                 </Button>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-4">
+              <div className="grid gap-2 md:grid-cols-4 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2">
                 <Field label="Multiple pages">
                   <Input
                     type="number"
@@ -524,14 +531,12 @@ export default function ParametresBrochuresPage() {
                     step={1}
                     value={r.pages_multiple}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.reliures];
-                        next[ri] = {
-                          ...next[ri]!,
+                      patch((d) => ({
+                        ...d,
+                        reliures: stampRow(d.reliures, ri, {
                           pages_multiple: Number(e.target.value) || 1,
-                        };
-                        return { ...d, reliures: next };
-                      })
+                        }),
+                      }))
                     }
                   />
                 </Field>
@@ -542,14 +547,12 @@ export default function ParametresBrochuresPage() {
                     step={1}
                     value={r.pages_min}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.reliures];
-                        next[ri] = {
-                          ...next[ri]!,
+                      patch((d) => ({
+                        ...d,
+                        reliures: stampRow(d.reliures, ri, {
                           pages_min: Number(e.target.value) || 4,
-                        };
-                        return { ...d, reliures: next };
-                      })
+                        }),
+                      }))
                     }
                   />
                 </Field>
@@ -560,26 +563,26 @@ export default function ParametresBrochuresPage() {
                     step={1}
                     value={r.pages_max}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.reliures];
-                        next[ri] = {
-                          ...next[ri]!,
+                      patch((d) => ({
+                        ...d,
+                        reliures: stampRow(d.reliures, ri, {
                           pages_max: Number(e.target.value) || 4,
-                        };
-                        return { ...d, reliures: next };
-                      })
+                        }),
+                      }))
                     }
                   />
                 </Field>
                 <Field label="Machine façonnage">
                   <Select
+                    className="h-7 text-xs px-2 py-0"
                     value={r.machine_faconnage_id}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.reliures];
-                        next[ri] = { ...next[ri]!, machine_faconnage_id: e.target.value };
-                        return { ...d, reliures: next };
-                      })
+                      patch((d) => ({
+                        ...d,
+                        reliures: stampRow(d.reliures, ri, {
+                          machine_faconnage_id: e.target.value,
+                        }),
+                      }))
                     }
                   >
                     {draft.machines_faconnage.map((mf) => (
@@ -591,17 +594,18 @@ export default function ParametresBrochuresPage() {
                 </Field>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-3 items-end">
-                <label className="flex items-center gap-2 text-sm cursor-pointer h-10">
+              <div className="grid gap-2 md:grid-cols-3 items-end [&_input]:h-7 [&_input]:text-xs [&_input]:px-2">
+                <label className="flex items-center gap-2 text-xs cursor-pointer h-7">
                   <input
                     type="checkbox"
                     checked={r.sous_traite}
                     onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.reliures];
-                        next[ri] = { ...next[ri]!, sous_traite: e.target.checked };
-                        return { ...d, reliures: next };
-                      })
+                      patch((d) => ({
+                        ...d,
+                        reliures: stampRow(d.reliures, ri, {
+                          sous_traite: e.target.checked,
+                        }),
+                      }))
                     }
                     className="h-4 w-4 rounded border-input accent-primary"
                   />
@@ -614,18 +618,16 @@ export default function ParametresBrochuresPage() {
                     step={0.1}
                     disabled={!r.sous_traite}
                     value={r.cout_fournisseur_brochure_ht ?? ''}
-                    onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.reliures];
-                        const raw = e.target.value;
-                        next[ri] = {
-                          ...next[ri]!,
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      patch((d) => ({
+                        ...d,
+                        reliures: stampRow(d.reliures, ri, {
                           cout_fournisseur_brochure_ht:
                             raw === '' ? undefined : Number(raw) || 0,
-                        };
-                        return { ...d, reliures: next };
-                      })
-                    }
+                        }),
+                      }));
+                    }}
                   />
                 </Field>
                 <Field label="Marge ST (%)">
@@ -636,18 +638,16 @@ export default function ParametresBrochuresPage() {
                     step={1}
                     disabled={!r.sous_traite}
                     value={r.marge_sous_traitance_pct ?? ''}
-                    onChange={(e) =>
-                      patch((d) => {
-                        const next = [...d.reliures];
-                        const raw = e.target.value;
-                        next[ri] = {
-                          ...next[ri]!,
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      patch((d) => ({
+                        ...d,
+                        reliures: stampRow(d.reliures, ri, {
                           marge_sous_traitance_pct:
                             raw === '' ? undefined : Number(raw) || 0,
-                        };
-                        return { ...d, reliures: next };
-                      })
-                    }
+                        }),
+                      }));
+                    }}
                   />
                 </Field>
               </div>
@@ -658,16 +658,16 @@ export default function ParametresBrochuresPage() {
 
       {/* === PAPIERS — délégué au catalogue partagé === */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Papiers</CardTitle>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+          <CardTitle className="text-sm">Papiers</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
+        <CardContent className="px-3 pt-0 pb-2.5">
+          <p className="text-xs text-muted-foreground">
             Les papiers sont gérés dans le catalogue partagé (utilisé aussi par les Flyers).
           </p>
           <Link
             href="/parametres/papiers"
-            className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-primary hover:underline"
+            className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-primary hover:underline"
           >
             Modifier le catalogue Papiers
             <span aria-hidden>→</span>
@@ -684,13 +684,13 @@ export default function ParametresBrochuresPage() {
             ...d,
             finitions: [
               ...d.finitions,
-              {
+              stamped({
                 id: `finition_${Date.now()}`,
                 nom: 'Nouvelle finition',
-                type: 'forfait',
+                type: 'forfait' as BrochuresFinitionType,
                 prix_ht: 0,
                 sous_traite: false,
-              },
+              }),
             ],
           }))
         }
@@ -710,22 +710,22 @@ export default function ParametresBrochuresPage() {
               className="col-span-4"
               value={f.nom}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.finitions];
-                  next[i] = { ...next[i]!, nom: e.target.value };
-                  return { ...d, finitions: next };
-                })
+                patch((d) => ({
+                  ...d,
+                  finitions: stampRow(d.finitions, i, { nom: e.target.value }),
+                }))
               }
             />
             <Select
               className="col-span-2"
               value={f.type}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.finitions];
-                  next[i] = { ...next[i]!, type: e.target.value as BrochuresFinitionType };
-                  return { ...d, finitions: next };
-                })
+                patch((d) => ({
+                  ...d,
+                  finitions: stampRow(d.finitions, i, {
+                    type: e.target.value as BrochuresFinitionType,
+                  }),
+                }))
               }
             >
               {FINITION_TYPES.map((t) => (
@@ -741,11 +741,12 @@ export default function ParametresBrochuresPage() {
               step={0.1}
               value={f.prix_ht}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.finitions];
-                  next[i] = { ...next[i]!, prix_ht: Number(e.target.value) || 0 };
-                  return { ...d, finitions: next };
-                })
+                patch((d) => ({
+                  ...d,
+                  finitions: stampRow(d.finitions, i, {
+                    prix_ht: Number(e.target.value) || 0,
+                  }),
+                }))
               }
             />
             <div className="col-span-1 flex justify-center">
@@ -753,11 +754,12 @@ export default function ParametresBrochuresPage() {
                 type="checkbox"
                 checked={f.sous_traite}
                 onChange={(e) =>
-                  patch((d) => {
-                    const next = [...d.finitions];
-                    next[i] = { ...next[i]!, sous_traite: e.target.checked };
-                    return { ...d, finitions: next };
-                  })
+                  patch((d) => ({
+                    ...d,
+                    finitions: stampRow(d.finitions, i, {
+                      sous_traite: e.target.checked,
+                    }),
+                  }))
                 }
                 className="h-4 w-4 rounded border-input accent-primary"
                 aria-label="Sous-traité"
@@ -771,17 +773,15 @@ export default function ParametresBrochuresPage() {
                 placeholder="Coût ST"
                 disabled={!f.sous_traite}
                 value={f.cout_fournisseur_ht ?? ''}
-                onChange={(e) =>
-                  patch((d) => {
-                    const next = [...d.finitions];
-                    const raw = e.target.value;
-                    next[i] = {
-                      ...next[i]!,
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  patch((d) => ({
+                    ...d,
+                    finitions: stampRow(d.finitions, i, {
                       cout_fournisseur_ht: raw === '' ? undefined : Number(raw) || 0,
-                    };
-                    return { ...d, finitions: next };
-                  })
-                }
+                    }),
+                  }));
+                }}
               />
               <Input
                 type="number"
@@ -791,25 +791,193 @@ export default function ParametresBrochuresPage() {
                 placeholder="Marge ST %"
                 disabled={!f.sous_traite}
                 value={f.marge_sous_traitance_pct ?? ''}
-                onChange={(e) =>
-                  patch((d) => {
-                    const next = [...d.finitions];
-                    const raw = e.target.value;
-                    next[i] = {
-                      ...next[i]!,
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  patch((d) => ({
+                    ...d,
+                    finitions: stampRow(d.finitions, i, {
                       marge_sous_traitance_pct: raw === '' ? undefined : Number(raw) || 0,
-                    };
-                    return { ...d, finitions: next };
-                  })
-                }
+                    }),
+                  }));
+                }}
               />
             </div>
           </>
         )}
       />
 
-      {/* === SCALARS === */}
-      <BrochuresScalars params={draft} onPatch={patch} />
+      {/* === MACHINE PLIAGE (sélecteur seul, pas un ScalarsEditor) === */}
+      <Card>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+          <CardTitle className="text-sm">Machine pliage</CardTitle>
+        </CardHeader>
+        <CardContent className="px-3 pt-0 pb-2.5">
+          <div className="flex items-center gap-2 flex-wrap [&_input]:h-7 [&_input]:text-xs [&_input]:px-2">
+            <span className="text-xs text-muted-foreground flex-1">
+              Doit être de type &laquo; plieuse &raquo;. Si vide, pliage non facturé.
+            </span>
+            <Select
+              className="h-7 text-xs px-2 py-0 w-64"
+              value={draft.machine_pliage_id ?? ''}
+              onChange={(e) =>
+                patch((d) =>
+                  stampScalar(d, 'machine_pliage_id', {
+                    machine_pliage_id:
+                      e.target.value === '' ? undefined : e.target.value,
+                  })
+                )
+              }
+            >
+              <option value="">Aucune (pliage non facturé)</option>
+              {draft.machines_faconnage
+                .filter((m) => m.type === 'plieuse')
+                .map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.nom}
+                  </option>
+                ))}
+            </Select>
+            <span
+              className="text-[10px] text-muted-foreground/70 whitespace-nowrap tabular-nums w-14 text-right"
+              title={
+                draft.meta?.machine_pliage_id
+                  ? new Date(draft.meta.machine_pliage_id).toLocaleString('fr-FR')
+                  : 'Jamais modifié'
+              }
+            >
+              {fmtModifiedShort(draft.meta?.machine_pliage_id)}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* === SEUILS, PRIX GÉNÉRAUX & MARGES === */}
+      <ScalarsEditor
+        title="Seuils, prix généraux & marges"
+        rows={[
+          {
+            key: 'seuil_offset_quantite_min',
+            label: 'Seuil offset (qté min)',
+            hint: 'Qté min pour bascule en offset (auto)',
+            value: draft.seuil_offset_quantite_min,
+            min: 1,
+            step: 50,
+            modifiedAt: draft.meta?.seuil_offset_quantite_min,
+            onChange: (v) =>
+              patch((d) =>
+                stampScalar(d, 'seuil_offset_quantite_min', {
+                  seuil_offset_quantite_min: Number(v) || 0,
+                })
+              ),
+          },
+          {
+            key: 'seuil_pages_pliage',
+            label: 'Seuil pages pliage',
+            hint: 'Si nb_pages > seuil, la plieuse est utilisée',
+            value: draft.seuil_pages_pliage,
+            min: 4,
+            step: 1,
+            modifiedAt: draft.meta?.seuil_pages_pliage,
+            onChange: (v) =>
+              patch((d) =>
+                stampScalar(d, 'seuil_pages_pliage', {
+                  seuil_pages_pliage: Number(v) || 0,
+                })
+              ),
+          },
+          {
+            key: 'frais_fixes_ht',
+            label: 'Frais fixes HT',
+            suffix: '€',
+            value: draft.frais_fixes_ht,
+            min: 0,
+            step: 1,
+            modifiedAt: draft.meta?.frais_fixes_ht,
+            onChange: (v) =>
+              patch((d) => stampScalar(d, 'frais_fixes_ht', { frais_fixes_ht: Number(v) || 0 })),
+          },
+          {
+            key: 'bat_prix_ht',
+            label: 'Prix BAT HT',
+            suffix: '€',
+            value: draft.bat_prix_ht,
+            min: 0,
+            step: 1,
+            modifiedAt: draft.meta?.bat_prix_ht,
+            onChange: (v) =>
+              patch((d) => stampScalar(d, 'bat_prix_ht', { bat_prix_ht: Number(v) || 0 })),
+          },
+          {
+            key: 'marge_pct_offset',
+            label: 'Marge offset',
+            suffix: '%',
+            value: draft.marge_pct_offset,
+            min: 0,
+            step: 1,
+            modifiedAt: draft.meta?.marge_pct_offset,
+            onChange: (v) =>
+              patch((d) =>
+                stampScalar(d, 'marge_pct_offset', { marge_pct_offset: Number(v) || 0 })
+              ),
+          },
+          {
+            key: 'marge_pct_numerique',
+            label: 'Marge numérique',
+            suffix: '%',
+            value: draft.marge_pct_numerique,
+            min: 0,
+            step: 1,
+            modifiedAt: draft.meta?.marge_pct_numerique,
+            onChange: (v) =>
+              patch((d) =>
+                stampScalar(d, 'marge_pct_numerique', { marge_pct_numerique: Number(v) || 0 })
+              ),
+          },
+          {
+            key: 'tva_pct',
+            label: 'TVA',
+            suffix: '%',
+            value: draft.tva_pct,
+            min: 0,
+            step: 0.1,
+            modifiedAt: draft.meta?.tva_pct,
+            onChange: (v) =>
+              patch((d) => stampScalar(d, 'tva_pct', { tva_pct: Number(v) || 0 })),
+          },
+          {
+            key: 'prix_plancher_ht',
+            label: 'Plancher prix HT',
+            hint: 'Optionnel — le prix HT ne descend jamais en dessous',
+            suffix: '€',
+            value: draft.prix_plancher_ht ?? '',
+            placeholder: 'Aucun',
+            min: 0,
+            step: 1,
+            modifiedAt: draft.meta?.prix_plancher_ht,
+            onChange: (v) =>
+              patch((d) =>
+                stampScalar(d, 'prix_plancher_ht', {
+                  prix_plancher_ht: v === '' ? undefined : Number(v) || 0,
+                })
+              ),
+            action:
+              draft.prix_plancher_ht !== undefined ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-[11px]"
+                  onClick={() =>
+                    patch((d) =>
+                      stampScalar(d, 'prix_plancher_ht', { prix_plancher_ht: undefined })
+                    )
+                  }
+                >
+                  Désactiver
+                </Button>
+              ) : null,
+          },
+        ]}
+      />
 
       {/* === DÉGRESSIF === */}
       <DegressifEditor
@@ -826,164 +994,5 @@ export default function ParametresBrochuresPage() {
         onReset={reset}
       />
     </SettingsPageContainer>
-  );
-}
-
-function BrochuresScalars({
-  params,
-  onPatch,
-}: {
-  params: BrochuresParams;
-  onPatch: (updater: (d: BrochuresParams) => BrochuresParams) => void;
-}) {
-  const plieuses = params.machines_faconnage.filter((m) => m.type === 'plieuse');
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Seuils, prix généraux & marges</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Field
-            label="Seuil offset (qté min)"
-            hint="Qté min pour bascule en offset (auto)"
-          >
-            <Input
-              type="number"
-              min={1}
-              step={50}
-              value={params.seuil_offset_quantite_min}
-              onChange={(e) =>
-                onPatch((d) => ({
-                  ...d,
-                  seuil_offset_quantite_min: Number(e.target.value) || 0,
-                }))
-              }
-            />
-          </Field>
-          <Field
-            label="Seuil pages pliage"
-            hint="Si nb_pages > seuil, la plieuse est utilisée"
-          >
-            <Input
-              type="number"
-              min={4}
-              step={1}
-              value={params.seuil_pages_pliage}
-              onChange={(e) =>
-                onPatch((d) => ({
-                  ...d,
-                  seuil_pages_pliage: Number(e.target.value) || 0,
-                }))
-              }
-            />
-          </Field>
-          <Field label="Machine pliage" hint="Doit être de type 'plieuse'">
-            <Select
-              value={params.machine_pliage_id ?? ''}
-              onChange={(e) =>
-                onPatch((d) => ({
-                  ...d,
-                  machine_pliage_id: e.target.value === '' ? undefined : e.target.value,
-                }))
-              }
-            >
-              <option value="">Aucune (pliage non facturé)</option>
-              {plieuses.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.nom}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field label="Frais fixes HT (€)">
-            <Input
-              type="number"
-              min={0}
-              step={1}
-              value={params.frais_fixes_ht}
-              onChange={(e) =>
-                onPatch((d) => ({ ...d, frais_fixes_ht: Number(e.target.value) || 0 }))
-              }
-            />
-          </Field>
-          <Field label="Prix BAT HT (€)">
-            <Input
-              type="number"
-              min={0}
-              step={1}
-              value={params.bat_prix_ht}
-              onChange={(e) =>
-                onPatch((d) => ({ ...d, bat_prix_ht: Number(e.target.value) || 0 }))
-              }
-            />
-          </Field>
-          <Field label="Marge offset (%)">
-            <Input
-              type="number"
-              min={0}
-              step={1}
-              value={params.marge_pct_offset}
-              onChange={(e) =>
-                onPatch((d) => ({ ...d, marge_pct_offset: Number(e.target.value) || 0 }))
-              }
-            />
-          </Field>
-          <Field label="Marge numérique (%)">
-            <Input
-              type="number"
-              min={0}
-              step={1}
-              value={params.marge_pct_numerique}
-              onChange={(e) =>
-                onPatch((d) => ({ ...d, marge_pct_numerique: Number(e.target.value) || 0 }))
-              }
-            />
-          </Field>
-          <Field label="TVA (%)">
-            <Input
-              type="number"
-              min={0}
-              step={0.1}
-              value={params.tva_pct}
-              onChange={(e) =>
-                onPatch((d) => ({ ...d, tva_pct: Number(e.target.value) || 0 }))
-              }
-            />
-          </Field>
-          <Field
-            label="Plancher prix HT (€)"
-            hint="Optionnel"
-            className="md:col-span-2 lg:col-span-3"
-          >
-            <div className="flex gap-2 items-center max-w-md">
-              <Input
-                type="number"
-                min={0}
-                step={1}
-                value={params.prix_plancher_ht ?? ''}
-                placeholder="Aucun plancher"
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  onPatch((d) => ({
-                    ...d,
-                    prix_plancher_ht: raw === '' ? undefined : Number(raw) || 0,
-                  }));
-                }}
-              />
-              {params.prix_plancher_ht !== undefined && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onPatch((d) => ({ ...d, prix_plancher_ht: undefined }))}
-                >
-                  Désactiver
-                </Button>
-              )}
-            </div>
-          </Field>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

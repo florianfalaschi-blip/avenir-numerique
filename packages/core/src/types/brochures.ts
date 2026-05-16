@@ -81,6 +81,8 @@ export interface BrochuresMachineImpressionConfig {
   gaches_pct: number;
   operateur_taux_horaire_ht: number;
   actif: boolean;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface BrochuresMachineFaconnageConfig {
@@ -94,6 +96,8 @@ export interface BrochuresMachineFaconnageConfig {
   operateur_taux_horaire_ht: number;
   /** Coût consommables par brochure (agrafes, colle, spirale, wire-o) ou par feuille pour plieuse */
   cout_consommables_unitaire_ht: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface BrochuresReliureConfig {
@@ -111,6 +115,8 @@ export interface BrochuresReliureConfig {
   cout_fournisseur_brochure_ht?: number;
   /** Marge appliquée sur la prestation sous-traitée (en %) */
   marge_sous_traitance_pct?: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface BrochuresPapierFormat {
@@ -148,6 +154,8 @@ export interface BrochuresFinitionConfig {
   sous_traite: boolean;
   cout_fournisseur_ht?: number;
   marge_sous_traitance_pct?: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface BrochuresDegressifSeuil {
@@ -175,6 +183,14 @@ export interface BrochuresParams {
   tva_pct: number;
   degressif: BrochuresDegressifSeuil[];
   prix_plancher_ht?: number;
+  /**
+   * Timestamps Unix ms de dernière modification par champ scalaire racine
+   * (seuil_offset_quantite_min, seuil_pages_pliage, machine_pliage_id,
+   * frais_fixes_ht, bat_prix_ht, marge_pct_offset, marge_pct_numerique,
+   * tva_pct, prix_plancher_ht).
+   * Optionnel et rétro-compatible.
+   */
+  meta?: Record<string, number>;
 }
 
 // ============================================================
