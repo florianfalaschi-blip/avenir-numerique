@@ -6,9 +6,14 @@
   "types": "./src/index.ts",
   "scripts": {
     "lint": "eslint src",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "generate-types": "supabase gen types typescript --local > src/types/database.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "supabase": "^1.171.0"
   }
 }

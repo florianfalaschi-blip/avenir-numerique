@@ -98,10 +98,6 @@ avenir-numerique/
 
 ## 💻 Développement local
 
-> ⚠️ La structure technique sera initialisée en Phase 2 par le prestataire retenu.
-
-Une fois initialisé :
-
 ```bash
 # Installer les dépendances
 pnpm install
@@ -118,7 +114,7 @@ pnpm build
 
 ## 🔐 Variables d'environnement
 
-Voir `.env.example` dans chaque app pour la liste complète. Variables sensibles requises :
+Voir `.env.example` pour la liste complète. Variables sensibles requises :
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`

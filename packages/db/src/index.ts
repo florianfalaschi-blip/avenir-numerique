@@ -3,13 +3,14 @@
  *
  * Conventions :
  * - Types Database / Tables dans `./types`
- * - Factory client browser dans `./client`
+ * - Factory clients browser + server dans `./client`
  * - Pas de logique métier ici (juste accès données) — la logique vit dans
  *   `apps/admin/lib/` (hooks, transformations…)
  */
 
 export {
   createSupabaseBrowserClient,
+  createSupabaseServerClient,
   type AvenirSupabaseClient,
 } from './client';
 

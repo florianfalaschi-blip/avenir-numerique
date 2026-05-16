@@ -4,17 +4,15 @@ import type { Database } from './types';
 export type AvenirSupabaseClient = SupabaseClient<Database>;
 
 /**
- * Factory client Supabase typé pour la base Avenir Numérique.
+ * Factory client Supabase typé — côté navigateur (anon key).
  *
- * Usage typique côté navigateur :
+ * Usage :
  * ```ts
  * const supabase = createSupabaseBrowserClient(
  *   process.env.NEXT_PUBLIC_SUPABASE_URL!,
  *   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
  * );
  * ```
- *
- * La session auth est persistée automatiquement (localStorage) par le SDK.
  */
 export function createSupabaseBrowserClient(
   url: string,
@@ -26,5 +24,18 @@ export function createSupabaseBrowserClient(
       autoRefreshToken: true,
       detectSessionInUrl: true,
     },
+  });
+}
+
+/**
+ * Factory client Supabase — côté serveur (service role key).
+ * NE JAMAIS exposer côté client/navigateur.
+ */
+export function createSupabaseServerClient(
+  url: string,
+  serviceRoleKey: string
+): AvenirSupabaseClient {
+  return createClient<Database>(url, serviceRoleKey, {
+    auth: { persistSession: false },
   });
 }
