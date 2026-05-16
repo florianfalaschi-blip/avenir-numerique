@@ -14,6 +14,7 @@ import {
 } from '@/lib/clients';
 import {
   useFactures,
+  getFactureLignes,
   montantPaye,
   montantRestant,
   STATUT_LABELS as FACTURE_STATUT_LABELS,
@@ -58,6 +59,9 @@ export default function FactureImprimerPage({
 
   const paye = montantPaye(facture);
   const restant = montantRestant(facture);
+
+  // Lignes facturées (multi ou implicite legacy)
+  const lignes = getFactureLignes(facture);
 
   const adresseFact = client ? getAdresseFacturationDefaut(client) : undefined;
   const adresseLivr = client ? getAdresseLivraisonDefaut(client) : undefined;
@@ -105,9 +109,6 @@ export default function FactureImprimerPage({
               alt={entreprise.raison_sociale}
               className="max-h-20 max-w-48 mb-2"
             />
-            <h1 className="text-xl font-bold tracking-tight">
-              {entreprise.raison_sociale}
-            </h1>
             {entreprise.forme_juridique && (
               <p className="text-xs text-muted-foreground">
                 {entreprise.forme_juridique}
@@ -190,11 +191,6 @@ export default function FactureImprimerPage({
                 )}
                 {adresseFact ? (
                   <div className="mt-1">
-                    {adresseFact.label && (
-                      <p className="text-xs italic text-muted-foreground">
-                        {adresseFact.label}
-                      </p>
-                    )}
                     <p>{adresseFact.ligne1}</p>
                     {adresseFact.ligne2 && <p>{adresseFact.ligne2}</p>}
                     <p>
@@ -230,9 +226,6 @@ export default function FactureImprimerPage({
                 Adresse de livraison
               </h2>
               <div className="text-sm space-y-0.5">
-                {adresseLivr.label && (
-                  <p className="font-medium">{adresseLivr.label}</p>
-                )}
                 <p>{adresseLivr.ligne1}</p>
                 {adresseLivr.ligne2 && <p>{adresseLivr.ligne2}</p>}
                 <p>
@@ -246,35 +239,49 @@ export default function FactureImprimerPage({
           )}
         </section>
 
-        {/* Tableau */}
+        {/* Tableau — N lignes (multi-produits ou ligne unique implicite) */}
         <section className="print-keep">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="border-b-2 border-black">
                 <th className="text-left py-2 px-2 font-semibold">Description</th>
-                <th className="text-right py-2 px-2 font-semibold w-20">Quantité</th>
-                <th className="text-right py-2 px-2 font-semibold w-32">Prix unitaire HT</th>
-                <th className="text-right py-2 px-2 font-semibold w-32">Total HT</th>
+                <th className="text-right py-2 px-2 font-semibold w-20">Qté</th>
+                <th className="text-right py-2 px-2 font-semibold w-28">PU HT</th>
+                <th className="text-right py-2 px-2 font-semibold w-28">Total HT</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b">
-                <td className="py-3 px-2 align-top">
-                  <p className="font-medium">{CALC_LABELS[facture.calculateur]}</p>
-                  {facture.snapshot_recap && (
-                    <pre className="whitespace-pre-wrap text-xs text-muted-foreground mt-1 font-sans">
-                      {extractDescription(facture.snapshot_recap)}
-                    </pre>
-                  )}
-                </td>
-                <td className="py-3 px-2 align-top text-right">{facture.quantite}</td>
-                <td className="py-3 px-2 align-top text-right">
-                  {fmtEur(facture.montant_ht / Math.max(1, facture.quantite))}
-                </td>
-                <td className="py-3 px-2 align-top text-right">
-                  {fmtEur(facture.montant_ht)}
-                </td>
-              </tr>
+              {lignes.map((l) => {
+                const totalLigneHt = l.prix_ht_override ?? l.prix_ht;
+                const puHt = totalLigneHt / Math.max(1, l.quantite);
+                return (
+                  <tr key={l.id} className="border-b align-top">
+                    <td className="py-2 px-2">
+                      <p className="font-medium">
+                        {l.designation || CALC_LABELS[l.calculateur]}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground italic">
+                        {CALC_LABELS[l.calculateur]}
+                      </p>
+                      {l.recap && (
+                        <pre className="whitespace-pre-wrap text-[10px] text-muted-foreground mt-1 font-sans">
+                          {extractDescription(l.recap)}
+                        </pre>
+                      )}
+                      {l.notes && (
+                        <p className="text-[10px] text-muted-foreground italic mt-1">
+                          {l.notes}
+                        </p>
+                      )}
+                    </td>
+                    <td className="py-2 px-2 text-right">{l.quantite}</td>
+                    <td className="py-2 px-2 text-right tabular">{fmtEur(puHt)}</td>
+                    <td className="py-2 px-2 text-right font-medium tabular">
+                      {fmtEur(totalLigneHt)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </section>

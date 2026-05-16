@@ -21,7 +21,12 @@ import {
   type DevisStatut,
 } from '@/lib/devis';
 import { useCommandes } from '@/lib/commandes';
-import { useFactures, STATUT_LABELS as FACTURE_STATUT_LABELS } from '@/lib/factures';
+import {
+  useFactures,
+  STATUT_LABELS as FACTURE_STATUT_LABELS,
+  aRelancer,
+  joursRetard as facJoursRetard,
+} from '@/lib/factures';
 import { CALC_LABELS } from '@/lib/default-params';
 import { KpiTile } from './_components/kpi-tile';
 import {
@@ -101,6 +106,7 @@ export default function HomePage() {
       enProductionCount: commandesEnProduction(commandes).length,
       impayes: totalImpaye(factures),
       factsRetard: facturesEnRetard(factures),
+      factsARelancer: factures.filter(aRelancer),
       derniersDevis: devisRecents(devis, 5),
       top: topClients(factures, devis, 5),
       ca12mois: caSur12Mois(factures, now),
@@ -193,9 +199,11 @@ export default function HomePage() {
             value={fmtEur(stats.impayes)}
             accent="accent"
             sub={
-              stats.factsRetard.length > 0
-                ? `dont ${stats.factsRetard.length} en retard ⚠`
-                : 'à jour'
+              stats.factsARelancer.length > 0
+                ? `${stats.factsARelancer.length} à relancer 📣 · ${stats.factsRetard.length} en retard`
+                : stats.factsRetard.length > 0
+                  ? `dont ${stats.factsRetard.length} en retard ⚠`
+                  : 'à jour'
             }
           />
           <KpiTile
@@ -312,10 +320,8 @@ export default function HomePage() {
                 <ul className="divide-y">
                   {stats.factsRetard.slice(0, 5).map((f) => {
                     const client = getClient(f.client_id);
-                    const echeance = new Date(f.date_echeance!);
-                    const joursRetard = Math.floor(
-                      (Date.now() - echeance.getTime()) / (1000 * 3600 * 24)
-                    );
+                    const retard = facJoursRetard(f);
+                    const needsRelance = aRelancer(f);
                     return (
                       <li key={f.id}>
                         <Link
@@ -326,11 +332,19 @@ export default function HomePage() {
                             {f.numero}
                           </span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
+                            <p className="text-sm font-medium truncate flex items-center gap-1.5">
                               {client ? clientLabel(client) : '— Client supprimé'}
+                              {needsRelance && (
+                                <span
+                                  className="inline-flex items-center rounded-full bg-warning/20 text-warning border border-warning/40 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide"
+                                  title="Pas de relance récente"
+                                >
+                                  📣 Relancer
+                                </span>
+                              )}
                             </p>
                             <p className="text-[11px] text-destructive font-medium">
-                              {joursRetard} j de retard ·{' '}
+                              {retard} j de retard ·{' '}
                               {FACTURE_STATUT_LABELS[f.statut]}
                             </p>
                           </div>

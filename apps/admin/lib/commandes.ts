@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import type { Database } from '@avenir/db';
 import { useAuth } from './auth';
 import type { CalcSlug } from './default-params';
+import type { DevisLigne } from './devis';
 import { createTableStore } from './table-store';
 
 // ============================================================
@@ -60,6 +61,13 @@ export interface Commande {
   snapshot_prix_ttc: number;
   snapshot_quantite: number;
   snapshot_recap?: string;
+
+  /**
+   * Lignes du devis (snapshot multi-produits, optionnel pour compat avec les
+   * commandes pré-existantes). Si absent → 1 ligne implicite reconstruite à
+   * partir des champs snapshot_* via {@link getCommandeLignes}.
+   */
+  lignes?: DevisLigne[];
 }
 
 type CommandeRow = Database['public']['Tables']['commandes']['Row'];
@@ -195,6 +203,45 @@ export function etapesProgress(c: Commande): { done: number; total: number; pct:
   return { done, total, pct };
 }
 
+/**
+ * Retourne les lignes de la commande sous forme normalisée :
+ * - Si `lignes[]` présent (commande multi-lignes) → renvoie tel quel
+ * - Sinon (commande legacy 1-ligne) → construit 1 ligne implicite à partir
+ *   des champs snapshot_* (issus du devis pré-multi-lignes).
+ */
+export function getCommandeLignes(c: Commande): DevisLigne[] {
+  if (c.lignes && c.lignes.length > 0) return c.lignes;
+  // Legacy : 1 seule ligne implicite reconstruite depuis le snapshot.
+  return [
+    {
+      id: `${c.id}_ligne_unique`,
+      calculateur: c.calculateur,
+      designation:
+        c.snapshot_recap?.split('\n')[0]?.slice(0, 80) ??
+        CALC_LABEL_DESIGNATION(c.calculateur),
+      quantite: c.snapshot_quantite,
+      input: null,
+      result: null,
+      recap: c.snapshot_recap,
+      prix_ht: c.snapshot_prix_ht,
+      prix_ttc: c.snapshot_prix_ttc,
+      date_ajout: c.date_creation,
+    },
+  ];
+}
+
+/** Désignation par défaut quand on n'a pas mieux. */
+function CALC_LABEL_DESIGNATION(calc: CalcSlug): string {
+  const m: Record<CalcSlug, string> = {
+    rollup: 'Roll-up',
+    plaques: 'Plaques / Signalétique',
+    flyers: 'Flyers / Affiches',
+    bobines: 'Bobines / Étiquettes',
+    brochures: 'Brochures',
+  };
+  return m[calc] ?? 'Produit';
+}
+
 // ============================================================
 // MAPPERS Row ↔ Commande
 // ============================================================
@@ -243,6 +290,7 @@ function rowToCommande(row: CommandeRow): Commande {
     snapshot_prix_ttc: (data.snapshot_prix_ttc as number) ?? 0,
     snapshot_quantite: (data.snapshot_quantite as number) ?? 1,
     snapshot_recap: data.snapshot_recap as string | undefined,
+    lignes: data.lignes as DevisLigne[] | undefined,
   };
 }
 

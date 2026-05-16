@@ -5,6 +5,7 @@ import type { Database } from '@avenir/db';
 import { useAuth } from './auth';
 import type { CalcSlug } from './default-params';
 import type { DelaiPaiement, ModePaiement } from './clients';
+import type { DevisLigne } from './devis';
 import { createTableStore } from './table-store';
 
 // ============================================================
@@ -28,6 +29,27 @@ export interface Paiement {
   mode?: ModePaiement;
   /** Référence (n° virement, ticket CB, n° chèque…). */
   reference?: string;
+  notes?: string;
+}
+
+/** Type de relance (canal utilisé). */
+export type RelanceType = 'email' | 'telephone' | 'lettre' | 'sms' | 'autre';
+
+export const RELANCE_LABELS: Record<RelanceType, string> = {
+  email: 'Email',
+  telephone: 'Téléphone',
+  lettre: 'Lettre',
+  sms: 'SMS',
+  autre: 'Autre',
+};
+
+/** Trace d'une relance effectuée pour une facture impayée. */
+export interface Relance {
+  id: string;
+  /** Date de la relance (Unix ms). */
+  date: number;
+  type: RelanceType;
+  /** Notes libres (réponse client, prochaine échéance promise, etc.). */
   notes?: string;
 }
 
@@ -61,9 +83,24 @@ export interface Facture {
   /** Paiements reçus (acompte + solde, ou plusieurs versements). */
   paiements: Paiement[];
 
+  /** Historique des relances effectuées (factures impayées). */
+  relances?: Relance[];
+
+  /** Référence à la facture originale si c'est un avoir. */
+  avoir_de_facture_id?: string;
+  /** N° de la facture originale (snapshot, info). */
+  avoir_de_facture_numero?: string;
+
   notes?: string;
   /** Récap du devis (snapshot, pour le PDF facture). */
   snapshot_recap?: string;
+
+  /**
+   * Lignes facturées (snapshot multi-produits, optionnel pour compat avec les
+   * factures pré-existantes). Si absent → 1 ligne implicite reconstruite à
+   * partir des champs montant_* / snapshot_recap via {@link getFactureLignes}.
+   */
+  lignes?: DevisLigne[];
 }
 
 type FactureRow = Database['public']['Tables']['factures']['Row'];
@@ -108,6 +145,43 @@ export function newFactureId(): string {
 
 export function newPaiementId(): string {
   return `paiement_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+}
+
+export function newRelanceId(): string {
+  return `relance_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+}
+
+/** Nombre de jours de retard d'une facture (positif si en retard). */
+export function joursRetard(f: Facture): number {
+  if (!f.date_echeance) return 0;
+  const diff = Date.now() - f.date_echeance;
+  return Math.max(0, Math.floor(diff / (24 * 3600 * 1000)));
+}
+
+/** Vrai si la facture est en retard (échéance dépassée, non payée, non annulée). */
+export function estEnRetard(f: Facture): boolean {
+  if (f.statut === 'payee' || f.statut === 'avoir' || f.statut === 'brouillon') return false;
+  if (!f.date_echeance) return false;
+  return Date.now() > f.date_echeance;
+}
+
+/** Date de la dernière relance effectuée (undefined si aucune). */
+export function derniereRelance(f: Facture): Relance | undefined {
+  if (!f.relances || f.relances.length === 0) return undefined;
+  return [...f.relances].sort((a, b) => b.date - a.date)[0];
+}
+
+/**
+ * Vrai si la facture est à relancer maintenant :
+ * - elle est en retard
+ * - ET (pas encore de relance OU dernière relance > 7 jours)
+ */
+export function aRelancer(f: Facture): boolean {
+  if (!estEnRetard(f)) return false;
+  const last = derniereRelance(f);
+  if (!last) return true;
+  const joursDepuis = (Date.now() - last.date) / (24 * 3600 * 1000);
+  return joursDepuis > 7;
 }
 
 /** Montant total déjà payé (somme des paiements). */
@@ -181,6 +255,47 @@ export function statutAuto(f: Facture): FactureStatut {
   return 'emise';
 }
 
+/**
+ * Retourne les lignes facturées sous forme normalisée :
+ * - Si `lignes[]` présent (facture multi-lignes) → renvoie tel quel
+ * - Sinon (facture legacy 1-ligne) → construit 1 ligne implicite à partir
+ *   des champs montant_* + snapshot_recap (factures pré-multi-lignes).
+ *
+ * Pour la ligne legacy, le TTC est déduit du ratio montant_ttc / montant_ht.
+ */
+export function getFactureLignes(f: Facture): DevisLigne[] {
+  if (f.lignes && f.lignes.length > 0) return f.lignes;
+  // Legacy : 1 ligne implicite reconstruite depuis le snapshot.
+  return [
+    {
+      id: `${f.id}_ligne_unique`,
+      calculateur: f.calculateur,
+      designation:
+        f.snapshot_recap?.split('\n')[0]?.slice(0, 80) ??
+        CALC_LABEL_DESIGNATION(f.calculateur),
+      quantite: f.quantite,
+      input: null,
+      result: null,
+      recap: f.snapshot_recap,
+      prix_ht: f.montant_ht,
+      prix_ttc: f.montant_ttc,
+      date_ajout: f.date_creation,
+    },
+  ];
+}
+
+/** Désignation par défaut quand on n'a pas mieux. */
+function CALC_LABEL_DESIGNATION(calc: CalcSlug): string {
+  const m: Record<CalcSlug, string> = {
+    rollup: 'Roll-up',
+    plaques: 'Plaques / Signalétique',
+    flyers: 'Flyers / Affiches',
+    bobines: 'Bobines / Étiquettes',
+    brochures: 'Brochures',
+  };
+  return m[calc] ?? 'Produit';
+}
+
 // ============================================================
 // MAPPERS Row ↔ Facture
 // ============================================================
@@ -229,8 +344,12 @@ function rowToFacture(row: FactureRow): Facture {
     tva_pct: (data.tva_pct as number) ?? 0,
     quantite: (data.quantite as number) ?? 1,
     paiements: (data.paiements as Paiement[]) ?? [],
+    relances: data.relances as Relance[] | undefined,
+    avoir_de_facture_id: data.avoir_de_facture_id as string | undefined,
+    avoir_de_facture_numero: data.avoir_de_facture_numero as string | undefined,
     notes: data.notes as string | undefined,
     snapshot_recap: data.snapshot_recap as string | undefined,
+    lignes: data.lignes as DevisLigne[] | undefined,
   };
 }
 

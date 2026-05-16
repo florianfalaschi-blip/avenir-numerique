@@ -2,6 +2,7 @@
 
 import { use } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@avenir/ui';
 import {
   clientLabel,
@@ -14,11 +15,11 @@ import {
 } from '@/lib/clients';
 import {
   effectivePrixHt,
+  getDevisLignes,
   STATUT_LABELS,
   useDevis,
 } from '@/lib/devis';
 import { useEntreprise, formatEntrepriseAdresse } from '@/lib/entreprise';
-import { CALC_LABELS } from '@/lib/default-params';
 import { fmtEur } from '../../../calculateurs/_shared/format';
 
 export default function DevisImprimerPage({
@@ -27,6 +28,9 @@ export default function DevisImprimerPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const isProforma = searchParams.get('proforma') === '1';
+  const docTitle = isProforma ? 'FACTURE PROFORMA' : 'DEVIS';
   const { getDevis, hydrated: devisHydrated } = useDevis();
   const { getClient, hydrated: clientsHydrated } = useClients();
   const { value: entreprise, hydrated: entrepriseHydrated } = useEntreprise();
@@ -55,6 +59,9 @@ export default function DevisImprimerPage({
     ? new Date(devis.date_validite)
     : new Date(devis.date_creation + 30 * 24 * 3600 * 1000);
 
+  // Lignes (multi ou implicite legacy)
+  const lignes = getDevisLignes(devis);
+
   // Prix
   const prixHtBase = devis.prix_ht;
   const prixHtEffectif = effectivePrixHt(devis);
@@ -82,9 +89,25 @@ export default function DevisImprimerPage({
           ← Retour au devis
         </Link>
         <div className="flex gap-2 items-center text-sm text-muted-foreground">
-          <span>
-            Aperçu impression — utilise <kbd className="border rounded px-1.5 py-0.5 text-xs">Imprimer → Enregistrer comme PDF</kbd>
-          </span>
+          {/* Toggle Devis / Proforma */}
+          <div className="inline-flex rounded-md border bg-secondary/30 p-0.5 text-xs">
+            <Link
+              href={`/devis/${devis.id}/imprimer`}
+              className={`px-2.5 py-1 rounded transition-colors ${
+                !isProforma ? 'bg-background shadow-sm font-medium' : 'hover:bg-secondary'
+              }`}
+            >
+              Devis
+            </Link>
+            <Link
+              href={`/devis/${devis.id}/imprimer?proforma=1`}
+              className={`px-2.5 py-1 rounded transition-colors ${
+                isProforma ? 'bg-background shadow-sm font-medium' : 'hover:bg-secondary'
+              }`}
+            >
+              Proforma
+            </Link>
+          </div>
           <Button
             variant="accent"
             onClick={() => {
@@ -107,9 +130,6 @@ export default function DevisImprimerPage({
               alt={entreprise.raison_sociale}
               className="max-h-20 max-w-48 mb-2"
             />
-            <h1 className="text-xl font-bold tracking-tight">
-              {entreprise.raison_sociale}
-            </h1>
             {entreprise.forme_juridique && (
               <p className="text-xs text-muted-foreground">
                 {entreprise.forme_juridique}
@@ -136,7 +156,12 @@ export default function DevisImprimerPage({
           </div>
 
           <div className="text-right shrink-0">
-            <p className="text-3xl font-bold tracking-tight">DEVIS</p>
+            <p className="text-3xl font-bold tracking-tight">{docTitle}</p>
+            {isProforma && (
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
+                Document non comptable · Valeur informative
+              </p>
+            )}
             <p className="text-xl font-mono mt-1">{devis.numero}</p>
             <table className="text-xs mt-3 ml-auto">
               <tbody>
@@ -176,11 +201,6 @@ export default function DevisImprimerPage({
                 )}
                 {adresseFact ? (
                   <div className="mt-1">
-                    {adresseFact.label && (
-                      <p className="text-xs italic text-muted-foreground">
-                        {adresseFact.label}
-                      </p>
-                    )}
                     <p>{adresseFact.ligne1}</p>
                     {adresseFact.ligne2 && <p>{adresseFact.ligne2}</p>}
                     <p>
@@ -216,9 +236,6 @@ export default function DevisImprimerPage({
                 Adresse de livraison
               </h2>
               <div className="text-sm space-y-0.5">
-                {adresseLivr.label && (
-                  <p className="font-medium">{adresseLivr.label}</p>
-                )}
                 <p>{adresseLivr.ligne1}</p>
                 {adresseLivr.ligne2 && <p>{adresseLivr.ligne2}</p>}
                 <p>
@@ -237,28 +254,40 @@ export default function DevisImprimerPage({
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="border-b-2 border-black">
-                <th className="text-left py-2 px-2 font-semibold">Description</th>
-                <th className="text-right py-2 px-2 font-semibold w-20">Quantité</th>
-                <th className="text-right py-2 px-2 font-semibold w-32">Prix unitaire HT</th>
+                <th className="text-left py-2 px-2 font-semibold w-8">#</th>
+                <th className="text-left py-2 px-2 font-semibold">Désignation</th>
+                <th className="text-right py-2 px-2 font-semibold w-20">Qté</th>
+                <th className="text-right py-2 px-2 font-semibold w-32">PU HT</th>
                 <th className="text-right py-2 px-2 font-semibold w-32">Total HT</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b">
-                <td className="py-3 px-2 align-top">
-                  <p className="font-medium">{CALC_LABELS[devis.calculateur]}</p>
-                  {devis.recap && (
-                    <pre className="whitespace-pre-wrap text-xs text-muted-foreground mt-1 font-sans">
-                      {extractDescription(devis.recap)}
-                    </pre>
-                  )}
-                </td>
-                <td className="py-3 px-2 align-top text-right">{devis.quantite}</td>
-                <td className="py-3 px-2 align-top text-right">
-                  {fmtEur(prixHtBase / Math.max(1, devis.quantite))}
-                </td>
-                <td className="py-3 px-2 align-top text-right">{fmtEur(prixHtBase)}</td>
-              </tr>
+              {lignes.map((ligne, idx) => {
+                const totalHt = ligne.prix_ht_override ?? ligne.prix_ht;
+                const qte = Math.max(1, ligne.quantite);
+                const puHt = totalHt / qte;
+                return (
+                  <tr key={ligne.id} className="border-b align-top">
+                    <td className="py-3 px-2 text-muted-foreground">{idx + 1}</td>
+                    <td className="py-3 px-2">
+                      <p className="font-medium">{ligne.designation}</p>
+                      {ligne.recap && (
+                        <pre className="whitespace-pre-wrap text-[10px] italic text-muted-foreground mt-1 font-sans">
+                          {extractDescription(ligne.recap)}
+                        </pre>
+                      )}
+                      {ligne.notes && (
+                        <p className="text-[10px] italic text-muted-foreground mt-1">
+                          {ligne.notes}
+                        </p>
+                      )}
+                    </td>
+                    <td className="py-3 px-2 text-right">{ligne.quantite}</td>
+                    <td className="py-3 px-2 text-right">{fmtEur(puHt)}</td>
+                    <td className="py-3 px-2 text-right">{fmtEur(totalHt)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </section>
@@ -388,9 +417,11 @@ export default function DevisImprimerPage({
 }
 
 /**
- * Extrait une description courte du recap calcul pour le tableau (3 premières
- * lignes : format, qté, machine). Évite d'imprimer le détail complet.
+ * Extrait une description courte du recap calcul pour le tableau (4 premières
+ * lignes max + tronqué à 200 caractères). Évite d'imprimer le détail complet
+ * sous chaque ligne tout en gardant assez d'info pour le lecteur.
  */
 function extractDescription(recap: string): string {
-  return recap.split('\n').slice(0, 4).join('\n');
+  const short = recap.split('\n').slice(0, 4).join('\n');
+  return short.length > 200 ? short.slice(0, 200).trimEnd() + '…' : short;
 }

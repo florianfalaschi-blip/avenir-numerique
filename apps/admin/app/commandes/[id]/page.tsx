@@ -21,6 +21,7 @@ import {
   STATUT_COLORS,
   ETAPE_LABELS,
   etapesProgress,
+  getCommandeLignes,
   type CommandeStatut,
   type EtapeStatut,
   type EtapeProduction,
@@ -150,6 +151,16 @@ export default function CommandeDetailPage({
     const devis = getDevis(commande.devis_id);
     const tvaPct =
       (devis?.result as { tva_pct?: number } | null | undefined)?.tva_pct ?? 20;
+    // Propage les lignes (multi ou implicite legacy) à la facture pour que le
+    // PDF facture liste fidèlement les mêmes produits que le devis/commande.
+    const lignes = getCommandeLignes(commande);
+    const snapshotRecapAggregated =
+      lignes.length > 1
+        ? lignes
+            .map((l) => l.recap ?? l.designation)
+            .filter(Boolean)
+            .join('\n---\n')
+        : commande.snapshot_recap;
     const newFct: Facture = {
       id: newFactureId(),
       numero: nextFactureNumero(),
@@ -165,7 +176,8 @@ export default function CommandeDetailPage({
       tva_pct: tvaPct,
       quantite: commande.snapshot_quantite,
       paiements: [],
-      snapshot_recap: commande.snapshot_recap,
+      snapshot_recap: snapshotRecapAggregated,
+      lignes,
     };
     addFacture(newFct);
     router.push(`/factures/${newFct.id}`);
@@ -397,6 +409,104 @@ export default function CommandeDetailPage({
                 <span className="text-sm text-muted-foreground">TTC</span>
                 <span className="text-sm">{fmtEur(commande.snapshot_prix_ttc)}</span>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Documents PDF */}
+          <Card>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Documents PDF</CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 pb-2.5 pt-0">
+              <ul className="space-y-1.5">
+                {/* Devis */}
+                <li>
+                  <Link
+                    href={`/devis/${commande.devis_id}/imprimer`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-primary-soft transition-colors group"
+                    title="Ouvrir le devis en mode impression"
+                  >
+                    <span aria-hidden className="text-base">📄</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-medium">Devis</div>
+                      <div className="text-[10px] text-muted-foreground font-mono truncate">
+                        {commande.devis_numero}
+                      </div>
+                    </div>
+                    <span
+                      aria-hidden
+                      className="text-[11px] text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition"
+                    >
+                      ↗
+                    </span>
+                  </Link>
+                </li>
+                {/* Proforma — variante du devis */}
+                <li>
+                  <Link
+                    href={`/devis/${commande.devis_id}/imprimer?proforma=1`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-primary-soft transition-colors group"
+                    title="Ouvrir la facture proforma (document non comptable)"
+                  >
+                    <span aria-hidden className="text-base">📋</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-medium">Facture proforma</div>
+                      <div className="text-[10px] text-muted-foreground truncate">
+                        Non comptable · variante du devis
+                      </div>
+                    </div>
+                    <span
+                      aria-hidden
+                      className="text-[11px] text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition"
+                    >
+                      ↗
+                    </span>
+                  </Link>
+                </li>
+                {/* Facture (si émise) */}
+                {factureLiee ? (
+                  <li>
+                    <Link
+                      href={`/factures/${factureLiee.id}/imprimer`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-primary-soft transition-colors group"
+                      title="Ouvrir la facture en mode impression"
+                    >
+                      <span aria-hidden className="text-base">🧾</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-medium">Facture</div>
+                        <div className="text-[10px] text-muted-foreground font-mono truncate">
+                          {factureLiee.numero}
+                        </div>
+                      </div>
+                      <span
+                        aria-hidden
+                        className="text-[11px] text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition"
+                      >
+                        ↗
+                      </span>
+                    </Link>
+                  </li>
+                ) : (
+                  <li className="flex items-center gap-2 px-2 py-1.5 rounded opacity-50 cursor-not-allowed">
+                    <span aria-hidden className="text-base">🧾</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-medium">Facture</div>
+                      <div className="text-[10px] text-muted-foreground italic truncate">
+                        Pas encore générée
+                      </div>
+                    </div>
+                  </li>
+                )}
+              </ul>
+              <p className="text-[10px] text-muted-foreground/80 mt-2 pt-2 border-t">
+                💡 Dans l&apos;aperçu, utilise « Imprimer → Enregistrer comme PDF » pour sauvegarder sur ton ordinateur.
+              </p>
             </CardContent>
           </Card>
 
