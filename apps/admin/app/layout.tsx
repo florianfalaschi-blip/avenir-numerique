@@ -14,6 +14,8 @@ const navItems = [
   { href: '/calculateurs/flyers', label: 'Flyers' },
   { href: '/calculateurs/bobines', label: 'Bobines' },
   { href: '/calculateurs/brochures', label: 'Brochures' },
+  { href: '/parametres/papiers', label: 'Papiers' },
+  { href: '/parametres/materiaux', label: 'Matériaux' },
   { href: '/parametres', label: '⚙ Paramètres' },
 ];
 

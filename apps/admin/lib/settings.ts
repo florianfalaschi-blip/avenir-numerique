@@ -15,24 +15,33 @@
 
 import { useEffect, useState } from 'react';
 
-const PREFIX = 'avenir.calc';
+const PREFIX_CALC = 'avenir.calc';
+const PREFIX_SHARED = 'avenir.shared';
 
 /**
- * Version du shape des paramètres par calculateur.
+ * Version du shape des paramètres par slug.
  * À bumper quand on change la forme des données pour invalider
  * silencieusement les anciennes valeurs stockées en localStorage.
+ *
+ * Conventions :
+ * - `'<calc>'` : settings spécifiques à un calculateur (PREFIX_CALC).
+ * - `'shared.<name>'` : catalogues partagés entre plusieurs calcs (PREFIX_SHARED).
  */
 const VERSIONS: Record<string, string> = {
   rollup: 'v2', // v2: machine → machines[] + machine_id
-  plaques: 'v1',
-  flyers: 'v1',
-  bobines: 'v1',
-  brochures: 'v1',
+  plaques: 'v2', // v2: matériaux + lastModifiedAt
+  flyers: 'v2', // v2: papiers extraits → catalogue partagé
+  bobines: 'v2', // v2: matériaux + lastModifiedAt
+  brochures: 'v2', // v2: papiers extraits → catalogue partagé
+  'shared.papiers': 'v1',
 };
 
 export function settingsKey(slug: string): string {
+  const isShared = slug.startsWith('shared.');
+  const prefix = isShared ? PREFIX_SHARED : PREFIX_CALC;
+  const cleanSlug = isShared ? slug.replace(/^shared\./, '') : slug;
   const version = VERSIONS[slug] ?? 'v1';
-  return `${PREFIX}.${slug}.${version}`;
+  return `${prefix}.${cleanSlug}.${version}`;
 }
 
 export function loadSettings<T>(slug: string, defaults: T): T {

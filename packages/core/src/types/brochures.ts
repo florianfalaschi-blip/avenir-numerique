@@ -126,6 +126,8 @@ export interface BrochuresPapierConfig {
   grammage: number;
   formats_achat: BrochuresPapierFormat[];
   compatible_techno: BrochuresTechno[];
+  /** Timestamp Unix ms de dernière modification (optionnel, info). */
+  lastModifiedAt?: number;
 }
 
 export interface BrochuresFormatStandardConfig {

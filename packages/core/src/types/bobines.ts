@@ -73,6 +73,8 @@ export interface BobinesMateriauConfig {
   prix_m2_ht?: number;
   /** Méthode de calcul à utiliser */
   methode_calcul: BobinesMethodeCalcul;
+  /** Timestamp Unix ms de dernière modification (optionnel, info). */
+  lastModifiedAt?: number;
 }
 
 export interface BobinesMachineImpressionConfig {

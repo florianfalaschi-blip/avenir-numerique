@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { calcFlyers, FlyersCalcError } from '@avenir/core';
 import type {
   FlyersInput,
@@ -27,6 +27,7 @@ import {
 import { fmtEur, fmtInt } from '../_shared/format';
 import { defaultFlyersParams } from '@/lib/default-params/flyers';
 import { useSettings } from '@/lib/settings';
+import { useSharedPapiers } from '@/lib/shared-catalogues/papiers';
 
 const DEFAULT_INPUT: FlyersInput = {
   quantite: 100,
@@ -52,8 +53,26 @@ function compute(
 }
 
 export default function FlyersCalcPage() {
-  const { value: params, isCustom } = useSettings('flyers', defaultFlyersParams);
+  const { value: settingsParams, isCustom } = useSettings('flyers', defaultFlyersParams);
+  const { value: sharedPapiers } = useSharedPapiers();
+
+  // Merge dynamique : les papiers viennent du catalogue partagé,
+  // le reste (machines, finitions, marges...) reste spécifique au calc.
+  const params = useMemo(
+    () => ({ ...settingsParams, papiers: sharedPapiers }),
+    [settingsParams, sharedPapiers]
+  );
+
   const [input, setInput] = useState<FlyersInput>(DEFAULT_INPUT);
+
+  // Si le papier sélectionné n'existe plus dans le catalogue partagé,
+  // bascule sur le premier disponible (robustesse aux suppressions).
+  useEffect(() => {
+    if (!sharedPapiers.some((p) => p.id === input.papier_id) && sharedPapiers[0]) {
+      setInput((prev) => ({ ...prev, papier_id: sharedPapiers[0]!.id }));
+    }
+  }, [sharedPapiers, input.papier_id]);
+
   const outcome = useMemo(() => compute(input, params), [input, params]);
 
   const toggleFinition = (id: string) => {

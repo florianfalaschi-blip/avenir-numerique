@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type { FinitionType, PlaquesParams } from '@avenir/core';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@avenir/ui';
 import { Field, Select } from '../../calculateurs/_shared/components';
@@ -37,188 +38,20 @@ export default function ParametresPlaquesPage() {
       {/* === MATÉRIAUX (avec formats d'achat nestés) === */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-xl">Matériaux</CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                patch((d) => ({
-                  ...d,
-                  materiaux: [
-                    ...d.materiaux,
-                    {
-                      id: `materiau_${Date.now()}`,
-                      nom: 'Nouveau matériau',
-                      formats_achat: [
-                        { largeur_cm: 100, hauteur_cm: 100, prix_unite_ht: 0 },
-                      ],
-                    },
-                  ],
-                }))
-              }
-            >
-              + Ajouter un matériau
-            </Button>
-          </div>
+          <CardTitle className="text-xl">Matériaux</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {draft.materiaux.map((m, mi) => (
-            <div key={m.id} className="rounded-md border bg-secondary/20 p-3 space-y-3">
-              <div className="flex items-center gap-2">
-                <Input
-                  className="flex-1"
-                  value={m.nom}
-                  onChange={(e) =>
-                    patch((d) => {
-                      const next = [...d.materiaux];
-                      next[mi] = { ...next[mi]!, nom: e.target.value };
-                      return { ...d, materiaux: next };
-                    })
-                  }
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    patch((d) => {
-                      const next = [...d.materiaux];
-                      next[mi] = {
-                        ...next[mi]!,
-                        formats_achat: [
-                          ...next[mi]!.formats_achat,
-                          { largeur_cm: 100, hauteur_cm: 100, prix_unite_ht: 0 },
-                        ],
-                      };
-                      return { ...d, materiaux: next };
-                    })
-                  }
-                >
-                  + Format
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-destructive"
-                  onClick={() =>
-                    patch((d) => ({
-                      ...d,
-                      materiaux: d.materiaux.filter((_, j) => j !== mi),
-                    }))
-                  }
-                  aria-label={`Supprimer ${m.nom}`}
-                  disabled={draft.materiaux.length === 1}
-                  title={
-                    draft.materiaux.length === 1
-                      ? 'Au moins un matériau requis'
-                      : 'Supprimer le matériau'
-                  }
-                >
-                  ✕
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
-                  <div className="col-span-4">Largeur (cm)</div>
-                  <div className="col-span-4">Hauteur (cm)</div>
-                  <div className="col-span-3">Prix HT (€)</div>
-                  <div className="col-span-1" />
-                </div>
-                {m.formats_achat.map((f, fi) => (
-                  <div key={fi} className="grid grid-cols-12 gap-2 items-center">
-                    <Input
-                      className="col-span-4"
-                      type="number"
-                      min={1}
-                      step={1}
-                      value={f.largeur_cm}
-                      onChange={(e) =>
-                        patch((d) => {
-                          const nextMats = [...d.materiaux];
-                          const nextFmts = [...nextMats[mi]!.formats_achat];
-                          nextFmts[fi] = {
-                            ...nextFmts[fi]!,
-                            largeur_cm: Number(e.target.value) || 0,
-                          };
-                          nextMats[mi] = { ...nextMats[mi]!, formats_achat: nextFmts };
-                          return { ...d, materiaux: nextMats };
-                        })
-                      }
-                    />
-                    <Input
-                      className="col-span-4"
-                      type="number"
-                      min={1}
-                      step={1}
-                      value={f.hauteur_cm}
-                      onChange={(e) =>
-                        patch((d) => {
-                          const nextMats = [...d.materiaux];
-                          const nextFmts = [...nextMats[mi]!.formats_achat];
-                          nextFmts[fi] = {
-                            ...nextFmts[fi]!,
-                            hauteur_cm: Number(e.target.value) || 0,
-                          };
-                          nextMats[mi] = { ...nextMats[mi]!, formats_achat: nextFmts };
-                          return { ...d, materiaux: nextMats };
-                        })
-                      }
-                    />
-                    <Input
-                      className="col-span-3"
-                      type="number"
-                      min={0}
-                      step={0.5}
-                      value={f.prix_unite_ht}
-                      onChange={(e) =>
-                        patch((d) => {
-                          const nextMats = [...d.materiaux];
-                          const nextFmts = [...nextMats[mi]!.formats_achat];
-                          nextFmts[fi] = {
-                            ...nextFmts[fi]!,
-                            prix_unite_ht: Number(e.target.value) || 0,
-                          };
-                          nextMats[mi] = { ...nextMats[mi]!, formats_achat: nextFmts };
-                          return { ...d, materiaux: nextMats };
-                        })
-                      }
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="col-span-1 text-muted-foreground hover:text-destructive"
-                      onClick={() =>
-                        patch((d) => {
-                          const nextMats = [...d.materiaux];
-                          nextMats[mi] = {
-                            ...nextMats[mi]!,
-                            formats_achat: nextMats[mi]!.formats_achat.filter(
-                              (_, j) => j !== fi
-                            ),
-                          };
-                          return { ...d, materiaux: nextMats };
-                        })
-                      }
-                      aria-label="Supprimer ce format"
-                      disabled={m.formats_achat.length === 1}
-                      title={
-                        m.formats_achat.length === 1
-                          ? 'Au moins un format requis'
-                          : 'Supprimer ce format'
-                      }
-                    >
-                      ✕
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-          <p className="text-xs text-muted-foreground">
-            💡 Le calculateur choisit automatiquement le format brut le moins cher par pose
-            (calepinage).
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Les matériaux Plaques (PVC, Forex, Dibond, Plexi…) sont gérés dans la page partagée
+            avec les matériaux Bobines, avec horodatage de modification.
           </p>
+          <Link
+            href="/parametres/materiaux"
+            className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-primary hover:underline"
+          >
+            Modifier le catalogue Matériaux
+            <span aria-hidden>→</span>
+          </Link>
         </CardContent>
       </Card>
 

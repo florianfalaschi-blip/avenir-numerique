@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { calcBrochures, BrochuresCalcError } from '@avenir/core';
 import type {
   BrochuresInput,
@@ -27,6 +27,7 @@ import {
 import { fmtEur, fmtInt } from '../_shared/format';
 import { defaultBrochuresParams } from '@/lib/default-params/brochures';
 import { useSettings } from '@/lib/settings';
+import { useSharedPapiers } from '@/lib/shared-catalogues/papiers';
 
 const DEFAULT_INPUT: BrochuresInput = {
   quantite: 100,
@@ -34,7 +35,7 @@ const DEFAULT_INPUT: BrochuresInput = {
   dimension_mode: 'standard',
   taille_standard: 'A5',
   reliure_id: 'agrafe_std',
-  papier_interieur_id: 'couche_135',
+  papier_interieur_id: 'couche_brillant_135',
   papier_couverture_id: 'couverture_300',
   couleur_interieur: 'quadri',
   couleur_couverture: 'quadri',
@@ -60,8 +61,37 @@ function compute(
 }
 
 export default function BrochuresCalcPage() {
-  const { value: params, isCustom } = useSettings('brochures', defaultBrochuresParams);
+  const { value: settingsParams, isCustom } = useSettings('brochures', defaultBrochuresParams);
+  const { value: sharedPapiers } = useSharedPapiers();
+
+  // Merge dynamique : papiers viennent du catalogue partagé
+  const params = useMemo(
+    () => ({ ...settingsParams, papiers: sharedPapiers }),
+    [settingsParams, sharedPapiers]
+  );
+
   const [input, setInput] = useState<BrochuresInput>(DEFAULT_INPUT);
+
+  // Robustesse aux suppressions de papiers
+  useEffect(() => {
+    setInput((prev) => {
+      const next = { ...prev };
+      if (
+        !sharedPapiers.some((p) => p.id === prev.papier_interieur_id) &&
+        sharedPapiers[0]
+      ) {
+        next.papier_interieur_id = sharedPapiers[0].id;
+      }
+      if (
+        !sharedPapiers.some((p) => p.id === prev.papier_couverture_id) &&
+        sharedPapiers[0]
+      ) {
+        next.papier_couverture_id = sharedPapiers[0].id;
+      }
+      return next;
+    });
+  }, [sharedPapiers]);
+
   const outcome = useMemo(() => compute(input, params), [input, params]);
 
   const currentReliure = params.reliures.find((r) => r.id === input.reliure_id);

@@ -64,6 +64,8 @@ export interface MateriauConfig {
   nom: string;
   /** Liste des formats d'achat disponibles (au moins 1) */
   formats_achat: FormatAchatMateriau[];
+  /** Timestamp Unix ms de dernière modification (optionnel, info). */
+  lastModifiedAt?: number;
 }
 
 /** Dimensions des tailles standards (cm) */

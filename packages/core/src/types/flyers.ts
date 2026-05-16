@@ -77,6 +77,8 @@ export interface FlyersPapierConfig {
   formats_achat: FlyersPapierFormat[];
   /** Quelles technos ce papier supporte */
   compatible_techno: Techno[];
+  /** Timestamp Unix ms de dernière modification (optionnel, info). */
+  lastModifiedAt?: number;
 }
 
 export interface FlyersFormatStandardConfig {
