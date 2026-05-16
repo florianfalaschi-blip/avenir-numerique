@@ -39,3 +39,25 @@ export function stampRow<T extends { lastModifiedAt?: number }>(
 export function stamped<T extends object>(item: T): T & { lastModifiedAt: number } {
   return { ...item, lastModifiedAt: Date.now() };
 }
+
+/**
+ * Met à jour un champ scalaire d'un objet "params" et trace le timestamp
+ * de modification dans `params.meta[fieldKey]`.
+ *
+ * Pattern :
+ *   onPatch((d) => stampScalar(d, 'marge_pct', { marge_pct: 50 }))
+ */
+export function stampScalar<T extends { meta?: Record<string, number> }>(
+  params: T,
+  fieldKey: string,
+  changes: Partial<T>
+): T {
+  return {
+    ...params,
+    ...changes,
+    meta: {
+      ...(params.meta ?? {}),
+      [fieldKey]: Date.now(),
+    },
+  };
+}

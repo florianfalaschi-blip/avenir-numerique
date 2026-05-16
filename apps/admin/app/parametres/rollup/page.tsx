@@ -1,16 +1,16 @@
 'use client';
 
-import type { RollupParams } from '@avenir/core';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@avenir/ui';
-import { Field } from '../../calculateurs/_shared/components';
+import { Button, Input } from '@avenir/ui';
 import { defaultRollupParams } from '@/lib/default-params/rollup';
 import {
   ActionBar,
   CatalogueCard,
   DegressifEditor,
+  ScalarsEditor,
   SettingsHeader,
   SettingsPageContainer,
   stampRow,
+  stampScalar,
   stamped,
   useSettingsDraft,
 } from '../_shared';
@@ -205,7 +205,89 @@ export default function ParametresRollupPage() {
       />
 
       {/* === PRIX GÉNÉRAUX === */}
-      <ScalarsCard params={draft} onPatch={patch} />
+      <ScalarsEditor
+        title="Prix généraux"
+        rows={[
+          {
+            key: 'frais_fixes_ht',
+            label: 'Frais fixes HT',
+            hint: 'Préparation, calage, etc.',
+            suffix: '€',
+            value: draft.frais_fixes_ht,
+            min: 0,
+            step: 1,
+            modifiedAt: draft.meta?.frais_fixes_ht,
+            onChange: (v) =>
+              patch((d) => stampScalar(d, 'frais_fixes_ht', { frais_fixes_ht: Number(v) || 0 })),
+          },
+          {
+            key: 'bat_prix_ht',
+            label: 'Prix BAT HT',
+            suffix: '€',
+            value: draft.bat_prix_ht,
+            min: 0,
+            step: 1,
+            modifiedAt: draft.meta?.bat_prix_ht,
+            onChange: (v) =>
+              patch((d) => stampScalar(d, 'bat_prix_ht', { bat_prix_ht: Number(v) || 0 })),
+          },
+          {
+            key: 'marge_pct',
+            label: 'Marge',
+            hint: 'Appliquée au coût de revient',
+            suffix: '%',
+            value: draft.marge_pct,
+            min: 0,
+            step: 1,
+            modifiedAt: draft.meta?.marge_pct,
+            onChange: (v) =>
+              patch((d) => stampScalar(d, 'marge_pct', { marge_pct: Number(v) || 0 })),
+          },
+          {
+            key: 'tva_pct',
+            label: 'TVA',
+            suffix: '%',
+            value: draft.tva_pct,
+            min: 0,
+            step: 0.1,
+            modifiedAt: draft.meta?.tva_pct,
+            onChange: (v) =>
+              patch((d) => stampScalar(d, 'tva_pct', { tva_pct: Number(v) || 0 })),
+          },
+          {
+            key: 'prix_plancher_ht',
+            label: 'Plancher prix HT',
+            hint: 'Optionnel — le prix HT ne descend jamais en dessous',
+            suffix: '€',
+            value: draft.prix_plancher_ht ?? '',
+            placeholder: 'Aucun',
+            min: 0,
+            step: 1,
+            modifiedAt: draft.meta?.prix_plancher_ht,
+            onChange: (v) =>
+              patch((d) =>
+                stampScalar(d, 'prix_plancher_ht', {
+                  prix_plancher_ht: v === '' ? undefined : Number(v) || 0,
+                })
+              ),
+            action:
+              draft.prix_plancher_ht !== undefined ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-[11px]"
+                  onClick={() =>
+                    patch((d) =>
+                      stampScalar(d, 'prix_plancher_ht', { prix_plancher_ht: undefined })
+                    )
+                  }
+                >
+                  Désactiver
+                </Button>
+              ) : null,
+          },
+        ]}
+      />
 
       {/* === DÉGRESSIF === */}
       <DegressifEditor
@@ -222,102 +304,5 @@ export default function ParametresRollupPage() {
         onReset={reset}
       />
     </SettingsPageContainer>
-  );
-}
-
-// ============================================================
-// SCALARS CARD spécifique Rollup
-// ============================================================
-
-function ScalarsCard({
-  params,
-  onPatch,
-}: {
-  params: RollupParams;
-  onPatch: (updater: (d: RollupParams) => RollupParams) => void;
-}) {
-  return (
-    <Card>
-      <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
-        <CardTitle className="text-sm">Prix généraux</CardTitle>
-      </CardHeader>
-      <CardContent className="px-3 pb-2.5 pt-0">
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 [&_input]:h-7 [&_input]:text-xs">
-          <Field label="Frais fixes HT (€)" hint="Préparation, calage, etc.">
-            <Input
-              type="number"
-              min={0}
-              step={1}
-              value={params.frais_fixes_ht}
-              onChange={(e) =>
-                onPatch((d) => ({ ...d, frais_fixes_ht: Number(e.target.value) || 0 }))
-              }
-            />
-          </Field>
-          <Field label="Prix BAT HT (€)">
-            <Input
-              type="number"
-              min={0}
-              step={1}
-              value={params.bat_prix_ht}
-              onChange={(e) =>
-                onPatch((d) => ({ ...d, bat_prix_ht: Number(e.target.value) || 0 }))
-              }
-            />
-          </Field>
-          <Field label="Marge (%)" hint="Appliquée au coût de revient">
-            <Input
-              type="number"
-              min={0}
-              step={1}
-              value={params.marge_pct}
-              onChange={(e) =>
-                onPatch((d) => ({ ...d, marge_pct: Number(e.target.value) || 0 }))
-              }
-            />
-          </Field>
-          <Field label="TVA (%)">
-            <Input
-              type="number"
-              min={0}
-              step={0.1}
-              value={params.tva_pct}
-              onChange={(e) => onPatch((d) => ({ ...d, tva_pct: Number(e.target.value) || 0 }))}
-            />
-          </Field>
-          <Field
-            label="Plancher prix HT (€)"
-            hint="Optionnel — le prix HT ne descend jamais en dessous"
-            className="md:col-span-2"
-          >
-            <div className="flex gap-2 items-center">
-              <Input
-                type="number"
-                min={0}
-                step={1}
-                value={params.prix_plancher_ht ?? ''}
-                placeholder="Aucun plancher"
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  onPatch((d) => ({
-                    ...d,
-                    prix_plancher_ht: raw === '' ? undefined : Number(raw) || 0,
-                  }));
-                }}
-              />
-              {params.prix_plancher_ht !== undefined && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onPatch((d) => ({ ...d, prix_plancher_ht: undefined }))}
-                >
-                  Désactiver
-                </Button>
-              )}
-            </div>
-          </Field>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

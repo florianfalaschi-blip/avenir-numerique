@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@avenir/ui';
+import { fmtModifiedShort } from './fmt-modified';
 
 export interface CatalogueColumn {
   label: string;
@@ -114,28 +115,6 @@ export function CatalogueCard<
       </CardContent>
     </Card>
   );
-}
-
-/**
- * Format compact pour la colonne "Modifié" (max 5-6 chars).
- * - undefined → "—"
- * - < 1h → "Xmin"
- * - < 24h → "Xh"
- * - < 30j → "Xj"
- * - sinon → "DD/MM"
- */
-function fmtModifiedShort(ts: number | undefined): string {
-  if (!ts) return '—';
-  const diffMs = Date.now() - ts;
-  const diffMin = Math.floor(diffMs / 60_000);
-  const diffH = Math.floor(diffMin / 60);
-  const diffJ = Math.floor(diffH / 24);
-  if (diffMin < 1) return 'à l’inst.';
-  if (diffMin < 60) return `${diffMin} min`;
-  if (diffH < 24) return `${diffH} h`;
-  if (diffJ < 30) return `${diffJ} j`;
-  const d = new Date(ts);
-  return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
 }
 
 /**
