@@ -33,9 +33,17 @@ import {
   newCommandeId,
   type Commande,
 } from '@/lib/commandes';
-import { CALC_LABELS } from '@/lib/default-params';
+import { CALC_LABELS, CALC_SLUGS, type CalcSlug } from '@/lib/default-params';
 
 const STATUTS: DevisStatut[] = ['brouillon', 'envoye', 'accepte', 'refuse', 'archive'];
+
+const CALC_ICONS: Record<CalcSlug, string> = {
+  rollup: '🎯',
+  plaques: '🟦',
+  flyers: '📰',
+  bobines: '🏷️',
+  brochures: '📖',
+};
 
 export default function DevisDetailPage({
   params,
@@ -258,10 +266,10 @@ export default function DevisDetailPage({
                 alert(e instanceof Error ? e.message : String(e));
               }
             }}
-            onAddLigne={() => {
-              // Lance le calculateur principal en mode "ajouter au devis"
+            onAddLigne={(calc) => {
+              // Lance le calculateur choisi en mode "ajouter au devis"
               router.push(
-                `/calculateurs/${devis.calculateur}?devis_pour=${devis.client_id}&add_to_devis=${devis.id}`
+                `/calculateurs/${calc}?devis_pour=${devis.client_id}&add_to_devis=${devis.id}`
               );
             }}
           />
@@ -446,10 +454,11 @@ function LignesCard({
   devis: Devis;
   onUpdateLigne: (ligneId: string, changes: Partial<DevisLigne>) => void;
   onDeleteLigne: (ligneId: string) => void;
-  onAddLigne: () => void;
+  onAddLigne: (calc: CalcSlug) => void;
 }) {
   const lignes = getDevisLignes(devis);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
 
   return (
     <Card>
@@ -465,14 +474,47 @@ function LignesCard({
                 : `${lignes.length} produits sur ce devis. Total HT recalculé automatiquement.`}
             </CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-6 px-2 text-[11px]"
-            onClick={onAddLigne}
-          >
-            + Ajouter une ligne
-          </Button>
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-6 px-2 text-[11px]"
+              onClick={() => setAddMenuOpen((v) => !v)}
+            >
+              + Ajouter une ligne ▾
+            </Button>
+            {addMenuOpen && (
+              <>
+                {/* Backdrop click pour fermer */}
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setAddMenuOpen(false)}
+                  aria-hidden
+                />
+                <div className="absolute right-0 top-full mt-1 z-20 min-w-44 rounded-md border bg-popover shadow-md py-1">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground/80 font-medium px-3 py-1.5">
+                    Choisir un calculateur
+                  </p>
+                  {CALC_SLUGS.map((calc) => (
+                    <button
+                      key={calc}
+                      type="button"
+                      className="w-full text-left px-3 py-1.5 text-xs hover:bg-secondary transition-colors flex items-center gap-2"
+                      onClick={() => {
+                        setAddMenuOpen(false);
+                        onAddLigne(calc);
+                      }}
+                    >
+                      <span aria-hidden className="text-sm">
+                        {CALC_ICONS[calc]}
+                      </span>
+                      {CALC_LABELS[calc]}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="px-3 pb-2.5 pt-0">
