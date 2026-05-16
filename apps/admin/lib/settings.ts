@@ -39,6 +39,7 @@ const VERSIONS: Record<string, string> = {
   'shared.papiers': 'v1',
   'data.clients': 'v3', // v3 : carnet d'adresses unifié (adresses[] avec usages multiples)
   'data.devis': 'v1',
+  'data.commandes': 'v1',
   'config.entreprise': 'v1',
 };
 

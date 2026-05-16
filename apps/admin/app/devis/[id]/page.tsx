@@ -22,6 +22,12 @@ import {
   effectivePrixHt,
   type DevisStatut,
 } from '@/lib/devis';
+import {
+  useCommandes,
+  buildEtapesFor,
+  newCommandeId,
+  type Commande,
+} from '@/lib/commandes';
 import { CALC_LABELS } from '@/lib/default-params';
 
 const STATUTS: DevisStatut[] = ['brouillon', 'envoye', 'accepte', 'refuse', 'archive'];
@@ -36,7 +42,11 @@ export default function DevisDetailPage({
   const { getDevis, updateDevis, deleteDevis, hydrated } = useDevis();
   const { getClient } = useClients();
 
+  const { addCommande, commandeForDevis, nextNumero: nextCommandeNumero } =
+    useCommandes();
+
   const devis = getDevis(id);
+  const commandeLiee = devis ? commandeForDevis(devis.id) : undefined;
   const [notes, setNotes] = useState(devis?.notes ?? '');
   const [overrideEnabled, setOverrideEnabled] = useState(
     devis?.prix_ht_override !== undefined
@@ -97,6 +107,26 @@ export default function DevisDetailPage({
     router.push('/devis');
   };
 
+  const handleCreerCommande = () => {
+    const newCmd: Commande = {
+      id: newCommandeId(),
+      numero: nextCommandeNumero(),
+      devis_id: devis.id,
+      devis_numero: devis.numero,
+      client_id: devis.client_id,
+      calculateur: devis.calculateur,
+      date_creation: Date.now(),
+      statut: 'en_preparation',
+      etapes: buildEtapesFor(devis.calculateur),
+      snapshot_prix_ht: effectivePrixHt(devis),
+      snapshot_prix_ttc: devis.prix_ttc,
+      snapshot_quantite: devis.quantite,
+      snapshot_recap: devis.recap,
+    };
+    addCommande(newCmd);
+    router.push(`/commandes/${newCmd.id}`);
+  };
+
   const effectivePrice = effectivePrixHt(devis);
 
   return (
@@ -126,12 +156,21 @@ export default function DevisDetailPage({
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
+          {commandeLiee ? (
+            <Link href={`/commandes/${commandeLiee.id}`}>
+              <Button variant="accent">📦 Voir la commande {commandeLiee.numero}</Button>
+            </Link>
+          ) : devis.statut === 'accepte' ? (
+            <Button variant="accent" onClick={handleCreerCommande}>
+              📦 Créer la commande de production
+            </Button>
+          ) : null}
           <Link href={`/devis/${devis.id}/imprimer`}>
-            <Button variant="accent">🖨️ Imprimer / PDF</Button>
+            <Button variant="outline">🖨️ Imprimer / PDF</Button>
           </Link>
           {client && (
             <Link href={`/calculateurs/${devis.calculateur}?devis_pour=${client.id}`}>
-              <Button variant="outline">Re-calculer pour ce client →</Button>
+              <Button variant="outline">Re-calculer →</Button>
             </Link>
           )}
         </div>

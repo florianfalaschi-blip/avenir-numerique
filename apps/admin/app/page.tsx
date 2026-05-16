@@ -78,6 +78,22 @@ export default function HomePage() {
               </CardContent>
             </Card>
           </Link>
+          <Link href="/commandes" className="group block">
+            <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
+              <CardHeader>
+                <CardTitle className="text-lg">Commandes en production</CardTitle>
+                <CardDescription>
+                  Suivi du workflow d&apos;une commande : étapes, statut, livraison.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                  Suivre la production
+                  <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
+                </span>
+              </CardContent>
+            </Card>
+          </Link>
           <Link href="/clients" className="group block">
             <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
               <CardHeader>
