@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react';
 
 const PREFIX_CALC = 'avenir.calc';
 const PREFIX_SHARED = 'avenir.shared';
+const PREFIX_DATA = 'avenir.data';
 
 /**
  * Version du shape des paramètres par slug.
@@ -26,20 +27,32 @@ const PREFIX_SHARED = 'avenir.shared';
  * Conventions :
  * - `'<calc>'` : settings spécifiques à un calculateur (PREFIX_CALC).
  * - `'shared.<name>'` : catalogues partagés entre plusieurs calcs (PREFIX_SHARED).
+ * - `'data.<entity>'` : collections métier (clients, devis…) (PREFIX_DATA).
  */
 const VERSIONS: Record<string, string> = {
-  rollup: 'v2', // v2: machine → machines[] + machine_id
-  plaques: 'v2', // v2: matériaux + lastModifiedAt
-  flyers: 'v2', // v2: papiers extraits → catalogue partagé
-  bobines: 'v2', // v2: matériaux + lastModifiedAt
-  brochures: 'v2', // v2: papiers extraits → catalogue partagé
+  rollup: 'v2',
+  plaques: 'v2',
+  flyers: 'v2',
+  bobines: 'v2',
+  brochures: 'v2',
   'shared.papiers': 'v1',
+  'data.clients': 'v1',
+  'data.devis': 'v1',
 };
 
 export function settingsKey(slug: string): string {
-  const isShared = slug.startsWith('shared.');
-  const prefix = isShared ? PREFIX_SHARED : PREFIX_CALC;
-  const cleanSlug = isShared ? slug.replace(/^shared\./, '') : slug;
+  let prefix: string;
+  let cleanSlug: string;
+  if (slug.startsWith('shared.')) {
+    prefix = PREFIX_SHARED;
+    cleanSlug = slug.replace(/^shared\./, '');
+  } else if (slug.startsWith('data.')) {
+    prefix = PREFIX_DATA;
+    cleanSlug = slug.replace(/^data\./, '');
+  } else {
+    prefix = PREFIX_CALC;
+    cleanSlug = slug;
+  }
   const version = VERSIONS[slug] ?? 'v1';
   return `${prefix}.${cleanSlug}.${version}`;
 }

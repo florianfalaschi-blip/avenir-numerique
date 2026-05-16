@@ -27,6 +27,7 @@ import {
 import { fmtEur, fmtInt } from '../_shared/format';
 import { defaultBobinesParams } from '@/lib/default-params/bobines';
 import { useSettings } from '@/lib/settings';
+import { SaveAsDevisCard } from '../_shared/save-as-devis';
 
 const DEFAULT_INPUT: BobinesInput = {
   quantite_etiquettes: 500,
@@ -264,18 +265,30 @@ export default function BobinesCalcPage() {
           </Card>
         }
         result={
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Résultat</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {outcome.error ? (
-                <div className="text-destructive text-sm">⚠️ {outcome.error}</div>
-              ) : outcome.result ? (
-                <ResultBlock result={outcome.result} />
-              ) : null}
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Résultat</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {outcome.error ? (
+                  <div className="text-destructive text-sm">⚠️ {outcome.error}</div>
+                ) : outcome.result ? (
+                  <ResultBlock result={outcome.result} />
+                ) : null}
+              </CardContent>
+            </Card>
+            <SaveAsDevisCard
+              calculateur="bobines"
+              input={input}
+              result={outcome.result}
+              recap={outcome.result?.recap}
+              prixHt={outcome.result?.prix_ht ?? 0}
+              prixTtc={outcome.result?.prix_ttc ?? 0}
+              quantite={input.quantite_etiquettes}
+              hasError={!!outcome.error || !outcome.result}
+            />
+          </div>
         }
       />
     </div>

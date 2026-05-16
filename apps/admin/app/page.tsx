@@ -5,7 +5,7 @@ const calculateurs = [
   {
     slug: 'rollup',
     nom: 'Roll-up',
-    description: 'Bâche PVC + structure (eco/standard/premium). Le plus simple.',
+    description: 'Bâche PVC + structure (eco/standard/premium).',
   },
   {
     slug: 'plaques',
@@ -31,49 +31,124 @@ const calculateurs = [
 
 export default function HomePage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Calculateurs de devis</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Back-office Avenir Numérique</h1>
         <p className="text-muted-foreground mt-2 max-w-2xl">
-          Configure une commande, le prix HT / TTC se calcule en temps réel avec le détail des
-          coûts. Les paramètres (papiers, machines, marges, etc.) seront stockés dans Supabase plus
-          tard ; pour l&apos;instant ce sont des valeurs de démo.
+          Génère des devis, gère ta base clients, et configure les paramètres tarifaires de chaque
+          calculateur métier.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {calculateurs.map((c) => (
-          <Link
-            key={c.slug}
-            href={`/calculateurs/${c.slug}`}
-            className="group block"
-          >
-            <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
+      {/* === FLUX PRINCIPAL : DEVIS / CLIENTS === */}
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Flux principal
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Link href="/devis/nouveau" className="group block">
+            <Card className="h-full transition group-hover:border-accent group-hover:shadow-md border-accent/40 bg-accent/5">
               <CardHeader>
-                <CardTitle className="text-lg">{c.nom}</CardTitle>
-                <CardDescription>{c.description}</CardDescription>
+                <CardTitle className="text-lg">+ Nouveau devis</CardTitle>
+                <CardDescription>
+                  Sélectionne un client, choisis un produit, le devis se sauvegarde en 1 clic.
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-                  Ouvrir le calculateur
-                  <span aria-hidden className="transition group-hover:translate-x-0.5">
-                    →
-                  </span>
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-accent">
+                  Démarrer
+                  <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
                 </span>
               </CardContent>
             </Card>
           </Link>
-        ))}
-      </div>
+          <Link href="/devis" className="group block">
+            <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
+              <CardHeader>
+                <CardTitle className="text-lg">Tous les devis</CardTitle>
+                <CardDescription>
+                  Historique filtrable par statut (brouillon, envoyé, accepté…) et par produit.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                  Voir la liste
+                  <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
+                </span>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/clients" className="group block">
+            <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
+              <CardHeader>
+                <CardTitle className="text-lg">Clients</CardTitle>
+                <CardDescription>
+                  Carnet d&apos;adresses B2C / B2B, historique de devis par client.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                  Gérer la base
+                  <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
+                </span>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/parametres" className="group block">
+            <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
+              <CardHeader>
+                <CardTitle className="text-lg">⚙ Paramètres</CardTitle>
+                <CardDescription>
+                  Catalogues papiers, matériaux, machines, marges et dégressifs.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                  Configurer
+                  <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
+                </span>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+      </section>
 
-      <div className="rounded-lg border border-dashed bg-secondary/30 p-4 text-sm text-muted-foreground max-w-2xl">
+      {/* === CALCULATEURS === */}
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Calculateurs (mode test)
+          </h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Joue avec les calculateurs sans créer de devis. Utilise « + Nouveau devis » pour
+            enregistrer un calcul à un client.
+          </p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {calculateurs.map((c) => (
+            <Link key={c.slug} href={`/calculateurs/${c.slug}`} className="group block">
+              <Card className="h-full transition group-hover:border-primary group-hover:shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-lg">{c.nom}</CardTitle>
+                  <CardDescription>{c.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                    Ouvrir le calculateur
+                    <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
+                  </span>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <div className="rounded-lg border border-dashed bg-secondary/30 p-4 text-sm text-muted-foreground max-w-3xl">
         <p>
-          <strong className="text-foreground">Phase 1 ✅</strong> — Les 5 moteurs de calcul sont
-          implémentés et testés (109 tests).
-        </p>
-        <p className="mt-1">
-          <strong className="text-foreground">Phase 2 (en cours)</strong> — UI admin pour valider
-          visuellement chaque calculateur, puis branchement Supabase pour persister les paramètres.
+          <strong className="text-foreground">⚠️ Stockage local (Phase 3a)</strong> — Clients,
+          devis et paramètres sont stockés dans ton navigateur. Phase 3b à venir : Supabase pour
+          partager entre tous les postes.
         </p>
       </div>
     </div>

@@ -9,13 +9,13 @@ export const metadata: Metadata = {
 
 const navItems = [
   { href: '/', label: 'Accueil' },
+  { href: '/devis', label: 'Devis' },
+  { href: '/clients', label: 'Clients' },
   { href: '/calculateurs/rollup', label: 'Roll-up' },
   { href: '/calculateurs/plaques', label: 'Plaques' },
   { href: '/calculateurs/flyers', label: 'Flyers' },
   { href: '/calculateurs/bobines', label: 'Bobines' },
   { href: '/calculateurs/brochures', label: 'Brochures' },
-  { href: '/parametres/papiers', label: 'Papiers' },
-  { href: '/parametres/materiaux', label: 'Matériaux' },
   { href: '/parametres', label: '⚙ Paramètres' },
 ];
 

@@ -28,6 +28,7 @@ import { fmtEur, fmtInt } from '../_shared/format';
 import { defaultFlyersParams } from '@/lib/default-params/flyers';
 import { useSettings } from '@/lib/settings';
 import { useSharedPapiers } from '@/lib/shared-catalogues/papiers';
+import { SaveAsDevisCard } from '../_shared/save-as-devis';
 
 const DEFAULT_INPUT: FlyersInput = {
   quantite: 100,
@@ -252,18 +253,30 @@ export default function FlyersCalcPage() {
           </Card>
         }
         result={
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Résultat</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {outcome.error ? (
-                <div className="text-destructive text-sm">⚠️ {outcome.error}</div>
-              ) : outcome.result ? (
-                <ResultBlock result={outcome.result} />
-              ) : null}
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Résultat</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {outcome.error ? (
+                  <div className="text-destructive text-sm">⚠️ {outcome.error}</div>
+                ) : outcome.result ? (
+                  <ResultBlock result={outcome.result} />
+                ) : null}
+              </CardContent>
+            </Card>
+            <SaveAsDevisCard
+              calculateur="flyers"
+              input={input}
+              result={outcome.result}
+              recap={outcome.result?.recap}
+              prixHt={outcome.result?.prix_ht ?? 0}
+              prixTtc={outcome.result?.prix_ttc ?? 0}
+              quantite={input.quantite}
+              hasError={!!outcome.error || !outcome.result}
+            />
+          </div>
         }
       />
     </div>
