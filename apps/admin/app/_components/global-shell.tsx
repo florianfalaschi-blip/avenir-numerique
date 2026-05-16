@@ -80,12 +80,15 @@ function Sidebar({ pathname }: { pathname: string }) {
   return (
     <aside className="sticky top-0 hidden lg:flex h-screen w-60 shrink-0 flex-col border-r border-border bg-card">
       {/* Brand */}
-      <div className="px-5 py-5 border-b border-border">
+      <div className="px-5 py-4 border-b border-border">
         <Link href="/" className="block">
-          <p className="text-lg font-semibold tracking-tight text-foreground">
-            Avenir <span className="text-primary">Numérique</span>
-          </p>
-          <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground mt-0.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="Avenir Numérique — Impression & Signalétique sur-mesure"
+            className="max-w-full h-auto w-full"
+          />
+          <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground mt-2 text-center font-medium">
             Back-office
           </p>
         </Link>

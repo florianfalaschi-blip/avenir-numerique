@@ -57,6 +57,7 @@ export const defaultEntreprise: EntrepriseConfig = {
   site_web: 'avenirnumerique.fr',
   siret: '000 000 000 00000',
   tva_intra: 'FR00000000000',
+  logo_url: '/logo.png',
   mentions_devis:
     'Devis valable 30 jours à compter de la date d\'émission. ' +
     'Conditions générales de vente disponibles sur demande. ' +

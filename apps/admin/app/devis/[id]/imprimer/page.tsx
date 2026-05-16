@@ -101,13 +101,12 @@ export default function DevisImprimerPage({
         {/* En-tête */}
         <header className="flex justify-between items-start gap-6 pb-4 border-b-2 border-primary">
           <div className="flex-1">
-            {entreprise.logo_url ? (
-              <img
-                src={entreprise.logo_url}
-                alt={entreprise.raison_sociale}
-                className="max-h-20 max-w-48 mb-2"
-              />
-            ) : null}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={entreprise.logo_url ?? '/logo.png'}
+              alt={entreprise.raison_sociale}
+              className="max-h-20 max-w-48 mb-2"
+            />
             <h1 className="text-xl font-bold tracking-tight">
               {entreprise.raison_sociale}
             </h1>
