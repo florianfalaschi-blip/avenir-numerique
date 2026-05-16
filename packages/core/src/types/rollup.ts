@@ -32,12 +32,16 @@ export interface BacheConfig {
   id: string;
   nom: string;
   prix_m2_ht: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface StructureConfig {
   id: string;
   nom: string;
   prix_unitaire_ht: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface MachineConfig {
@@ -47,6 +51,8 @@ export interface MachineConfig {
   vitesse_m2_h: number;
   /** Coût horaire de la machine en €/h */
   taux_horaire_ht: number;
+  /** Timestamp Unix ms de dernière modification (optionnel). */
+  lastModifiedAt?: number;
 }
 
 export interface DegressifSeuil {

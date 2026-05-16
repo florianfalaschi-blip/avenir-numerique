@@ -10,6 +10,8 @@ import {
   DegressifEditor,
   SettingsHeader,
   SettingsPageContainer,
+  stampRow,
+  stamped,
   useSettingsDraft,
 } from '../_shared';
 
@@ -24,7 +26,7 @@ export default function ParametresRollupPage() {
     <SettingsPageContainer>
       <SettingsHeader
         title="Paramètres Roll-up"
-        subtitle="Bâches, structures, machines, marges et dégressif. Les modifications s’appliquent immédiatement au calculateur après enregistrement."
+        subtitle="Bâches, structures, machines, marges et dégressif."
         updatedAt={updatedAt}
       />
 
@@ -37,7 +39,7 @@ export default function ParametresRollupPage() {
             ...d,
             baches: [
               ...d.baches,
-              { id: `bache_${Date.now()}`, nom: 'Nouvelle bâche', prix_m2_ht: 0 },
+              stamped({ id: `bache_${Date.now()}`, nom: 'Nouvelle bâche', prix_m2_ht: 0 }),
             ],
           }))
         }
@@ -53,11 +55,7 @@ export default function ParametresRollupPage() {
               className="col-span-7"
               value={b.nom}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.baches];
-                  next[i] = { ...next[i]!, nom: e.target.value };
-                  return { ...d, baches: next };
-                })
+                patch((d) => ({ ...d, baches: stampRow(d.baches, i, { nom: e.target.value }) }))
               }
             />
             <Input
@@ -67,11 +65,10 @@ export default function ParametresRollupPage() {
               step={0.1}
               value={b.prix_m2_ht}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.baches];
-                  next[i] = { ...next[i]!, prix_m2_ht: Number(e.target.value) || 0 };
-                  return { ...d, baches: next };
-                })
+                patch((d) => ({
+                  ...d,
+                  baches: stampRow(d.baches, i, { prix_m2_ht: Number(e.target.value) || 0 }),
+                }))
               }
             />
           </>
@@ -87,11 +84,11 @@ export default function ParametresRollupPage() {
             ...d,
             structures: [
               ...d.structures,
-              {
+              stamped({
                 id: `structure_${Date.now()}`,
                 nom: 'Nouvelle structure',
                 prix_unitaire_ht: 0,
-              },
+              }),
             ],
           }))
         }
@@ -109,11 +106,10 @@ export default function ParametresRollupPage() {
               className="col-span-7"
               value={s.nom}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.structures];
-                  next[i] = { ...next[i]!, nom: e.target.value };
-                  return { ...d, structures: next };
-                })
+                patch((d) => ({
+                  ...d,
+                  structures: stampRow(d.structures, i, { nom: e.target.value }),
+                }))
               }
             />
             <Input
@@ -123,11 +119,12 @@ export default function ParametresRollupPage() {
               step={1}
               value={s.prix_unitaire_ht}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.structures];
-                  next[i] = { ...next[i]!, prix_unitaire_ht: Number(e.target.value) || 0 };
-                  return { ...d, structures: next };
-                })
+                patch((d) => ({
+                  ...d,
+                  structures: stampRow(d.structures, i, {
+                    prix_unitaire_ht: Number(e.target.value) || 0,
+                  }),
+                }))
               }
             />
           </>
@@ -143,12 +140,12 @@ export default function ParametresRollupPage() {
             ...d,
             machines: [
               ...d.machines,
-              {
+              stamped({
                 id: `machine_${Date.now()}`,
                 nom: 'Nouvelle machine',
                 vitesse_m2_h: 10,
                 taux_horaire_ht: 50,
-              },
+              }),
             ],
           }))
         }
@@ -167,11 +164,10 @@ export default function ParametresRollupPage() {
               className="col-span-5"
               value={m.nom}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.machines];
-                  next[i] = { ...next[i]!, nom: e.target.value };
-                  return { ...d, machines: next };
-                })
+                patch((d) => ({
+                  ...d,
+                  machines: stampRow(d.machines, i, { nom: e.target.value }),
+                }))
               }
             />
             <Input
@@ -181,11 +177,12 @@ export default function ParametresRollupPage() {
               step={0.5}
               value={m.vitesse_m2_h}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.machines];
-                  next[i] = { ...next[i]!, vitesse_m2_h: Number(e.target.value) || 0 };
-                  return { ...d, machines: next };
-                })
+                patch((d) => ({
+                  ...d,
+                  machines: stampRow(d.machines, i, {
+                    vitesse_m2_h: Number(e.target.value) || 0,
+                  }),
+                }))
               }
             />
             <Input
@@ -195,11 +192,12 @@ export default function ParametresRollupPage() {
               step={1}
               value={m.taux_horaire_ht}
               onChange={(e) =>
-                patch((d) => {
-                  const next = [...d.machines];
-                  next[i] = { ...next[i]!, taux_horaire_ht: Number(e.target.value) || 0 };
-                  return { ...d, machines: next };
-                })
+                patch((d) => ({
+                  ...d,
+                  machines: stampRow(d.machines, i, {
+                    taux_horaire_ht: Number(e.target.value) || 0,
+                  }),
+                }))
               }
             />
           </>
@@ -240,11 +238,11 @@ function ScalarsCard({
 }) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Prix généraux</CardTitle>
+      <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+        <CardTitle className="text-sm">Prix généraux</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <CardContent className="px-3 pb-2.5 pt-0">
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 [&_input]:h-7 [&_input]:text-xs">
           <Field label="Frais fixes HT (€)" hint="Préparation, calage, etc.">
             <Input
               type="number"
@@ -323,4 +321,3 @@ function ScalarsCard({
     </Card>
   );
 }
-
