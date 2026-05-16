@@ -25,14 +25,24 @@ import {
   useFactures,
   STATUT_LABELS,
   STATUT_COLORS,
+  RELANCE_LABELS,
   calculerDateEcheance,
   montantPaye,
   montantRestant,
   newPaiementId,
+  newRelanceId,
+  newFactureId,
   estPayee,
   estPartiellementPayee,
+  aRelancer,
+  joursRetard,
+  derniereRelance,
+  generateFactureNumero,
   type FactureStatut,
+  type Facture,
   type Paiement,
+  type Relance,
+  type RelanceType,
 } from '@/lib/factures';
 const STATUTS: FactureStatut[] = [
   'brouillon',
@@ -50,7 +60,7 @@ export default function FactureDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { getFacture, updateFacture, deleteFacture, hydrated } = useFactures();
+  const { factures, getFacture, updateFacture, deleteFacture, addFacture, hydrated } = useFactures();
   const { getClient } = useClients();
 
   const facture = getFacture(id);
@@ -88,6 +98,9 @@ export default function FactureDetailPage({
     dateEcheance &&
     Date.now() > dateEcheance.getTime() &&
     !['payee', 'avoir', 'brouillon'].includes(facture.statut);
+  const retardJours = joursRetard(facture);
+  const doitRelancer = aRelancer(facture);
+  const lastRelance = derniereRelance(facture);
 
   const handleStatutChange = (statut: FactureStatut) => {
     const changes: Partial<typeof facture> = { statut };
@@ -173,6 +186,74 @@ export default function FactureDetailPage({
     router.push('/factures');
   };
 
+  // === RELANCES ===
+  const handleAddRelance = (type: RelanceType = 'email') => {
+    const newRelance: Relance = {
+      id: newRelanceId(),
+      date: Date.now(),
+      type,
+    };
+    updateFacture(facture.id, {
+      relances: [...(facture.relances ?? []), newRelance],
+    });
+  };
+
+  const handleUpdateRelance = (relanceId: string, changes: Partial<Relance>) => {
+    const newRelances = (facture.relances ?? []).map((r) =>
+      r.id === relanceId ? { ...r, ...changes } : r
+    );
+    updateFacture(facture.id, { relances: newRelances });
+  };
+
+  const handleDeleteRelance = (relanceId: string) => {
+    if (!confirm('Supprimer cette relance ?')) return;
+    const newRelances = (facture.relances ?? []).filter((r) => r.id !== relanceId);
+    updateFacture(facture.id, {
+      relances: newRelances.length > 0 ? newRelances : undefined,
+    });
+  };
+
+  // === AVOIR ===
+  const handleCreateAvoir = () => {
+    const restantAvant = montantRestant(facture);
+    const montantAvoirHt = restantAvant > 0 ? -facture.montant_ht : -(facture.montant_ht);
+    const montantAvoirTtc = restantAvant > 0 ? -facture.montant_ttc : -(facture.montant_ttc);
+    if (
+      !confirm(
+        `Créer un avoir pour ${facture.numero} ?\n\n` +
+          `Montant : ${fmtEur(montantAvoirTtc)} TTC\n\n` +
+          `Cela génère une nouvelle facture (statut « Avoir ») liée à celle-ci. ` +
+          `Tu pourras ensuite l'ajuster si besoin.`
+      )
+    )
+      return;
+    const now = Date.now();
+    const newAvoir: Facture = {
+      id: newFactureId(),
+      numero: generateFactureNumero(factures),
+      commande_id: facture.commande_id,
+      commande_numero: facture.commande_numero,
+      devis_numero: facture.devis_numero,
+      client_id: facture.client_id,
+      calculateur: facture.calculateur,
+      date_creation: now,
+      date_emission: now,
+      statut: 'avoir',
+      montant_ht: montantAvoirHt,
+      montant_ttc: montantAvoirTtc,
+      tva_pct: facture.tva_pct,
+      quantite: facture.quantite,
+      paiements: [],
+      avoir_de_facture_id: facture.id,
+      avoir_de_facture_numero: facture.numero,
+      snapshot_recap: facture.snapshot_recap
+        ? `AVOIR sur facture ${facture.numero}\n\n${facture.snapshot_recap}`
+        : `AVOIR sur facture ${facture.numero}`,
+    };
+    addFacture(newAvoir);
+    router.push(`/factures/${newAvoir.id}`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-sm">
@@ -195,8 +276,22 @@ export default function FactureDetailPage({
             </span>
             {enRetard && (
               <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-destructive text-destructive-foreground">
-                ⚠ En retard
+                ⚠ En retard {retardJours > 0 ? `(${retardJours} j)` : ''}
               </span>
+            )}
+            {doitRelancer && (
+              <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-warning/15 text-warning border border-warning/30">
+                📣 À relancer
+              </span>
+            )}
+            {facture.avoir_de_facture_id && facture.avoir_de_facture_numero && (
+              <Link
+                href={`/factures/${facture.avoir_de_facture_id}`}
+                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-accent/15 text-accent border border-accent/30 hover:bg-accent/25"
+                title="Voir la facture d'origine"
+              >
+                Avoir sur {facture.avoir_de_facture_numero} →
+              </Link>
             )}
             <span className="text-xs text-muted-foreground">
               Commande{' '}
@@ -311,6 +406,70 @@ export default function FactureDetailPage({
               )}
             </CardContent>
           </Card>
+
+          {/* Relances — visible sauf si payée/avoir/brouillon */}
+          {facture.statut !== 'brouillon' &&
+            facture.statut !== 'avoir' &&
+            facture.statut !== 'payee' && (
+              <Card className={doitRelancer ? 'border-warning/40' : undefined}>
+                <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+                  <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                    <div>
+                      <CardTitle className="text-sm">
+                        Relances ({facture.relances?.length ?? 0})
+                      </CardTitle>
+                      <CardDescription className="text-[11px]">
+                        {doitRelancer
+                          ? `À relancer · ${retardJours} jour${retardJours > 1 ? 's' : ''} de retard`
+                          : lastRelance
+                            ? `Dernière le ${new Date(lastRelance.date).toLocaleDateString('fr-FR')} — ${RELANCE_LABELS[lastRelance.type]}`
+                            : enRetard
+                              ? `${retardJours} jour${retardJours > 1 ? 's' : ''} de retard`
+                              : 'Suivi des relances client'}
+                      </CardDescription>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-6 px-2 text-[11px]"
+                        onClick={() => handleAddRelance('email')}
+                      >
+                        + Email
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-6 px-2 text-[11px]"
+                        onClick={() => handleAddRelance('telephone')}
+                      >
+                        + Tél
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="px-3 pb-2.5 pt-0">
+                  {!facture.relances || facture.relances.length === 0 ? (
+                    <p className="text-xs text-muted-foreground py-1">
+                      Aucune relance enregistrée.
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {[...facture.relances]
+                        .sort((a, b) => b.date - a.date)
+                        .map((r) => (
+                          <RelanceRow
+                            key={r.id}
+                            relance={r}
+                            onChange={(changes) => handleUpdateRelance(r.id, changes)}
+                            onDelete={() => handleDeleteRelance(r.id)}
+                          />
+                        ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
           {/* Notes */}
           <Card>
@@ -446,6 +605,28 @@ export default function FactureDetailPage({
             </Card>
           )}
 
+          {/* Actions — Avoir */}
+          {facture.statut !== 'brouillon' &&
+            facture.statut !== 'avoir' &&
+            !facture.avoir_de_facture_id && (
+              <Card>
+                <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+                  <CardTitle className="text-sm">Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="px-3 pb-2.5 pt-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCreateAvoir}
+                    className="w-full h-7 text-xs"
+                    title="Crée une facture d'avoir (montant négatif) liée à celle-ci"
+                  >
+                    ↩ Créer un avoir
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
           {/* Danger zone */}
           <Card>
             <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
@@ -532,6 +713,65 @@ function PaiementRow({
         placeholder="Notes (optionnel)"
         onChange={(e) => onChange({ notes: e.target.value || undefined })}
       />
+    </li>
+  );
+}
+
+const RELANCE_OPTIONS: { value: RelanceType; label: string }[] = [
+  { value: 'email', label: 'Email' },
+  { value: 'telephone', label: 'Téléphone' },
+  { value: 'lettre', label: 'Lettre' },
+  { value: 'sms', label: 'SMS' },
+  { value: 'autre', label: 'Autre' },
+];
+
+function RelanceRow({
+  relance,
+  onChange,
+  onDelete,
+}: {
+  relance: Relance;
+  onChange: (changes: Partial<Relance>) => void;
+  onDelete: () => void;
+}) {
+  return (
+    <li className="rounded-md border bg-secondary/20 p-2 space-y-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0">
+      <div className="grid grid-cols-12 gap-2 items-center">
+        <Input
+          type="date"
+          className="col-span-4"
+          value={new Date(relance.date).toISOString().slice(0, 10)}
+          onChange={(e) =>
+            onChange({ date: new Date(e.target.value).getTime() })
+          }
+        />
+        <Select
+          className="col-span-4"
+          value={relance.type}
+          onChange={(e) => onChange({ type: e.target.value as RelanceType })}
+        >
+          {RELANCE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </Select>
+        <Input
+          className="col-span-3"
+          value={relance.notes ?? ''}
+          placeholder="Notes / réponse client"
+          onChange={(e) => onChange({ notes: e.target.value || undefined })}
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="col-span-1 text-muted-foreground hover:text-destructive"
+          onClick={onDelete}
+          aria-label="Supprimer cette relance"
+        >
+          ✕
+        </Button>
+      </div>
     </li>
   );
 }

@@ -11,6 +11,7 @@ import {
   STATUT_LABELS,
   montantPaye,
   montantRestant,
+  aRelancer,
   type FactureStatut,
 } from '@/lib/factures';
 import { CALC_LABELS, CALC_SLUGS, type CalcSlug } from '@/lib/default-params';
@@ -40,12 +41,14 @@ export default function FacturesListPage() {
   const [search, setSearch] = useState('');
   const [statutFilter, setStatutFilter] = useState<FactureStatut | 'all'>('all');
   const [calcFilter, setCalcFilter] = useState<CalcSlug | 'all'>('all');
+  const [aRelancerOnly, setARelancerOnly] = useState(false);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return factures
       .filter((f) => (statutFilter === 'all' ? true : f.statut === statutFilter))
       .filter((f) => (calcFilter === 'all' ? true : f.calculateur === calcFilter))
+      .filter((f) => (aRelancerOnly ? aRelancer(f) : true))
       .filter((f) => {
         if (!q) return true;
         const matches = [f.numero, f.commande_numero, f.devis_numero ?? ''];
@@ -57,7 +60,9 @@ export default function FacturesListPage() {
         );
       })
       .sort((a, b) => b.date_creation - a.date_creation);
-  }, [factures, search, statutFilter, calcFilter, getClient]);
+  }, [factures, search, statutFilter, calcFilter, aRelancerOnly, getClient]);
+
+  const aRelancerCount = useMemo(() => factures.filter(aRelancer).length, [factures]);
 
   // Stats globales
   const totalFacture = factures.reduce((acc, f) => acc + f.montant_ttc, 0);
@@ -143,6 +148,22 @@ export default function FacturesListPage() {
                 </option>
               ))}
             </Select>
+            <label
+              className={`inline-flex items-center gap-1.5 h-9 px-3 text-sm rounded-md border cursor-pointer transition-colors ${
+                aRelancerOnly
+                  ? 'bg-warning/15 border-warning/40 text-warning'
+                  : 'bg-background border-input hover:bg-secondary'
+              }`}
+              title="N'afficher que les factures à relancer (pas de relance récente)"
+            >
+              <input
+                type="checkbox"
+                checked={aRelancerOnly}
+                onChange={(e) => setARelancerOnly(e.target.checked)}
+                className="h-3.5 w-3.5 rounded border-input accent-warning"
+              />
+              📣 À relancer ({aRelancerCount})
+            </label>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -183,6 +204,7 @@ export default function FacturesListPage() {
                     echeance &&
                     Date.now() > echeance.getTime() &&
                     !['payee', 'avoir', 'brouillon'].includes(f.statut);
+                  const needsRelance = aRelancer(f);
                   const restant = montantRestant(f);
 
                   return (
@@ -194,11 +216,19 @@ export default function FacturesListPage() {
                         <span className="col-span-2 font-mono text-xs text-muted-foreground">
                           {f.numero}
                         </span>
-                        <span className="col-span-3 text-sm truncate">
+                        <span className="col-span-3 text-sm truncate flex items-center gap-1.5">
                           {client ? (
-                            clientLabel(client)
+                            <span className="truncate">{clientLabel(client)}</span>
                           ) : (
                             <span className="text-destructive">Client supprimé</span>
+                          )}
+                          {needsRelance && (
+                            <span
+                              className="shrink-0 inline-flex items-center rounded-full bg-warning/20 text-warning border border-warning/40 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide"
+                              title="Pas de relance récente"
+                            >
+                              📣
+                            </span>
                           )}
                         </span>
                         <span className="col-span-2 text-xs text-muted-foreground">
