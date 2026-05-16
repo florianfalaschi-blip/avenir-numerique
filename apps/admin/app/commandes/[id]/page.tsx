@@ -21,6 +21,7 @@ import {
   STATUT_COLORS,
   ETAPE_LABELS,
   etapesProgress,
+  getCommandeLignes,
   type CommandeStatut,
   type EtapeStatut,
   type EtapeProduction,
@@ -150,6 +151,16 @@ export default function CommandeDetailPage({
     const devis = getDevis(commande.devis_id);
     const tvaPct =
       (devis?.result as { tva_pct?: number } | null | undefined)?.tva_pct ?? 20;
+    // Propage les lignes (multi ou implicite legacy) à la facture pour que le
+    // PDF facture liste fidèlement les mêmes produits que le devis/commande.
+    const lignes = getCommandeLignes(commande);
+    const snapshotRecapAggregated =
+      lignes.length > 1
+        ? lignes
+            .map((l) => l.recap ?? l.designation)
+            .filter(Boolean)
+            .join('\n---\n')
+        : commande.snapshot_recap;
     const newFct: Facture = {
       id: newFactureId(),
       numero: nextFactureNumero(),
@@ -165,7 +176,8 @@ export default function CommandeDetailPage({
       tva_pct: tvaPct,
       quantite: commande.snapshot_quantite,
       paiements: [],
-      snapshot_recap: commande.snapshot_recap,
+      snapshot_recap: snapshotRecapAggregated,
+      lignes,
     };
     addFacture(newFct);
     router.push(`/factures/${newFct.id}`);

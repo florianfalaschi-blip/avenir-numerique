@@ -5,6 +5,7 @@ import type { Database } from '@avenir/db';
 import { useAuth } from './auth';
 import type { CalcSlug } from './default-params';
 import type { DelaiPaiement, ModePaiement } from './clients';
+import type { DevisLigne } from './devis';
 import { createTableStore } from './table-store';
 
 // ============================================================
@@ -93,6 +94,13 @@ export interface Facture {
   notes?: string;
   /** Récap du devis (snapshot, pour le PDF facture). */
   snapshot_recap?: string;
+
+  /**
+   * Lignes facturées (snapshot multi-produits, optionnel pour compat avec les
+   * factures pré-existantes). Si absent → 1 ligne implicite reconstruite à
+   * partir des champs montant_* / snapshot_recap via {@link getFactureLignes}.
+   */
+  lignes?: DevisLigne[];
 }
 
 type FactureRow = Database['public']['Tables']['factures']['Row'];
@@ -247,6 +255,47 @@ export function statutAuto(f: Facture): FactureStatut {
   return 'emise';
 }
 
+/**
+ * Retourne les lignes facturées sous forme normalisée :
+ * - Si `lignes[]` présent (facture multi-lignes) → renvoie tel quel
+ * - Sinon (facture legacy 1-ligne) → construit 1 ligne implicite à partir
+ *   des champs montant_* + snapshot_recap (factures pré-multi-lignes).
+ *
+ * Pour la ligne legacy, le TTC est déduit du ratio montant_ttc / montant_ht.
+ */
+export function getFactureLignes(f: Facture): DevisLigne[] {
+  if (f.lignes && f.lignes.length > 0) return f.lignes;
+  // Legacy : 1 ligne implicite reconstruite depuis le snapshot.
+  return [
+    {
+      id: `${f.id}_ligne_unique`,
+      calculateur: f.calculateur,
+      designation:
+        f.snapshot_recap?.split('\n')[0]?.slice(0, 80) ??
+        CALC_LABEL_DESIGNATION(f.calculateur),
+      quantite: f.quantite,
+      input: null,
+      result: null,
+      recap: f.snapshot_recap,
+      prix_ht: f.montant_ht,
+      prix_ttc: f.montant_ttc,
+      date_ajout: f.date_creation,
+    },
+  ];
+}
+
+/** Désignation par défaut quand on n'a pas mieux. */
+function CALC_LABEL_DESIGNATION(calc: CalcSlug): string {
+  const m: Record<CalcSlug, string> = {
+    rollup: 'Roll-up',
+    plaques: 'Plaques / Signalétique',
+    flyers: 'Flyers / Affiches',
+    bobines: 'Bobines / Étiquettes',
+    brochures: 'Brochures',
+  };
+  return m[calc] ?? 'Produit';
+}
+
 // ============================================================
 // MAPPERS Row ↔ Facture
 // ============================================================
@@ -300,6 +349,7 @@ function rowToFacture(row: FactureRow): Facture {
     avoir_de_facture_numero: data.avoir_de_facture_numero as string | undefined,
     notes: data.notes as string | undefined,
     snapshot_recap: data.snapshot_recap as string | undefined,
+    lignes: data.lignes as DevisLigne[] | undefined,
   };
 }
 

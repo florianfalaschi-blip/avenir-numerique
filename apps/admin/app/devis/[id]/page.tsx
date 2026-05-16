@@ -113,6 +113,16 @@ export default function DevisDetailPage({
   };
 
   const handleCreerCommande = () => {
+    // Récupère toutes les lignes (multi ou implicite legacy) et propage à la
+    // commande pour que les snapshots (PDF, facture, etc.) restent fidèles.
+    const lignes = getDevisLignes(devis);
+    const snapshotRecapAggregated =
+      lignes.length > 1
+        ? lignes
+            .map((l) => l.recap ?? l.designation)
+            .filter(Boolean)
+            .join('\n---\n')
+        : devis.recap;
     const newCmd: Commande = {
       id: newCommandeId(),
       numero: nextCommandeNumero(),
@@ -126,7 +136,8 @@ export default function DevisDetailPage({
       snapshot_prix_ht: effectivePrixHt(devis),
       snapshot_prix_ttc: devis.prix_ttc,
       snapshot_quantite: devis.quantite,
-      snapshot_recap: devis.recap,
+      snapshot_recap: snapshotRecapAggregated,
+      lignes,
     };
     addCommande(newCmd);
     router.push(`/commandes/${newCmd.id}`);
