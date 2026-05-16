@@ -20,12 +20,20 @@ const baseParams: RollupParams = {
     { id: 'standard', nom: 'Standard', prix_unitaire_ht: 55.0 },
     { id: 'premium', nom: 'Premium', prix_unitaire_ht: 95.0 },
   ],
-  machine: {
-    id: 'epson',
-    nom: 'Epson solvant',
-    vitesse_m2_h: 8,
-    taux_horaire_ht: 40,
-  },
+  machines: [
+    {
+      id: 'epson',
+      nom: 'Epson solvant',
+      vitesse_m2_h: 8,
+      taux_horaire_ht: 40,
+    },
+    {
+      id: 'mimaki',
+      nom: 'Mimaki (plus rapide)',
+      vitesse_m2_h: 15,
+      taux_horaire_ht: 55,
+    },
+  ],
   frais_fixes_ht: 15,
   bat_prix_ht: 25,
   marge_pct: 50,
@@ -50,6 +58,7 @@ describe('calcRollup — cas standard', () => {
         hauteur_cm: 200,
         bache_id: 'pvc_440g',
         structure_id: 'standard',
+        machine_id: 'epson',
         bat: false,
       },
       baseParams
@@ -95,6 +104,7 @@ describe('calcRollup — cas standard', () => {
         hauteur_cm: 200,
         bache_id: 'pvc_440g',
         structure_id: 'standard',
+        machine_id: 'epson',
         bat: true,
       },
       baseParams
@@ -119,6 +129,7 @@ describe('calcRollup — dégressif', () => {
         hauteur_cm: 200,
         bache_id: 'pvc_440g',
         structure_id: 'standard',
+        machine_id: 'epson',
         bat: false,
       },
       baseParams
@@ -135,6 +146,7 @@ describe('calcRollup — dégressif', () => {
         hauteur_cm: 200,
         bache_id: 'pvc_440g',
         structure_id: 'standard',
+        machine_id: 'epson',
         bat: false,
       },
       baseParams
@@ -151,6 +163,7 @@ describe('calcRollup — dégressif', () => {
         hauteur_cm: 200,
         bache_id: 'pvc_440g',
         structure_id: 'standard',
+        machine_id: 'epson',
         bat: false,
       },
       baseParams
@@ -167,6 +180,7 @@ describe('calcRollup — dégressif', () => {
         hauteur_cm: 200,
         bache_id: 'pvc_440g',
         structure_id: 'standard',
+        machine_id: 'epson',
         bat: false,
       },
       baseParams
@@ -187,6 +201,7 @@ describe('calcRollup — niveaux de structure', () => {
       largeur_cm: 85,
       hauteur_cm: 200,
       bache_id: 'pvc_440g',
+      machine_id: 'epson',
       bat: false,
     } as const;
 
@@ -211,6 +226,7 @@ describe('calcRollup — validation des entrées', () => {
           hauteur_cm: 200,
           bache_id: 'pvc_440g',
           structure_id: 'standard',
+          machine_id: 'epson',
           bat: false,
         },
         baseParams
@@ -227,6 +243,7 @@ describe('calcRollup — validation des entrées', () => {
           hauteur_cm: 200,
           bache_id: 'pvc_440g',
           structure_id: 'standard',
+          machine_id: 'epson',
           bat: false,
         },
         baseParams
@@ -243,6 +260,7 @@ describe('calcRollup — validation des entrées', () => {
           hauteur_cm: 200,
           bache_id: 'inconnu',
           structure_id: 'standard',
+          machine_id: 'epson',
           bat: false,
         },
         baseParams
@@ -259,11 +277,69 @@ describe('calcRollup — validation des entrées', () => {
           hauteur_cm: 200,
           bache_id: 'pvc_440g',
           structure_id: 'inconnu',
+          machine_id: 'epson',
           bat: false,
         },
         baseParams
       )
     ).toThrow(/Structure introuvable/);
+  });
+
+  it('rejette une machine inconnue', () => {
+    expect(() =>
+      calcRollup(
+        {
+          quantite: 1,
+          largeur_cm: 85,
+          hauteur_cm: 200,
+          bache_id: 'pvc_440g',
+          structure_id: 'standard',
+          machine_id: 'inconnu',
+          bat: false,
+        },
+        baseParams
+      )
+    ).toThrow(/Machine introuvable/);
+  });
+});
+
+// ============================================================
+// TESTS MULTI-MACHINES
+// ============================================================
+
+describe('calcRollup — sélection de machine', () => {
+  it('utilise la machine spécifiée et la mentionne dans le résultat', () => {
+    const epson = calcRollup(
+      {
+        quantite: 1,
+        largeur_cm: 85,
+        hauteur_cm: 200,
+        bache_id: 'pvc_440g',
+        structure_id: 'standard',
+        machine_id: 'epson',
+        bat: false,
+      },
+      baseParams
+    );
+    expect(epson.machine_id).toBe('epson');
+    expect(epson.machine_nom).toBe('Epson solvant');
+
+    const mimaki = calcRollup(
+      {
+        quantite: 1,
+        largeur_cm: 85,
+        hauteur_cm: 200,
+        bache_id: 'pvc_440g',
+        structure_id: 'standard',
+        machine_id: 'mimaki',
+        bat: false,
+      },
+      baseParams
+    );
+    expect(mimaki.machine_id).toBe('mimaki');
+    // Mimaki est plus rapide (15 m²/h) mais taux 55 €/h vs Epson 8 m²/h × 40 €/h
+    // → temps Mimaki = 1.7/15 × 55 = 6.23 € < Epson = 1.7/8 × 40 = 8.5 €
+    expect(mimaki.cout_machine_unitaire_ht).toBeLessThan(epson.cout_machine_unitaire_ht);
   });
 });
 
@@ -280,6 +356,7 @@ describe('calcRollup — plancher de sécurité', () => {
         hauteur_cm: 10, // petit format → prix faible
         bache_id: 'pvc_440g',
         structure_id: 'eco',
+        machine_id: 'epson',
         bat: false,
       },
       { ...baseParams, prix_plancher_ht: 100 }

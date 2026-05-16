@@ -18,6 +18,8 @@ export interface RollupInput {
   bache_id: string;
   /** ID du niveau de structure (eco / standard / premium) */
   structure_id: string;
+  /** ID de la machine d'impression (réf. params.machines) */
+  machine_id: string;
   /** BAT optionnel payant */
   bat: boolean;
 }
@@ -57,7 +59,8 @@ export interface DegressifSeuil {
 export interface RollupParams {
   baches: BacheConfig[];
   structures: StructureConfig[];
-  machine: MachineConfig;
+  /** Liste des machines d'impression disponibles (au moins 1) */
+  machines: MachineConfig[];
   /** Frais fixes par commande (préparation, calage, etc.) */
   frais_fixes_ht: number;
   /** Prix de l'option BAT */
@@ -77,6 +80,12 @@ export interface RollupParams {
 // ============================================================
 
 export interface RollupResult {
+  // === Métadonnées sélection ===
+  /** ID de la machine utilisée */
+  machine_id: string;
+  /** Nom de la machine utilisée */
+  machine_nom: string;
+
   // === Détail des coûts ===
   /** Surface unitaire en m² */
   surface_m2: number;

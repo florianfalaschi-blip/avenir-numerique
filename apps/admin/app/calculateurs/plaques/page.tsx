@@ -14,11 +14,13 @@ import {
   ResultSection,
   Row,
   Select,
+  SettingsBadge,
   TwoColumns,
   Warnings,
 } from '../_shared/components';
 import { fmtEur, fmtInt } from '../_shared/format';
-import { demoPlaquesParams } from './demo-params';
+import { defaultPlaquesParams } from '@/lib/default-params/plaques';
+import { useSettings } from '@/lib/settings';
 
 const DEFAULT_INPUT: PlaquesInput = {
   quantite: 1,
@@ -30,9 +32,12 @@ const DEFAULT_INPUT: PlaquesInput = {
   bat: false,
 };
 
-function compute(input: PlaquesInput): { result: PlaquesResult | null; error: string | null } {
+function compute(
+  input: PlaquesInput,
+  params: typeof defaultPlaquesParams
+): { result: PlaquesResult | null; error: string | null } {
   try {
-    return { result: calcPlaques(input, demoPlaquesParams), error: null };
+    return { result: calcPlaques(input, params), error: null };
   } catch (e) {
     if (e instanceof PlaquesCalcError) return { result: null, error: e.message };
     return { result: null, error: 'Erreur inattendue lors du calcul' };
@@ -40,11 +45,12 @@ function compute(input: PlaquesInput): { result: PlaquesResult | null; error: st
 }
 
 export default function PlaquesCalcPage() {
+  const { value: params, isCustom } = useSettings('plaques', defaultPlaquesParams);
   const [input, setInput] = useState<PlaquesInput>(DEFAULT_INPUT);
-  const outcome = useMemo(() => compute(input), [input]);
+  const outcome = useMemo(() => compute(input, params), [input, params]);
 
   const hasOeilletFinition = input.finitions_ids.some(
-    (id) => demoPlaquesParams.finitions.find((f) => f.id === id)?.type === 'par_oeillet'
+    (id) => params.finitions.find((f) => f.id === id)?.type === 'par_oeillet'
   );
 
   const toggleFinition = (id: string) => {
@@ -58,7 +64,10 @@ export default function PlaquesCalcPage() {
 
   return (
     <div className="space-y-6">
-      <BackLink />
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <BackLink />
+        <SettingsBadge slug="plaques" isCustom={isCustom} />
+      </div>
       <CalcHeader
         title="Calculateur Plaques / Signalétique"
         subtitle="PVC, Forex, Dibond, Plexi… avec calepinage automatique et découpe Zund."
@@ -86,7 +95,7 @@ export default function PlaquesCalcPage() {
                   <Checkbox
                     checked={input.bat}
                     onChange={(bat) => setInput({ ...input, bat })}
-                    label={`BAT (${fmtEur(demoPlaquesParams.bat_prix_ht)})`}
+                    label={`BAT (${fmtEur(params.bat_prix_ht)})`}
                   />
                 </Field>
               </div>
@@ -114,7 +123,7 @@ export default function PlaquesCalcPage() {
                       setInput({ ...input, taille_standard: e.target.value as TailleStandard })
                     }
                   >
-                    {demoPlaquesParams.tailles_standards.map((t) => (
+                    {params.tailles_standards.map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.id} ({t.largeur_cm} × {t.hauteur_cm} cm)
                       </option>
@@ -151,7 +160,7 @@ export default function PlaquesCalcPage() {
                   value={input.materiau_id}
                   onChange={(e) => setInput({ ...input, materiau_id: e.target.value })}
                 >
-                  {demoPlaquesParams.materiaux.map((m) => (
+                  {params.materiaux.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.nom}
                     </option>
@@ -193,7 +202,7 @@ export default function PlaquesCalcPage() {
 
               <Field label="Finitions">
                 <div className="space-y-2 rounded-md border bg-secondary/30 p-3">
-                  {demoPlaquesParams.finitions.map((f) => (
+                  {params.finitions.map((f) => (
                     <label key={f.id} className="flex items-center gap-2 text-sm cursor-pointer">
                       <input
                         type="checkbox"

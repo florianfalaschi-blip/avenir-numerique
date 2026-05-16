@@ -1,10 +1,6 @@
 import type { PlaquesParams } from '@avenir/core';
 
-/**
- * Paramètres de démo (valeurs estimées).
- * ⚠️ À calibrer plus tard depuis Supabase.
- */
-export const demoPlaquesParams: PlaquesParams = {
+export const defaultPlaquesParams: PlaquesParams = {
   materiaux: [
     {
       id: 'pvc_3mm',

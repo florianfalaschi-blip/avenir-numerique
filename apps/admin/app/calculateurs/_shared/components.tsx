@@ -171,6 +171,27 @@ export function TwoColumns({
   );
 }
 
+/**
+ * Badge affichant si les paramètres sont customisés (différents des defaults).
+ * Cliquable, redirige vers la page d'édition du calculateur.
+ */
+export function SettingsBadge({ slug, isCustom }: { slug: string; isCustom: boolean }) {
+  return (
+    <Link
+      href={`/parametres/${slug}`}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors',
+        isCustom
+          ? 'bg-accent/15 text-accent border border-accent/30 hover:bg-accent/25'
+          : 'bg-secondary text-muted-foreground border border-border hover:bg-secondary/80'
+      )}
+    >
+      <span aria-hidden>⚙</span>
+      {isCustom ? 'Paramètres modifiés' : 'Paramètres par défaut'}
+    </Link>
+  );
+}
+
 /** Petite section dans le bloc résultat (titre + lignes). */
 export function ResultSection({
   title,

@@ -1,10 +1,6 @@
 import type { FlyersParams } from '@avenir/core';
 
-/**
- * Paramètres de démo (valeurs estimées).
- * ⚠️ À calibrer plus tard depuis Supabase.
- */
-export const demoFlyersParams: FlyersParams = {
+export const defaultFlyersParams: FlyersParams = {
   machines: [
     {
       id: 'hp_indigo',

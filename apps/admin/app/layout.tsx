@@ -14,6 +14,7 @@ const navItems = [
   { href: '/calculateurs/flyers', label: 'Flyers' },
   { href: '/calculateurs/bobines', label: 'Bobines' },
   { href: '/calculateurs/brochures', label: 'Brochures' },
+  { href: '/parametres', label: '⚙ Paramètres' },
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

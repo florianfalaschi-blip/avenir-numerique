@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { calcRollup, RollupCalcError } from '@avenir/core';
 import type { RollupInput, RollupResult } from '@avenir/core';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@avenir/ui';
@@ -14,11 +14,13 @@ import {
   ResultSection,
   Row,
   Select,
+  SettingsBadge,
   TwoColumns,
   Warnings,
 } from '../_shared/components';
 import { fmtEur } from '../_shared/format';
-import { demoRollupParams } from './demo-params';
+import { defaultRollupParams } from '@/lib/default-params/rollup';
+import { useSettings } from '@/lib/settings';
 
 const DEFAULT_INPUT: RollupInput = {
   quantite: 1,
@@ -26,12 +28,16 @@ const DEFAULT_INPUT: RollupInput = {
   hauteur_cm: 200,
   bache_id: 'pvc_440',
   structure_id: 'standard',
+  machine_id: 'epson',
   bat: false,
 };
 
-function compute(input: RollupInput): { result: RollupResult | null; error: string | null } {
+function compute(
+  input: RollupInput,
+  params: typeof defaultRollupParams
+): { result: RollupResult | null; error: string | null } {
   try {
-    return { result: calcRollup(input, demoRollupParams), error: null };
+    return { result: calcRollup(input, params), error: null };
   } catch (e) {
     if (e instanceof RollupCalcError) return { result: null, error: e.message };
     return { result: null, error: 'Erreur inattendue lors du calcul' };
@@ -39,12 +45,35 @@ function compute(input: RollupInput): { result: RollupResult | null; error: stri
 }
 
 export default function RollupCalcPage() {
+  const { value: params, isCustom } = useSettings('rollup', defaultRollupParams);
   const [input, setInput] = useState<RollupInput>(DEFAULT_INPUT);
-  const outcome = useMemo(() => compute(input), [input]);
+
+  // Si les params ont été modifiés et que la bâche/structure/machine sélectionnée
+  // n'existe plus dans le catalogue, on retombe sur la première disponible.
+  useEffect(() => {
+    setInput((prev) => {
+      const next = { ...prev };
+      if (!params.baches.some((b) => b.id === prev.bache_id) && params.baches[0]) {
+        next.bache_id = params.baches[0].id;
+      }
+      if (!params.structures.some((s) => s.id === prev.structure_id) && params.structures[0]) {
+        next.structure_id = params.structures[0].id;
+      }
+      if (!params.machines.some((m) => m.id === prev.machine_id) && params.machines[0]) {
+        next.machine_id = params.machines[0].id;
+      }
+      return next;
+    });
+  }, [params]);
+
+  const outcome = useMemo(() => compute(input, params), [input, params]);
 
   return (
     <div className="space-y-6">
-      <BackLink />
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <BackLink />
+        <SettingsBadge slug="rollup" isCustom={isCustom} />
+      </div>
       <CalcHeader
         title="Calculateur Roll-up"
         subtitle="Bâche PVC + structure (eco/standard/premium). Sac et scratchs inclus."
@@ -72,7 +101,7 @@ export default function RollupCalcPage() {
                   <Checkbox
                     checked={input.bat}
                     onChange={(bat) => setInput({ ...input, bat })}
-                    label={`BAT (${fmtEur(demoRollupParams.bat_prix_ht)})`}
+                    label={`BAT (${fmtEur(params.bat_prix_ht)})`}
                   />
                 </Field>
                 <Field label="Largeur (cm)">
@@ -102,7 +131,7 @@ export default function RollupCalcPage() {
                   value={input.bache_id}
                   onChange={(e) => setInput({ ...input, bache_id: e.target.value })}
                 >
-                  {demoRollupParams.baches.map((b) => (
+                  {params.baches.map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.nom} — {fmtEur(b.prix_m2_ht)}/m²
                     </option>
@@ -115,9 +144,22 @@ export default function RollupCalcPage() {
                   value={input.structure_id}
                   onChange={(e) => setInput({ ...input, structure_id: e.target.value })}
                 >
-                  {demoRollupParams.structures.map((s) => (
+                  {params.structures.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.nom} — {fmtEur(s.prix_unitaire_ht)}/u
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+
+              <Field label="Machine d'impression">
+                <Select
+                  value={input.machine_id}
+                  onChange={(e) => setInput({ ...input, machine_id: e.target.value })}
+                >
+                  {params.machines.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nom} — {m.vitesse_m2_h} m²/h · {fmtEur(m.taux_horaire_ht)}/h
                     </option>
                   ))}
                 </Select>
@@ -153,8 +195,14 @@ export default function RollupCalcPage() {
 function ResultBlock({ result }: { result: RollupResult }) {
   return (
     <div className="space-y-4">
-      <ResultSection title="Coût unitaire">
+      <ResultSection title="Configuration">
         <Row label="Surface" value={`${result.surface_m2.toFixed(3)} m²`} />
+        <Row label="Machine" value={result.machine_nom} />
+      </ResultSection>
+
+      <hr />
+
+      <ResultSection title="Coût unitaire">
         <MoneyRow label="Bâche /u" value={result.cout_bache_unitaire_ht} />
         <MoneyRow label="Machine /u" value={result.cout_machine_unitaire_ht} />
         <MoneyRow label="Structure /u" value={result.cout_structure_unitaire_ht} />

@@ -1,10 +1,6 @@
 import type { BobinesParams } from '@avenir/core';
 
-/**
- * Paramètres de démo (valeurs estimées).
- * ⚠️ À calibrer plus tard depuis Supabase.
- */
-export const demoBobinesParams: BobinesParams = {
+export const defaultBobinesParams: BobinesParams = {
   materiaux: [
     {
       id: 'vinyle_blanc',

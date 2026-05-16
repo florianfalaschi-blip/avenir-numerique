@@ -20,11 +20,13 @@ import {
   ResultSection,
   Row,
   Select,
+  SettingsBadge,
   TwoColumns,
   Warnings,
 } from '../_shared/components';
 import { fmtEur, fmtInt } from '../_shared/format';
-import { demoBrochuresParams } from './demo-params';
+import { defaultBrochuresParams } from '@/lib/default-params/brochures';
+import { useSettings } from '@/lib/settings';
 
 const DEFAULT_INPUT: BrochuresInput = {
   quantite: 100,
@@ -42,12 +44,15 @@ const DEFAULT_INPUT: BrochuresInput = {
   bat: false,
 };
 
-function compute(input: BrochuresInput): {
+function compute(
+  input: BrochuresInput,
+  params: typeof defaultBrochuresParams
+): {
   result: BrochuresResult | null;
   error: string | null;
 } {
   try {
-    return { result: calcBrochures(input, demoBrochuresParams), error: null };
+    return { result: calcBrochures(input, params), error: null };
   } catch (e) {
     if (e instanceof BrochuresCalcError) return { result: null, error: e.message };
     return { result: null, error: 'Erreur inattendue lors du calcul' };
@@ -55,10 +60,11 @@ function compute(input: BrochuresInput): {
 }
 
 export default function BrochuresCalcPage() {
+  const { value: params, isCustom } = useSettings('brochures', defaultBrochuresParams);
   const [input, setInput] = useState<BrochuresInput>(DEFAULT_INPUT);
-  const outcome = useMemo(() => compute(input), [input]);
+  const outcome = useMemo(() => compute(input, params), [input, params]);
 
-  const currentReliure = demoBrochuresParams.reliures.find((r) => r.id === input.reliure_id);
+  const currentReliure = params.reliures.find((r) => r.id === input.reliure_id);
   const reliureHint = currentReliure
     ? `Multiple de ${currentReliure.pages_multiple} pages, entre ${currentReliure.pages_min} et ${currentReliure.pages_max}`
     : undefined;
@@ -74,7 +80,10 @@ export default function BrochuresCalcPage() {
 
   return (
     <div className="space-y-6">
-      <BackLink />
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <BackLink />
+        <SettingsBadge slug="brochures" isCustom={isCustom} />
+      </div>
       <CalcHeader
         title="Calculateur Brochures"
         subtitle="Intérieur + couverture séparés, 4 reliures, pliage automatique, marge prorata techno."
@@ -115,7 +124,7 @@ export default function BrochuresCalcPage() {
                   value={input.reliure_id}
                   onChange={(e) => setInput({ ...input, reliure_id: e.target.value })}
                 >
-                  {demoBrochuresParams.reliures.map((r) => (
+                  {params.reliures.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.nom}
                     </option>
@@ -149,7 +158,7 @@ export default function BrochuresCalcPage() {
                       })
                     }
                   >
-                    {demoBrochuresParams.formats_standards.map((t) => (
+                    {params.formats_standards.map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.id.replace('_paysage', ' paysage').replace('_carre', ' carré')} (
                         {t.largeur_mm} × {t.hauteur_mm} mm)
@@ -194,7 +203,7 @@ export default function BrochuresCalcPage() {
                       setInput({ ...input, papier_interieur_id: e.target.value })
                     }
                   >
-                    {demoBrochuresParams.papiers.map((p) => (
+                    {params.papiers.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.nom} ({p.grammage} g)
                       </option>
@@ -246,7 +255,7 @@ export default function BrochuresCalcPage() {
                       setInput({ ...input, papier_couverture_id: e.target.value })
                     }
                   >
-                    {demoBrochuresParams.papiers.map((p) => (
+                    {params.papiers.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.nom} ({p.grammage} g)
                       </option>
@@ -288,7 +297,7 @@ export default function BrochuresCalcPage() {
 
               <Field label="Finitions couverture">
                 <div className="space-y-2 rounded-md border bg-secondary/30 p-3">
-                  {demoBrochuresParams.finitions.map((f) => (
+                  {params.finitions.map((f) => (
                     <label key={f.id} className="flex items-center gap-2 text-sm cursor-pointer">
                       <input
                         type="checkbox"
@@ -311,7 +320,7 @@ export default function BrochuresCalcPage() {
                 <Checkbox
                   checked={input.bat}
                   onChange={(bat) => setInput({ ...input, bat })}
-                  label={`BAT (${fmtEur(demoBrochuresParams.bat_prix_ht)})`}
+                  label={`BAT (${fmtEur(params.bat_prix_ht)})`}
                 />
               </Field>
 

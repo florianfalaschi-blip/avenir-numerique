@@ -1,10 +1,6 @@
 import type { BrochuresParams } from '@avenir/core';
 
-/**
- * Paramètres de démo (valeurs estimées).
- * ⚠️ À calibrer plus tard depuis Supabase.
- */
-export const demoBrochuresParams: BrochuresParams = {
+export const defaultBrochuresParams: BrochuresParams = {
   machines_impression: [
     {
       id: 'hp_indigo',

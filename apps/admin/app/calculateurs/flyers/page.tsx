@@ -20,11 +20,13 @@ import {
   ResultSection,
   Row,
   Select,
+  SettingsBadge,
   TwoColumns,
   Warnings,
 } from '../_shared/components';
 import { fmtEur, fmtInt } from '../_shared/format';
-import { demoFlyersParams } from './demo-params';
+import { defaultFlyersParams } from '@/lib/default-params/flyers';
+import { useSettings } from '@/lib/settings';
 
 const DEFAULT_INPUT: FlyersInput = {
   quantite: 100,
@@ -37,9 +39,12 @@ const DEFAULT_INPUT: FlyersInput = {
   bat: false,
 };
 
-function compute(input: FlyersInput): { result: FlyersResult | null; error: string | null } {
+function compute(
+  input: FlyersInput,
+  params: typeof defaultFlyersParams
+): { result: FlyersResult | null; error: string | null } {
   try {
-    return { result: calcFlyers(input, demoFlyersParams), error: null };
+    return { result: calcFlyers(input, params), error: null };
   } catch (e) {
     if (e instanceof FlyersCalcError) return { result: null, error: e.message };
     return { result: null, error: 'Erreur inattendue lors du calcul' };
@@ -47,8 +52,9 @@ function compute(input: FlyersInput): { result: FlyersResult | null; error: stri
 }
 
 export default function FlyersCalcPage() {
+  const { value: params, isCustom } = useSettings('flyers', defaultFlyersParams);
   const [input, setInput] = useState<FlyersInput>(DEFAULT_INPUT);
-  const outcome = useMemo(() => compute(input), [input]);
+  const outcome = useMemo(() => compute(input, params), [input, params]);
 
   const toggleFinition = (id: string) => {
     setInput((i) => ({
@@ -61,7 +67,10 @@ export default function FlyersCalcPage() {
 
   return (
     <div className="space-y-6">
-      <BackLink />
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <BackLink />
+        <SettingsBadge slug="flyers" isCustom={isCustom} />
+      </div>
       <CalcHeader
         title="Calculateur Flyers / Affiches"
         subtitle="Choix techno auto, sélection machine la moins chère, pelliculage par face."
@@ -89,7 +98,7 @@ export default function FlyersCalcPage() {
                   <Checkbox
                     checked={input.bat}
                     onChange={(bat) => setInput({ ...input, bat })}
-                    label={`BAT (${fmtEur(demoFlyersParams.bat_prix_ht)})`}
+                    label={`BAT (${fmtEur(params.bat_prix_ht)})`}
                   />
                 </Field>
               </div>
@@ -120,7 +129,7 @@ export default function FlyersCalcPage() {
                       })
                     }
                   >
-                    {demoFlyersParams.formats_standards.map((t) => (
+                    {params.formats_standards.map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.id} ({t.largeur_mm} × {t.hauteur_mm} mm)
                       </option>
@@ -157,7 +166,7 @@ export default function FlyersCalcPage() {
                   value={input.papier_id}
                   onChange={(e) => setInput({ ...input, papier_id: e.target.value })}
                 >
-                  {demoFlyersParams.papiers.map((p) => (
+                  {params.papiers.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.nom} ({p.grammage} g)
                     </option>
@@ -179,7 +188,7 @@ export default function FlyersCalcPage() {
                 </Field>
                 <Field
                   label="Techno"
-                  hint={`Seuil offset : ${demoFlyersParams.seuil_offset_quantite_min} ex.`}
+                  hint={`Seuil offset : ${params.seuil_offset_quantite_min} ex.`}
                 >
                   <Select
                     value={input.techno_mode}
@@ -196,7 +205,7 @@ export default function FlyersCalcPage() {
 
               <Field label="Finitions">
                 <div className="space-y-2 rounded-md border bg-secondary/30 p-3">
-                  {demoFlyersParams.finitions.map((f) => (
+                  {params.finitions.map((f) => (
                     <label key={f.id} className="flex items-center gap-2 text-sm cursor-pointer">
                       <input
                         type="checkbox"

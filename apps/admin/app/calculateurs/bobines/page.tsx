@@ -20,11 +20,13 @@ import {
   ResultSection,
   Row,
   Select,
+  SettingsBadge,
   TwoColumns,
   Warnings,
 } from '../_shared/components';
 import { fmtEur, fmtInt } from '../_shared/format';
-import { demoBobinesParams } from './demo-params';
+import { defaultBobinesParams } from '@/lib/default-params/bobines';
+import { useSettings } from '@/lib/settings';
 
 const DEFAULT_INPUT: BobinesInput = {
   quantite_etiquettes: 500,
@@ -38,9 +40,12 @@ const DEFAULT_INPUT: BobinesInput = {
   bat: false,
 };
 
-function compute(input: BobinesInput): { result: BobinesResult | null; error: string | null } {
+function compute(
+  input: BobinesInput,
+  params: typeof defaultBobinesParams
+): { result: BobinesResult | null; error: string | null } {
   try {
-    return { result: calcBobines(input, demoBobinesParams), error: null };
+    return { result: calcBobines(input, params), error: null };
   } catch (e) {
     if (e instanceof BobinesCalcError) return { result: null, error: e.message };
     return { result: null, error: 'Erreur inattendue lors du calcul' };
@@ -48,8 +53,9 @@ function compute(input: BobinesInput): { result: BobinesResult | null; error: st
 }
 
 export default function BobinesCalcPage() {
+  const { value: params, isCustom } = useSettings('bobines', defaultBobinesParams);
   const [input, setInput] = useState<BobinesInput>(DEFAULT_INPUT);
-  const outcome = useMemo(() => compute(input), [input]);
+  const outcome = useMemo(() => compute(input, params), [input, params]);
 
   const toggleFinition = (id: string) => {
     setInput((i) => ({
@@ -62,7 +68,10 @@ export default function BobinesCalcPage() {
 
   return (
     <div className="space-y-6">
-      <BackLink />
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <BackLink />
+        <SettingsBadge slug="bobines" isCustom={isCustom} />
+      </div>
       <CalcHeader
         title="Calculateur Bobines / Étiquettes"
         subtitle="4 formes, calepinage rouleau ou m², planches ou rouleau applicateur."
@@ -93,7 +102,7 @@ export default function BobinesCalcPage() {
                   <Checkbox
                     checked={input.bat}
                     onChange={(bat) => setInput({ ...input, bat })}
-                    label={`BAT (${fmtEur(demoBobinesParams.bat_prix_ht)})`}
+                    label={`BAT (${fmtEur(params.bat_prix_ht)})`}
                   />
                 </Field>
               </div>
@@ -183,7 +192,7 @@ export default function BobinesCalcPage() {
                   value={input.materiau_id}
                   onChange={(e) => setInput({ ...input, materiau_id: e.target.value })}
                 >
-                  {demoBobinesParams.materiaux.map((m) => (
+                  {params.materiaux.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.nom}
                       {m.methode_calcul !== 'calepinage' && m.methode_calcul !== 'auto'
@@ -227,7 +236,7 @@ export default function BobinesCalcPage() {
 
               <Field label="Finitions">
                 <div className="space-y-2 rounded-md border bg-secondary/30 p-3">
-                  {demoBobinesParams.finitions.map((f) => (
+                  {params.finitions.map((f) => (
                     <label key={f.id} className="flex items-center gap-2 text-sm cursor-pointer">
                       <input
                         type="checkbox"
