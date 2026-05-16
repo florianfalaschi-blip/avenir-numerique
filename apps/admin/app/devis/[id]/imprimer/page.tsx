@@ -2,6 +2,7 @@
 
 import { use } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@avenir/ui';
 import {
   clientLabel,
@@ -27,6 +28,9 @@ export default function DevisImprimerPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const isProforma = searchParams.get('proforma') === '1';
+  const docTitle = isProforma ? 'FACTURE PROFORMA' : 'DEVIS';
   const { getDevis, hydrated: devisHydrated } = useDevis();
   const { getClient, hydrated: clientsHydrated } = useClients();
   const { value: entreprise, hydrated: entrepriseHydrated } = useEntreprise();
@@ -82,9 +86,25 @@ export default function DevisImprimerPage({
           ← Retour au devis
         </Link>
         <div className="flex gap-2 items-center text-sm text-muted-foreground">
-          <span>
-            Aperçu impression — utilise <kbd className="border rounded px-1.5 py-0.5 text-xs">Imprimer → Enregistrer comme PDF</kbd>
-          </span>
+          {/* Toggle Devis / Proforma */}
+          <div className="inline-flex rounded-md border bg-secondary/30 p-0.5 text-xs">
+            <Link
+              href={`/devis/${devis.id}/imprimer`}
+              className={`px-2.5 py-1 rounded transition-colors ${
+                !isProforma ? 'bg-background shadow-sm font-medium' : 'hover:bg-secondary'
+              }`}
+            >
+              Devis
+            </Link>
+            <Link
+              href={`/devis/${devis.id}/imprimer?proforma=1`}
+              className={`px-2.5 py-1 rounded transition-colors ${
+                isProforma ? 'bg-background shadow-sm font-medium' : 'hover:bg-secondary'
+              }`}
+            >
+              Proforma
+            </Link>
+          </div>
           <Button
             variant="accent"
             onClick={() => {
@@ -136,7 +156,12 @@ export default function DevisImprimerPage({
           </div>
 
           <div className="text-right shrink-0">
-            <p className="text-3xl font-bold tracking-tight">DEVIS</p>
+            <p className="text-3xl font-bold tracking-tight">{docTitle}</p>
+            {isProforma && (
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
+                Document non comptable · Valeur informative
+              </p>
+            )}
             <p className="text-xl font-mono mt-1">{devis.numero}</p>
             <table className="text-xs mt-3 ml-auto">
               <tbody>
