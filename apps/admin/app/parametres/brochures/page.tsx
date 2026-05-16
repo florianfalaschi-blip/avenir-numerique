@@ -156,7 +156,7 @@ export default function ParametresBrochuresPage() {
                 </Button>
               </div>
 
-              <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2">
+              <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
                 <Field label="Techno">
                   <Select
                     className="h-7 text-xs px-2 py-0"
@@ -523,7 +523,7 @@ export default function ParametresBrochuresPage() {
                 </Button>
               </div>
 
-              <div className="grid gap-2 md:grid-cols-4 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2">
+              <div className="grid gap-2 md:grid-cols-4 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
                 <Field label="Multiple pages">
                   <Input
                     type="number"
@@ -594,7 +594,7 @@ export default function ParametresBrochuresPage() {
                 </Field>
               </div>
 
-              <div className="grid gap-2 md:grid-cols-3 items-end [&_input]:h-7 [&_input]:text-xs [&_input]:px-2">
+              <div className="grid gap-2 md:grid-cols-3 items-end [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
                 <label className="flex items-center gap-2 text-xs cursor-pointer h-7">
                   <input
                     type="checkbox"

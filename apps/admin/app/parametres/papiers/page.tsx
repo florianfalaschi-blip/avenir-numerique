@@ -9,9 +9,9 @@ import {
   ActionBar,
   SettingsHeader,
   SettingsPageContainer,
+  fmtModifiedShort,
   useSettingsDraft,
 } from '../_shared';
-import { fmtModifiedAt } from '../../calculateurs/_shared/format';
 
 const TECHNOS = ['offset', 'numerique'] as const;
 
@@ -42,12 +42,13 @@ export default function ParametresPapiersPage() {
       />
 
       <Card>
-        <CardHeader>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-xl">Papiers ({draft.length})</CardTitle>
+            <CardTitle className="text-sm">Papiers ({draft.length})</CardTitle>
             <Button
               variant="outline"
               size="sm"
+              className="h-6 px-2 text-[11px]"
               onClick={() =>
                 patch((d) => [
                   ...d,
@@ -73,11 +74,14 @@ export default function ParametresPapiersPage() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="px-3 pb-2.5 pt-0 space-y-2">
           {draft.map((p, pi) => (
-            <div key={p.id} className="rounded-md border bg-secondary/20 p-3 space-y-3">
+            <div
+              key={p.id}
+              className="rounded-md border bg-secondary/20 p-2.5 space-y-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80"
+            >
               {/* Entête papier : nom, grammage, techno, modif */}
-              <div className="grid grid-cols-12 gap-2 items-center">
+              <div className="grid grid-cols-12 gap-1.5 items-center">
                 <Input
                   className="col-span-5"
                   value={p.nom}
@@ -98,11 +102,14 @@ export default function ParametresPapiersPage() {
                       )
                     }
                   />
-                  <span className="text-xs text-muted-foreground">g</span>
+                  <span className="text-[10px] text-muted-foreground">g</span>
                 </div>
-                <div className="col-span-2 flex gap-3 items-center text-xs">
+                <div className="col-span-2 flex gap-2 items-center">
                   {TECHNOS.map((t) => (
-                    <label key={t} className="flex items-center gap-1 cursor-pointer">
+                    <label
+                      key={t}
+                      className="flex items-center gap-1 cursor-pointer normal-case tracking-normal"
+                    >
                       <input
                         type="checkbox"
                         checked={p.compatible_techno.includes(t)}
@@ -114,26 +121,26 @@ export default function ParametresPapiersPage() {
                             return updatePapier(d, pi, { compatible_techno: [...set] });
                           })
                         }
-                        className="h-3.5 w-3.5 rounded border-input accent-primary"
+                        className="h-3 w-3 rounded border-input accent-primary"
                       />
                       {t === 'numerique' ? 'Num' : 'Off'}
                     </label>
                   ))}
                 </div>
-                <div
-                  className="col-span-2 text-xs text-muted-foreground"
+                <span
+                  className="col-span-2 text-[10px] text-muted-foreground/70 whitespace-nowrap tabular-nums"
                   title={
                     p.lastModifiedAt
                       ? new Date(p.lastModifiedAt).toLocaleString('fr-FR')
                       : 'Jamais modifié'
                   }
                 >
-                  Modifié : {fmtModifiedAt(p.lastModifiedAt)}
-                </div>
+                  {fmtModifiedShort(p.lastModifiedAt)}
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="col-span-1 text-muted-foreground hover:text-destructive justify-self-end"
+                  className="col-span-1 h-7 w-7 text-muted-foreground hover:text-destructive justify-self-end"
                   onClick={() => patch((d) => d.filter((_, j) => j !== pi))}
                   aria-label={`Supprimer ${p.nom}`}
                   disabled={draft.length === 1}
@@ -147,9 +154,7 @@ export default function ParametresPapiersPage() {
 
               {/* Fournisseur (sub-line) */}
               <div className="flex items-center gap-2">
-                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground shrink-0 w-24">
-                  Fournisseur
-                </label>
+                <label className="shrink-0 w-24">Fournisseur</label>
                 <Input
                   className="max-w-md"
                   value={p.fournisseur ?? ''}
@@ -165,14 +170,15 @@ export default function ParametresPapiersPage() {
               </div>
 
               {/* Formats d'achat */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <div className="text-[9px] font-medium text-muted-foreground/70 uppercase tracking-wide">
                     Formats d&apos;achat
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="h-6 px-2 text-[11px]"
                     onClick={() =>
                       patch((d) =>
                         updatePapier(d, pi, {
@@ -192,7 +198,7 @@ export default function ParametresPapiersPage() {
                     + Format
                   </Button>
                 </div>
-                <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
+                <div className="grid grid-cols-12 gap-1.5 text-[9px] font-medium text-muted-foreground/70 uppercase tracking-wide px-1">
                   <div className="col-span-3">Largeur (mm)</div>
                   <div className="col-span-3">Hauteur (mm)</div>
                   <div className="col-span-2">Feuilles/paquet</div>
@@ -200,7 +206,7 @@ export default function ParametresPapiersPage() {
                   <div className="col-span-1" />
                 </div>
                 {p.formats_achat.map((f, fi) => (
-                  <div key={fi} className="grid grid-cols-12 gap-2 items-center">
+                  <div key={fi} className="grid grid-cols-12 gap-1.5 items-center">
                     <Input
                       className="col-span-3"
                       type="number"
@@ -266,7 +272,7 @@ export default function ParametresPapiersPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="col-span-1 text-muted-foreground hover:text-destructive"
+                      className="col-span-1 h-7 w-7 text-muted-foreground hover:text-destructive"
                       onClick={() =>
                         patch((d) =>
                           updatePapier(d, pi, {
@@ -285,7 +291,7 @@ export default function ParametresPapiersPage() {
             </div>
           ))}
 
-          <p className="text-xs text-muted-foreground pt-2">
+          <p className="text-[11px] text-muted-foreground pt-1">
             💡 Le timestamp <em>Modifié</em> se met à jour automatiquement quand tu changes un
             champ. Il n&apos;est persisté qu&apos;après <strong>Enregistrer</strong>. Le bouton
             <em>Annuler</em> revient à la version sauvegardée.
@@ -304,4 +310,3 @@ export default function ParametresPapiersPage() {
     </SettingsPageContainer>
   );
 }
-

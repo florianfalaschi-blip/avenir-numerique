@@ -56,8 +56,8 @@ export function CatalogueCard<
         </div>
       </CardHeader>
       <CardContent className="px-3 pb-2.5 pt-0">
-        {/* [&_input]:h-7 réduit la hauteur des Input dans les rows (compact) */}
-        <div className="space-y-0.5 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2">
+        {/* Compactage uniforme : Input + Select à h-7 / text-xs / px-2 */}
+        <div className="space-y-0.5 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0">
           {/* === En-tête de colonnes === */}
           <div className="flex items-center gap-1.5 text-[9px] font-medium text-muted-foreground/70 uppercase tracking-wide px-1 pb-0.5">
             <div className="flex-1 grid grid-cols-12 gap-1.5">
