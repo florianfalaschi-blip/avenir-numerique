@@ -20,6 +20,11 @@ import {
   STATUT_LABELS,
   STATUT_COLORS,
   effectivePrixHt,
+  getDevisLignes,
+  updateLigneInDevis,
+  removeLigneFromDevis,
+  type Devis,
+  type DevisLigne,
   type DevisStatut,
 } from '@/lib/devis';
 import {
@@ -215,26 +220,41 @@ export default function DevisDetailPage({
             </CardContent>
           </Card>
 
-          {/* Snapshot du calcul */}
-          <Card>
-            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
-              <CardTitle className="text-sm">
-                Calculateur {CALC_LABELS[devis.calculateur]} · quantité {devis.quantite}
-              </CardTitle>
-              <CardDescription className="text-[11px]">
-                Snapshot du calcul figé au moment de l&apos;enregistrement.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="px-3 pb-2.5 pt-0">
-              {devis.recap ? (
-                <pre className="text-xs whitespace-pre-wrap bg-secondary/30 p-2 rounded font-mono">
-                  {devis.recap}
-                </pre>
-              ) : (
-                <p className="text-xs text-muted-foreground">Pas de récapitulatif.</p>
-              )}
-            </CardContent>
-          </Card>
+          {/* Lignes du devis */}
+          <LignesCard
+            devis={devis}
+            onUpdateLigne={(ligneId, changes) => {
+              const updated = updateLigneInDevis(devis, ligneId, changes);
+              updateDevis(devis.id, {
+                lignes: updated.lignes,
+                prix_ht: updated.prix_ht,
+                prix_ttc: updated.prix_ttc,
+                quantite: updated.quantite,
+                calculateur: updated.calculateur,
+              });
+            }}
+            onDeleteLigne={(ligneId) => {
+              try {
+                const updated = removeLigneFromDevis(devis, ligneId);
+                updateDevis(devis.id, {
+                  lignes: updated.lignes,
+                  prix_ht: updated.prix_ht,
+                  prix_ttc: updated.prix_ttc,
+                  quantite: updated.quantite,
+                  calculateur: updated.calculateur,
+                });
+              } catch (e) {
+                alert(e instanceof Error ? e.message : String(e));
+              }
+            }}
+            onAddLigne={() => {
+              // Lance le calculateur principal en mode "ajouter au devis"
+              router.push(
+                `/calculateurs/${devis.calculateur}?devis_pour=${devis.client_id}&add_to_devis=${devis.id}`
+              );
+            }}
+          />
+
 
           {/* Personnalisations prix */}
           <Card>
@@ -396,5 +416,183 @@ export default function DevisDetailPage({
         </aside>
       </div>
     </div>
+  );
+}
+
+/**
+ * Affiche les lignes du devis avec édition inline (désignation, quantité,
+ * prix override) et possibilité de supprimer / ajouter une ligne.
+ *
+ * Gère aussi les devis legacy 1-ligne via getDevisLignes() — la 1re modif
+ * "matérialise" la ligne implicite en ligne explicite.
+ */
+function LignesCard({
+  devis,
+  onUpdateLigne,
+  onDeleteLigne,
+  onAddLigne,
+}: {
+  devis: Devis;
+  onUpdateLigne: (ligneId: string, changes: Partial<DevisLigne>) => void;
+  onDeleteLigne: (ligneId: string) => void;
+  onAddLigne: () => void;
+}) {
+  const lignes = getDevisLignes(devis);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  return (
+    <Card>
+      <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div>
+            <CardTitle className="text-sm">
+              Produits commandés ({lignes.length})
+            </CardTitle>
+            <CardDescription className="text-[11px]">
+              {lignes.length === 1
+                ? '1 produit. Ajoute une autre ligne pour grouper plusieurs produits.'
+                : `${lignes.length} produits sur ce devis. Total HT recalculé automatiquement.`}
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-6 px-2 text-[11px]"
+            onClick={onAddLigne}
+          >
+            + Ajouter une ligne
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="px-3 pb-2.5 pt-0">
+        <ul className="space-y-1.5">
+          {lignes.map((ligne, idx) => {
+            const isExpanded = expandedId === ligne.id;
+            const prixEff = ligne.prix_ht_override ?? ligne.prix_ht;
+            return (
+              <li
+                key={ligne.id}
+                className="rounded-md border bg-secondary/20 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2"
+              >
+                {/* Row principale */}
+                <div className="grid grid-cols-12 gap-1.5 items-center p-2">
+                  <span className="col-span-1 text-[10px] text-muted-foreground/80 font-mono">
+                    #{idx + 1}
+                  </span>
+                  <Input
+                    className="col-span-5"
+                    value={ligne.designation}
+                    placeholder="Désignation"
+                    onChange={(e) =>
+                      onUpdateLigne(ligne.id, { designation: e.target.value })
+                    }
+                  />
+                  <div className="col-span-2 flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={ligne.quantite}
+                      onChange={(e) =>
+                        onUpdateLigne(ligne.id, {
+                          quantite: Math.max(1, Number(e.target.value) || 1),
+                        })
+                      }
+                    />
+                    <span className="text-[10px] text-muted-foreground">u</span>
+                  </div>
+                  <div className="col-span-3 text-right">
+                    <div className="text-sm font-semibold tabular">
+                      {fmtEur(prixEff)}
+                    </div>
+                    {ligne.prix_ht_override !== undefined && (
+                      <div className="text-[9px] text-accent">
+                        modifié (orig. {fmtEur(ligne.prix_ht)})
+                      </div>
+                    )}
+                  </div>
+                  <div className="col-span-1 flex justify-end gap-0.5">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-muted-foreground"
+                      title={isExpanded ? 'Replier' : 'Voir le détail'}
+                      onClick={() => setExpandedId(isExpanded ? null : ligne.id)}
+                    >
+                      {isExpanded ? '−' : '+'}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                      onClick={() => onDeleteLigne(ligne.id)}
+                      disabled={lignes.length === 1}
+                      title={
+                        lignes.length === 1
+                          ? 'Un devis doit avoir au moins une ligne'
+                          : 'Supprimer cette ligne'
+                      }
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Détail expandable */}
+                {isExpanded && (
+                  <div className="border-t px-2 pt-2 pb-2 space-y-2 bg-background/50">
+                    <div className="grid grid-cols-2 gap-1.5 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
+                      <Field label="Calculateur">
+                        <Input value={CALC_LABELS[ligne.calculateur]} readOnly />
+                      </Field>
+                      <Field
+                        label="Prix HT override (€)"
+                        hint="Vide = utiliser le prix calculé"
+                      >
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={ligne.prix_ht_override ?? ''}
+                          placeholder={ligne.prix_ht.toFixed(2)}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            onUpdateLigne(ligne.id, {
+                              prix_ht_override:
+                                v === '' ? undefined : Number(v) || 0,
+                            });
+                          }}
+                        />
+                      </Field>
+                    </div>
+                    <Field label="Notes ligne">
+                      <Input
+                        value={ligne.notes ?? ''}
+                        placeholder="Précisions, options, etc."
+                        onChange={(e) =>
+                          onUpdateLigne(ligne.id, {
+                            notes: e.target.value || undefined,
+                          })
+                        }
+                      />
+                    </Field>
+                    {ligne.recap && (
+                      <details className="text-xs">
+                        <summary className="cursor-pointer text-[11px] text-muted-foreground/80 font-medium uppercase tracking-wide">
+                          Snapshot calcul
+                        </summary>
+                        <pre className="mt-1 text-[11px] whitespace-pre-wrap bg-secondary/30 p-2 rounded font-mono">
+                          {ligne.recap}
+                        </pre>
+                      </details>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
