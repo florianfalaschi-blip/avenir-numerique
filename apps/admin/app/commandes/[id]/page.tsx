@@ -234,20 +234,20 @@ export default function CommandeDetailPage({
         {/* Colonne gauche : workflow */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
               <div className="flex items-baseline justify-between gap-2 flex-wrap">
                 <div>
-                  <CardTitle className="text-xl">
+                  <CardTitle className="text-sm">
                     Workflow de production — {CALC_LABELS[commande.calculateur]}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-[11px]">
                     {progress.done} / {progress.total} étapes terminées ({progress.pct} %).
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <ol className="space-y-2">
+            <CardContent className="px-3 pb-2.5 pt-0">
+              <ol className="space-y-1.5">
                 {commande.etapes.map((etape, i) => (
                   <EtapeRow
                     key={etape.id}
@@ -263,12 +263,12 @@ export default function CommandeDetailPage({
 
           {/* Notes production */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Notes de production</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Notes de production</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0">
               <textarea
-                className="flex w-full min-h-24 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex w-full min-h-16 rounded-md border border-input bg-background px-2 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={notes}
                 placeholder="Spécificités production, contraintes, points d'attention…"
                 onChange={(e) => setNotes(e.target.value)}
@@ -280,13 +280,13 @@ export default function CommandeDetailPage({
           {/* Snapshot */}
           {commande.snapshot_recap && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
+              <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+                <CardTitle className="text-sm">
                   Détail commande (snapshot du devis)
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <pre className="text-xs whitespace-pre-wrap bg-secondary/30 p-3 rounded font-mono">
+              <CardContent className="px-3 pb-2.5 pt-0">
+                <pre className="text-xs whitespace-pre-wrap bg-secondary/30 p-2 rounded font-mono">
                   {commande.snapshot_recap}
                 </pre>
               </CardContent>
@@ -298,10 +298,10 @@ export default function CommandeDetailPage({
         <aside className="space-y-6 lg:sticky lg:top-6 lg:self-start">
           {/* Client */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Client</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Client</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0">
               {client ? (
                 <Link
                   href={`/clients/${client.id}`}
@@ -329,10 +329,10 @@ export default function CommandeDetailPage({
 
           {/* Statut commande */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Statut commande</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Statut commande</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0 [&_select]:h-7 [&_select]:text-xs [&_select]:px-2 [&_select]:py-0">
               <Select
                 value={commande.statut}
                 onChange={(e) =>
@@ -350,10 +350,10 @@ export default function CommandeDetailPage({
 
           {/* Livraison */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Livraison</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Livraison</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="px-3 pb-2.5 pt-0 space-y-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
               <Field label="Date prévue">
                 <Input
                   type="date"
@@ -383,10 +383,10 @@ export default function CommandeDetailPage({
 
           {/* Montant */}
           <Card className="border-accent/30">
-            <CardHeader>
-              <CardTitle className="text-base">Montant</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm">Montant</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="px-3 pb-2.5 pt-0 space-y-2">
               <div className="flex justify-between items-baseline gap-3">
                 <span className="text-sm text-muted-foreground">HT</span>
                 <span className="text-lg font-bold">
@@ -402,15 +402,15 @@ export default function CommandeDetailPage({
 
           {/* Danger zone */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base text-destructive">Supprimer</CardTitle>
+            <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+              <CardTitle className="text-sm text-destructive">Supprimer</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 pb-2.5 pt-0">
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={handleDelete}
-                className="w-full"
+                className="w-full h-7 text-xs"
               >
                 Supprimer cette commande
               </Button>
@@ -497,7 +497,7 @@ function EtapeRow({
         </button>
       </div>
       {expanded && (
-        <div className="mt-2 pl-9 grid gap-2 md:grid-cols-2">
+        <div className="mt-2 pl-9 grid gap-2 md:grid-cols-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
           <Field label="Opérateur">
             <Input
               value={etape.operateur ?? ''}

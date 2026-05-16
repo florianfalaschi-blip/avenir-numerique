@@ -1,8 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
+import type { Database } from '@avenir/db';
+import { useAuth } from './auth';
 import type { CalcSlug } from './default-params';
 import type { DelaiPaiement, ModePaiement } from './clients';
-import { useSettings } from './settings';
+import { createTableStore } from './table-store';
 
 // ============================================================
 // TYPES
@@ -62,6 +65,8 @@ export interface Facture {
   /** Récap du devis (snapshot, pour le PDF facture). */
   snapshot_recap?: string;
 }
+
+type FactureRow = Database['public']['Tables']['factures']['Row'];
 
 // ============================================================
 // HELPERS
@@ -177,36 +182,182 @@ export function statutAuto(f: Facture): FactureStatut {
 }
 
 // ============================================================
+// MAPPERS Row ↔ Facture
+// ============================================================
+
+/** Convertit un timestamp ms vers une string ISO (ou null si undefined). */
+function dateToIso(n: number | undefined): string | null {
+  return n === undefined ? null : new Date(n).toISOString();
+}
+
+/** Convertit une string ISO vers un timestamp ms (ou undefined si null). */
+function isoToDate(s: string | null): number | undefined {
+  return s === null ? undefined : new Date(s).getTime();
+}
+
+/** Champs « plats » de la facture qui sont stockés en colonnes dédiées dans la table. */
+const FLAT_FIELDS = [
+  'id',
+  'numero',
+  'commande_id',
+  'client_id',
+  'montant_ht',
+  'montant_ttc',
+  'statut',
+  'date_creation',
+  'date_emission',
+  'date_echeance',
+] as const;
+
+function rowToFacture(row: FactureRow): Facture {
+  const data = (row.data as Record<string, unknown>) ?? {};
+  return {
+    id: row.id,
+    numero: row.numero,
+    commande_id: row.commande_id ?? '',
+    client_id: row.client_id ?? '',
+    montant_ht: row.montant_ht,
+    montant_ttc: row.montant_ttc,
+    statut: row.statut as FactureStatut,
+    date_creation: new Date(row.date_creation).getTime(),
+    date_emission: isoToDate(row.date_emission),
+    date_echeance: isoToDate(row.date_echeance),
+    // Le reste est dans data jsonb
+    commande_numero: (data.commande_numero as string) ?? '',
+    devis_numero: data.devis_numero as string | undefined,
+    calculateur: data.calculateur as CalcSlug,
+    tva_pct: (data.tva_pct as number) ?? 0,
+    quantite: (data.quantite as number) ?? 1,
+    paiements: (data.paiements as Paiement[]) ?? [],
+    notes: data.notes as string | undefined,
+    snapshot_recap: data.snapshot_recap as string | undefined,
+  };
+}
+
+function factureToInsertRow(f: Facture): Record<string, unknown> {
+  const {
+    id,
+    numero,
+    commande_id,
+    client_id,
+    montant_ht,
+    montant_ttc,
+    statut,
+    date_creation,
+    date_emission,
+    date_echeance,
+    ...rest
+  } = f;
+  return {
+    id,
+    numero,
+    commande_id: commande_id || null,
+    client_id: client_id || null,
+    montant_ht,
+    montant_ttc,
+    statut,
+    date_creation: new Date(date_creation).toISOString(),
+    date_emission: dateToIso(date_emission),
+    date_echeance: dateToIso(date_echeance),
+    data: rest as unknown,
+  };
+}
+
+function factureChangesToUpdateRow(
+  changes: Partial<Facture>,
+  current: Facture
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  if (changes.numero !== undefined) out.numero = changes.numero;
+  if (changes.commande_id !== undefined) out.commande_id = changes.commande_id || null;
+  if (changes.client_id !== undefined) out.client_id = changes.client_id || null;
+  if (changes.montant_ht !== undefined) out.montant_ht = changes.montant_ht;
+  if (changes.montant_ttc !== undefined) out.montant_ttc = changes.montant_ttc;
+  if (changes.statut !== undefined) out.statut = changes.statut;
+  if (changes.date_creation !== undefined) {
+    out.date_creation = new Date(changes.date_creation).toISOString();
+  }
+  if (changes.date_emission !== undefined) {
+    out.date_emission = dateToIso(changes.date_emission);
+  }
+  if (changes.date_echeance !== undefined) {
+    out.date_echeance = dateToIso(changes.date_echeance);
+  }
+  // Recompose data jsonb si un champ non-plat change
+  const flatKeys = new Set<string>(FLAT_FIELDS);
+  const dataChanges: Record<string, unknown> = {};
+  let hasDataChange = false;
+  for (const [k, v] of Object.entries(changes)) {
+    if (!flatKeys.has(k)) {
+      dataChanges[k] = v;
+      hasDataChange = true;
+    }
+  }
+  if (hasDataChange) {
+    const {
+      id: _id,
+      numero: _n,
+      commande_id: _coi,
+      client_id: _ci,
+      montant_ht: _mh,
+      montant_ttc: _mt,
+      statut: _s,
+      date_creation: _dc,
+      date_emission: _de,
+      date_echeance: _dech,
+      ...currentData
+    } = current;
+    out.data = { ...currentData, ...dataChanges };
+  }
+  return out;
+}
+
+// ============================================================
+// STORE
+// ============================================================
+
+const facturesStore = createTableStore<Facture, FactureRow>({
+  table: 'factures',
+  rowToEntity: rowToFacture,
+  entityToInsertRow: factureToInsertRow,
+  changesToUpdateRow: factureChangesToUpdateRow,
+});
+
+/** Permet à `migration.ts` (ou autre) de déclencher un re-fetch. */
+export const facturesStoreRefresh = facturesStore.refresh;
+
+// ============================================================
 // HOOK
 // ============================================================
 
 export function useFactures() {
-  const { value, update, reset, hydrated } = useSettings<Facture[]>('data.factures', []);
+  const { user } = useAuth();
+  const state = facturesStore.useStore();
 
-  const addFacture = (facture: Facture) => {
-    update([facture, ...value]);
-  };
+  useEffect(() => {
+    facturesStore.ensureLoadedFor(user);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const updateFacture = (id: string, changes: Partial<Facture>) => {
-    update(value.map((f) => (f.id === id ? { ...f, ...changes } : f)));
-  };
+  const addFacture = (facture: Facture) => facturesStore.addItem(facture);
 
-  const deleteFacture = (id: string) => {
-    update(value.filter((f) => f.id !== id));
-  };
+  const updateFacture = (id: string, changes: Partial<Facture>) =>
+    facturesStore.updateItem(id, changes);
 
-  const getFacture = (id: string): Facture | undefined => value.find((f) => f.id === id);
+  const deleteFacture = (id: string) => facturesStore.deleteItem(id);
+
+  const getFacture = (id: string): Facture | undefined =>
+    state.items.find((f) => f.id === id);
 
   const factureForCommande = (commandeId: string): Facture | undefined =>
-    value.find((f) => f.commande_id === commandeId);
+    state.items.find((f) => f.commande_id === commandeId);
 
   const facturesForClient = (clientId: string): Facture[] =>
-    value.filter((f) => f.client_id === clientId);
+    state.items.filter((f) => f.client_id === clientId);
 
-  const nextNumero = () => generateFactureNumero(value);
+  const nextNumero = () => generateFactureNumero(state.items);
 
   return {
-    factures: value,
+    factures: state.items,
     addFacture,
     updateFacture,
     deleteFacture,
@@ -214,7 +365,10 @@ export function useFactures() {
     factureForCommande,
     facturesForClient,
     nextNumero,
-    resetAll: reset,
-    hydrated,
+    /** @deprecated — purge locale uniquement, ne supprime pas dans Supabase. */
+    resetAll: facturesStore.reset,
+    hydrated: state.hydrated,
+    /** Force un re-fetch depuis Supabase. */
+    refresh: () => facturesStore.refresh(user),
   };
 }

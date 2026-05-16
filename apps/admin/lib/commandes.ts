@@ -1,7 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
+import type { Database } from '@avenir/db';
+import { useAuth } from './auth';
 import type { CalcSlug } from './default-params';
-import { useSettings } from './settings';
+import { createTableStore } from './table-store';
 
 // ============================================================
 // TYPES
@@ -58,6 +61,8 @@ export interface Commande {
   snapshot_quantite: number;
   snapshot_recap?: string;
 }
+
+type CommandeRow = Database['public']['Tables']['commandes']['Row'];
 
 // ============================================================
 // HELPERS
@@ -191,36 +196,171 @@ export function etapesProgress(c: Commande): { done: number; total: number; pct:
 }
 
 // ============================================================
+// MAPPERS Row ↔ Commande
+// ============================================================
+
+/** Convertit un timestamp ms vers une string ISO (ou null si undefined). */
+function dateToIso(n: number | undefined): string | null {
+  return n === undefined ? null : new Date(n).toISOString();
+}
+
+/** Convertit une string ISO vers un timestamp ms (ou undefined si null). */
+function isoToDate(s: string | null): number | undefined {
+  return s === null ? undefined : new Date(s).getTime();
+}
+
+/** Champs « plats » de la commande qui sont stockés en colonnes dédiées dans la table. */
+const FLAT_FIELDS = [
+  'id',
+  'numero',
+  'devis_id',
+  'client_id',
+  'snapshot_prix_ht',
+  'statut',
+  'date_creation',
+  'date_livraison_prevue',
+] as const;
+
+function rowToCommande(row: CommandeRow): Commande {
+  const data = (row.data as Record<string, unknown>) ?? {};
+  return {
+    id: row.id,
+    numero: row.numero,
+    devis_id: row.devis_id ?? '',
+    client_id: row.client_id ?? '',
+    snapshot_prix_ht: row.prix_ht,
+    statut: row.statut as CommandeStatut,
+    date_creation: new Date(row.date_creation).getTime(),
+    date_livraison_prevue: isoToDate(row.date_livraison_prevue),
+    // Le reste est dans data jsonb
+    devis_numero: (data.devis_numero as string) ?? '',
+    calculateur: data.calculateur as CalcSlug,
+    date_livraison_reelle: data.date_livraison_reelle as number | undefined,
+    etapes: (data.etapes as EtapeProduction[]) ?? [],
+    notes_production: data.notes_production as string | undefined,
+    numero_suivi: data.numero_suivi as string | undefined,
+    transporteur: data.transporteur as string | undefined,
+    snapshot_prix_ttc: (data.snapshot_prix_ttc as number) ?? 0,
+    snapshot_quantite: (data.snapshot_quantite as number) ?? 1,
+    snapshot_recap: data.snapshot_recap as string | undefined,
+  };
+}
+
+function commandeToInsertRow(c: Commande): Record<string, unknown> {
+  const {
+    id,
+    numero,
+    devis_id,
+    client_id,
+    snapshot_prix_ht,
+    statut,
+    date_creation,
+    date_livraison_prevue,
+    ...rest
+  } = c;
+  return {
+    id,
+    numero,
+    devis_id: devis_id || null,
+    client_id: client_id || null,
+    prix_ht: snapshot_prix_ht,
+    statut,
+    date_creation: new Date(date_creation).toISOString(),
+    date_livraison_prevue: dateToIso(date_livraison_prevue),
+    data: rest as unknown,
+  };
+}
+
+function commandeChangesToUpdateRow(
+  changes: Partial<Commande>,
+  current: Commande
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  // Champs plats : copie directe avec conversion si besoin
+  if (changes.numero !== undefined) out.numero = changes.numero;
+  if (changes.devis_id !== undefined) out.devis_id = changes.devis_id || null;
+  if (changes.client_id !== undefined) out.client_id = changes.client_id || null;
+  if (changes.snapshot_prix_ht !== undefined) out.prix_ht = changes.snapshot_prix_ht;
+  if (changes.statut !== undefined) out.statut = changes.statut;
+  if (changes.date_creation !== undefined) {
+    out.date_creation = new Date(changes.date_creation).toISOString();
+  }
+  if (changes.date_livraison_prevue !== undefined) {
+    out.date_livraison_prevue = dateToIso(changes.date_livraison_prevue);
+  }
+  // Recompose data jsonb si un champ non-plat change
+  const flatKeys = new Set<string>(FLAT_FIELDS);
+  const dataChanges: Record<string, unknown> = {};
+  let hasDataChange = false;
+  for (const [k, v] of Object.entries(changes)) {
+    if (!flatKeys.has(k)) {
+      dataChanges[k] = v;
+      hasDataChange = true;
+    }
+  }
+  if (hasDataChange) {
+    const {
+      id: _id,
+      numero: _n,
+      devis_id: _di,
+      client_id: _ci,
+      snapshot_prix_ht: _sp,
+      statut: _s,
+      date_creation: _dc,
+      date_livraison_prevue: _dlp,
+      ...currentData
+    } = current;
+    out.data = { ...currentData, ...dataChanges };
+  }
+  return out;
+}
+
+// ============================================================
+// STORE
+// ============================================================
+
+const commandesStore = createTableStore<Commande, CommandeRow>({
+  table: 'commandes',
+  rowToEntity: rowToCommande,
+  entityToInsertRow: commandeToInsertRow,
+  changesToUpdateRow: commandeChangesToUpdateRow,
+});
+
+/** Permet à `migration.ts` (ou autre) de déclencher un re-fetch. */
+export const commandesStoreRefresh = commandesStore.refresh;
+
+// ============================================================
 // HOOK
 // ============================================================
 
 export function useCommandes() {
-  const { value, update, reset, hydrated } = useSettings<Commande[]>('data.commandes', []);
+  const { user } = useAuth();
+  const state = commandesStore.useStore();
 
-  const addCommande = (commande: Commande) => {
-    update([commande, ...value]);
-  };
+  useEffect(() => {
+    commandesStore.ensureLoadedFor(user);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const updateCommande = (id: string, changes: Partial<Commande>) => {
-    update(value.map((c) => (c.id === id ? { ...c, ...changes } : c)));
-  };
+  const addCommande = (commande: Commande) => commandesStore.addItem(commande);
 
-  const deleteCommande = (id: string) => {
-    update(value.filter((c) => c.id !== id));
-  };
+  const updateCommande = (id: string, changes: Partial<Commande>) =>
+    commandesStore.updateItem(id, changes);
 
-  const getCommande = (id: string): Commande | undefined => value.find((c) => c.id === id);
+  const deleteCommande = (id: string) => commandesStore.deleteItem(id);
+
+  const getCommande = (id: string): Commande | undefined =>
+    state.items.find((c) => c.id === id);
 
   const commandesForClient = (clientId: string): Commande[] =>
-    value.filter((c) => c.client_id === clientId);
+    state.items.filter((c) => c.client_id === clientId);
 
   const commandeForDevis = (devisId: string): Commande | undefined =>
-    value.find((c) => c.devis_id === devisId);
+    state.items.find((c) => c.devis_id === devisId);
 
-  const nextNumero = () => generateCommandeNumero(value);
+  const nextNumero = () => generateCommandeNumero(state.items);
 
   return {
-    commandes: value,
+    commandes: state.items,
     addCommande,
     updateCommande,
     deleteCommande,
@@ -228,7 +368,10 @@ export function useCommandes() {
     commandesForClient,
     commandeForDevis,
     nextNumero,
-    resetAll: reset,
-    hydrated,
+    /** @deprecated — purge locale uniquement, ne supprime pas dans Supabase. */
+    resetAll: commandesStore.reset,
+    hydrated: state.hydrated,
+    /** Force un re-fetch depuis Supabase. */
+    refresh: () => commandesStore.refresh(user),
   };
 }

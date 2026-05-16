@@ -159,7 +159,11 @@ export function Checkbox({
   );
 }
 
-/** Wrapper layout 2 colonnes pour formulaire/résultat. */
+/**
+ * Wrapper layout 2 colonnes pour formulaire/résultat.
+ * Form prend l'espace flex, résultat = sidebar fixée à 360px (plus compact
+ * qu'un 50/50 — laisse plus de place à la saisie).
+ */
 export function TwoColumns({
   form,
   result,
@@ -168,8 +172,8 @@ export function TwoColumns({
   result: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <div>{form}</div>
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="min-w-0">{form}</div>
       <div className="lg:sticky lg:top-6 lg:self-start">{result}</div>
     </div>
   );
