@@ -36,7 +36,11 @@ import {
   totalImpaye,
   commandesEnProduction,
   topClients,
+  caSur12Mois,
+  breakdownParCalculateur,
 } from '@/lib/dashboard';
+import { BarChart } from './_components/charts/bar-chart';
+import { DonutChart } from './_components/charts/donut-chart';
 
 const calculateurs = [
   { slug: 'rollup', nom: 'Roll-up', icon: '🎯' },
@@ -99,7 +103,10 @@ export default function HomePage() {
       factsRetard: facturesEnRetard(factures),
       derniersDevis: devisRecents(devis, 5),
       top: topClients(factures, devis, 5),
+      ca12mois: caSur12Mois(factures, now),
+      breakdown: breakdownParCalculateur(factures, devis),
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [factures, devis, commandes, year, month, prev.year, prev.month]);
 
   const hasData =
@@ -339,6 +346,56 @@ export default function HomePage() {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* === Graphes === */}
+      {hasData && (
+        <section className="space-y-3">
+          <p className="label-section">Statistiques</p>
+          <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+            {/* CA mensuel 12 mois */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">CA mensuel — 12 derniers mois</CardTitle>
+                <CardDescription className="text-xs">
+                  HT, basé sur les factures émises.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <BarChart
+                  data={stats.ca12mois.map((m) => ({
+                    label: m.label,
+                    value: m.value,
+                  }))}
+                  ariaLabel="CA mensuel des 12 derniers mois"
+                />
+              </CardContent>
+            </Card>
+
+            {/* Répartition par calculateur */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Répartition par produit</CardTitle>
+                <CardDescription className="text-xs">
+                  Factures + devis acceptés.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <DonutChart
+                  data={stats.breakdown.map((b) => ({
+                    label: CALC_LABELS[b.calculateur as keyof typeof CALC_LABELS] ?? b.calculateur,
+                    value: b.value,
+                  }))}
+                  centerLabel="Total"
+                  centerValue={fmtEur(
+                    stats.breakdown.reduce((acc, b) => acc + b.value, 0)
+                  )}
+                  ariaLabel="Répartition par calculateur"
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </section>
       )}
 
       {/* === Top clients === */}

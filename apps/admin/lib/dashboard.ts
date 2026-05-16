@@ -135,3 +135,78 @@ export function pipelineDevis(devis: Devis[]): number {
     .filter((d) => d.statut === 'envoye')
     .reduce((acc, d) => acc + effectivePrixHt(d), 0);
 }
+
+// ============================================================
+// Séries pour graphes
+// ============================================================
+
+export interface MonthlySerie {
+  year: number;
+  month: number;
+  /** Label court FR : "jan", "fév", … */
+  label: string;
+  /** Valeur HT du mois. */
+  value: number;
+}
+
+const SHORT_MONTHS_FR = [
+  'jan',
+  'fév',
+  'mar',
+  'avr',
+  'mai',
+  'juin',
+  'juil',
+  'aoû',
+  'sep',
+  'oct',
+  'nov',
+  'déc',
+];
+
+/**
+ * Renvoie une série de 12 mois glissants se terminant au mois courant.
+ * Idéal pour un bar chart "CA des 12 derniers mois".
+ */
+export function caSur12Mois(factures: Facture[], refDate: Date = new Date()): MonthlySerie[] {
+  const series: MonthlySerie[] = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(refDate.getFullYear(), refDate.getMonth() - i, 1);
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    series.push({
+      year,
+      month,
+      label: `${SHORT_MONTHS_FR[month]}${month === 0 ? ` ${year - 2000}` : ''}`,
+      value: caMois(factures, year, month),
+    });
+  }
+  return series;
+}
+
+/**
+ * Répartition par calculateur (5 catégories) — basée sur les factures
+ * + devis acceptés (pipeline complet).
+ */
+export function breakdownParCalculateur(
+  factures: Facture[],
+  devis: Devis[]
+): Array<{ calculateur: string; value: number; count: number }> {
+  const map = new Map<string, { value: number; count: number }>();
+  for (const f of factures) {
+    const cur = map.get(f.calculateur) ?? { value: 0, count: 0 };
+    cur.value += f.montant_ht;
+    cur.count += 1;
+    map.set(f.calculateur, cur);
+  }
+  for (const d of devis) {
+    if (d.statut !== 'accepte') continue;
+    const cur = map.get(d.calculateur) ?? { value: 0, count: 0 };
+    cur.value += effectivePrixHt(d);
+    cur.count += 1;
+    map.set(d.calculateur, cur);
+  }
+  return [...map.entries()]
+    .map(([calculateur, { value, count }]) => ({ calculateur, value, count }))
+    .sort((a, b) => b.value - a.value);
+}
