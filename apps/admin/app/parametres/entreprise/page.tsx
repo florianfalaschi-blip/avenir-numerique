@@ -1,7 +1,9 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@avenir/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@avenir/ui';
 import { defaultEntreprise, type EntrepriseConfig } from '@/lib/entreprise';
+import { deleteFile } from '@/lib/storage';
+import { FileUploadButton } from '@/app/_components/file-upload-button';
 import {
   ActionBar,
   ScalarsEditor,
@@ -115,10 +117,124 @@ export default function ParametresEntreprisePage() {
       />
 
       {/* === LOGO === */}
-      <ScalarsEditor
-        title="Logo"
-        rows={[textRow(draft, patch, 'logo_url', 'URL du logo', { placeholder: 'https://...' })]}
-      />
+      <Card>
+        <CardHeader className="px-3 pt-2.5 pb-1.5 space-y-0">
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-sm">Logo</CardTitle>
+            <span
+              className="text-[10px] text-muted-foreground/70 tabular-nums"
+              title={
+                draft.meta?.logo_url
+                  ? new Date(draft.meta.logo_url).toLocaleString('fr-FR')
+                  : 'Jamais modifié'
+              }
+            >
+              {fmtModifiedShort(draft.meta?.logo_url)}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="px-3 pt-0 pb-2.5 space-y-2.5">
+          {draft.logo_url ? (
+            <div className="flex items-start gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={draft.logo_url}
+                alt="Logo entreprise"
+                className="h-20 w-auto max-w-48 border rounded bg-secondary/30 p-2 object-contain"
+              />
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <p className="text-[11px] text-muted-foreground break-all">
+                  {draft.logo_url}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  <FileUploadButton
+                    bucket="entreprise-logos"
+                    accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                    prefix="logo"
+                    upsert
+                    label="Remplacer"
+                    onUploaded={(r) => {
+                      patch((d) =>
+                        stampScalar(d, 'logo_url', {
+                          logo_url: r.url,
+                          logo_path: r.path,
+                        })
+                      );
+                    }}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive"
+                    onClick={async () => {
+                      if (!confirm('Supprimer le logo ?')) return;
+                      if (draft.logo_path) {
+                        try {
+                          await deleteFile('entreprise-logos', draft.logo_path);
+                        } catch (e) {
+                          console.warn('[logo] delete file failed (might already be gone):', e);
+                        }
+                      }
+                      patch((d) =>
+                        stampScalar(d, 'logo_url', {
+                          logo_url: undefined,
+                          logo_path: undefined,
+                        })
+                      );
+                    }}
+                  >
+                    Supprimer
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-[11px] text-muted-foreground">
+                Image PNG / JPG / SVG / WebP, max 5 MB. Affichée en en-tête des PDF.
+              </p>
+              <FileUploadButton
+                bucket="entreprise-logos"
+                accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                prefix="logo"
+                variant="accent"
+                label="📎 Uploader un logo"
+                onUploaded={(r) => {
+                  patch((d) =>
+                    stampScalar(d, 'logo_url', {
+                      logo_url: r.url,
+                      logo_path: r.path,
+                    })
+                  );
+                }}
+              />
+            </div>
+          )}
+          {/* Champ avancé : URL externe (Drive, hébergeur web…) */}
+          <details className="text-[11px] text-muted-foreground">
+            <summary className="cursor-pointer hover:text-foreground">
+              Utiliser une URL externe à la place
+            </summary>
+            <div className="mt-2 flex items-center gap-2">
+              <label className="shrink-0">URL :</label>
+              <Input
+                type="url"
+                className="h-7 text-xs px-2 flex-1"
+                value={draft.logo_url ?? ''}
+                placeholder="https://..."
+                onChange={(e) =>
+                  patch((d) =>
+                    stampScalar(d, 'logo_url', {
+                      logo_url: e.target.value || undefined,
+                      logo_path: undefined,
+                    })
+                  )
+                }
+              />
+            </div>
+          </details>
+        </CardContent>
+      </Card>
 
       {/* === MENTIONS LÉGALES — textarea (pas un scalaire simple) === */}
       <Card>

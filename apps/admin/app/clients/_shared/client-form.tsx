@@ -364,6 +364,7 @@ export function ClientForm({
 
       {/* === DOCUMENTS === */}
       <DocumentsEditor
+        clientId={c.id}
         value={c.documents}
         onChange={(documents) => onChange({ ...c, documents })}
       />

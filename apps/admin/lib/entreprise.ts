@@ -43,6 +43,8 @@ export interface EntrepriseConfig {
   mentions_devis?: string;
   /** URL du logo (image affichée en en-tête du PDF). */
   logo_url?: string;
+  /** Chemin du logo dans Supabase Storage (bucket entreprise-logos). Permet la suppression. */
+  logo_path?: string;
   /**
    * Timestamps Unix ms de dernière modif par champ.
    * Optionnel et rétro-compatible.

@@ -99,8 +99,19 @@ export interface ClientDocument {
   nom: string;
   /** Type libre (ex. 'RIB', 'KBIS', 'Attestation TVA'…). */
   type?: string;
-  /** URL externe vers le document (Drive/Dropbox/etc.). */
+  /** URL externe (Drive/Dropbox) OU URL signée Supabase Storage. */
   url?: string;
+  /**
+   * Chemin du fichier dans Supabase Storage (bucket client-documents).
+   * Si présent : fichier uploadé. Sinon : url externe ou pas d'URL du tout.
+   */
+  storage_path?: string;
+  /** Nom de fichier d'origine (utile pour download). */
+  filename?: string;
+  /** Taille en octets (info). */
+  size?: number;
+  /** MIME type (info). */
+  mime?: string;
   /** Si pas d'URL, juste une note (ex. "Reçu par mail le 15/05"). */
   notes?: string;
   ajoute_le: number;
