@@ -24,6 +24,8 @@ import { useDevis, STATUT_LABELS, STATUT_COLORS, effectivePrixHt } from '@/lib/d
 import { fmtEur, fmtModifiedAt } from '../../calculateurs/_shared/format';
 import { CALC_LABELS } from '@/lib/default-params';
 import { ClientForm } from '../_shared/client-form';
+import { getSignedUrl, formatFileSize } from '@/lib/storage';
+import type { ClientDocument } from '@/lib/clients';
 
 export default function ClientDetailPage({
   params,
@@ -380,38 +382,9 @@ export default function ClientDetailPage({
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-3 pb-2.5 pt-0">
-                <ul className="divide-y">
+                <ul className="space-y-1.5">
                   {client.documents.map((doc) => (
-                    <li key={doc.id} className="py-2">
-                      <div className="flex items-baseline justify-between gap-2 flex-wrap">
-                        <p className="font-medium text-sm">
-                          {doc.nom || <span className="text-muted-foreground">Sans nom</span>}
-                          {doc.type && (
-                            <span className="ml-2 text-xs text-muted-foreground">
-                              · {doc.type}
-                            </span>
-                          )}
-                        </p>
-                        <span className="text-xs text-muted-foreground">
-                          {fmtModifiedAt(doc.ajoute_le)}
-                        </span>
-                      </div>
-                      {doc.url && (
-                        <a
-                          href={doc.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline break-all"
-                        >
-                          {doc.url} ↗
-                        </a>
-                      )}
-                      {doc.notes && (
-                        <p className="text-xs text-muted-foreground italic">
-                          {doc.notes}
-                        </p>
-                      )}
-                    </li>
+                    <DocumentViewRow key={doc.id} doc={doc} />
                   ))}
                 </ul>
               </CardContent>
@@ -539,5 +512,74 @@ function Row({
       </span>
       <span className={`text-sm flex-1 ${mono ? 'font-mono' : ''}`}>{value}</span>
     </div>
+  );
+}
+
+/**
+ * Affichage d'un document client en mode lecture seule.
+ * Le bouton de téléchargement porte le NOM saisi par l'utilisateur
+ * (pas l'URL technique). Pour les fichiers Supabase Storage, génère
+ * une signed URL juste avant ouverture.
+ */
+function DocumentViewRow({ doc }: { doc: ClientDocument }) {
+  const [downloading, setDownloading] = useState(false);
+  const hasFile = !!doc.storage_path || !!doc.url;
+  const label =
+    doc.nom?.trim() ||
+    doc.filename?.replace(/\.[^/.]+$/, '') ||
+    'Document';
+
+  const handleClick = async () => {
+    if (doc.storage_path) {
+      setDownloading(true);
+      try {
+        const url = await getSignedUrl('client-documents', doc.storage_path, 600);
+        window.open(url, '_blank', 'noopener');
+      } catch (e) {
+        alert(e instanceof Error ? e.message : 'Erreur ouverture du fichier');
+      } finally {
+        setDownloading(false);
+      }
+    } else if (doc.url) {
+      window.open(doc.url, '_blank', 'noopener');
+    }
+  };
+
+  return (
+    <li className="flex items-center gap-2 py-1">
+      {hasFile ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 px-3 text-xs font-medium flex-1 min-w-0 justify-start max-w-md"
+          onClick={handleClick}
+          disabled={downloading}
+          title={`Ouvrir ${label}`}
+        >
+          <span aria-hidden className="mr-1.5">
+            {downloading ? '⏳' : doc.storage_path ? '📎' : '🔗'}
+          </span>
+          <span className="truncate">{label}</span>
+          <span aria-hidden className="ml-auto pl-2 text-muted-foreground">↓</span>
+        </Button>
+      ) : (
+        <span className="text-sm font-medium flex-1 truncate">{label}</span>
+      )}
+      <div className="flex items-center gap-1.5 shrink-0 text-[10px] text-muted-foreground">
+        {doc.type && <span className="font-medium">{doc.type}</span>}
+        {doc.size !== undefined && <span>{formatFileSize(doc.size)}</span>}
+        <span>·</span>
+        <span>{fmtModifiedAt(doc.ajoute_le)}</span>
+      </div>
+      {doc.notes && (
+        <p
+          className="text-[11px] text-muted-foreground italic truncate max-w-xs"
+          title={doc.notes}
+        >
+          {doc.notes}
+        </p>
+      )}
+    </li>
   );
 }
