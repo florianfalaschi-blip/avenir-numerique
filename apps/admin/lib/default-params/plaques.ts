@@ -3,46 +3,184 @@ import type { PlaquesParams } from '@avenir/core';
 export const defaultPlaquesParams: PlaquesParams = {
   materiaux: [
     {
-      id: 'pvc_3mm',
-      nom: 'PVC expansé 3mm',
-      fournisseur: '3A Composites',
+      id: 'carton_micro_cannelure_blanc_1mm',
+      nom: 'Carton Micro cannelure blanc 1mm',
+      fournisseur: 'Antalis',
       formats_achat: [
-        { largeur_cm: 244, hauteur_cm: 122, prix_unite_ht: 22 },
-        { largeur_cm: 305, hauteur_cm: 200, prix_unite_ht: 48 },
+        {
+          largeur_cm: 80,
+          hauteur_cm: 120,
+          prix_unite_ht: 2,
+        },
       ],
     },
     {
-      id: 'forex_5mm',
-      nom: 'Forex (PVC expansé) 5mm',
-      fournisseur: '3A Composites',
+      id: 'dibond_alu_3_3mm',
+      nom: 'Dibond Alu 3 3mm',
+      fournisseur: 'Thyssen Krupp',
       formats_achat: [
-        { largeur_cm: 244, hauteur_cm: 122, prix_unite_ht: 30 },
-        { largeur_cm: 305, hauteur_cm: 200, prix_unite_ht: 60 },
+        {
+          largeur_cm: 122,
+          hauteur_cm: 244,
+          prix_unite_ht: 60,
+        },
       ],
     },
     {
-      id: 'dibond_3mm',
-      nom: 'Dibond 3mm (alu composite)',
-      fournisseur: '3A Composites',
+      id: 'dibond_blanc_3_3mm',
+      nom: 'Dibond blanc 3 3mm',
+      fournisseur: 'Thyssen Krupp',
       formats_achat: [
-        { largeur_cm: 305, hauteur_cm: 150, prix_unite_ht: 180 },
-        { largeur_cm: 200, hauteur_cm: 100, prix_unite_ht: 90 },
+        {
+          largeur_cm: 125,
+          hauteur_cm: 255,
+          prix_unite_ht: 40,
+        },
       ],
     },
     {
-      id: 'plexi_5mm',
-      nom: 'Plexiglas 5mm transparent',
-      fournisseur: 'Evonik',
+      id: 'dispa_3_8mm',
+      nom: 'Dispa 3.8mm',
+      fournisseur: 'Thyssen Krupp',
       formats_achat: [
-        { largeur_cm: 200, hauteur_cm: 100, prix_unite_ht: 110 },
-        { largeur_cm: 305, hauteur_cm: 200, prix_unite_ht: 280 },
+        {
+          largeur_cm: 125,
+          hauteur_cm: 184,
+          prix_unite_ht: 12,
+        },
       ],
     },
     {
-      id: 'carton_plume_5mm',
-      nom: 'Carton plume 5mm',
-      fournisseur: 'Bachmann',
-      formats_achat: [{ largeur_cm: 100, hauteur_cm: 140, prix_unite_ht: 12 }],
+      id: 'kapaline_10_10mm',
+      nom: 'Kapaline 10 10mm',
+      fournisseur: 'Antalis',
+      formats_achat: [
+        {
+          largeur_cm: 140,
+          hauteur_cm: 300,
+          prix_unite_ht: 48,
+        },
+      ],
+    },
+    {
+      id: 'kapaline_5_5mm',
+      nom: 'Kapaline 5 5mm',
+      fournisseur: 'Antalis',
+      formats_achat: [
+        {
+          largeur_cm: 122,
+          hauteur_cm: 230,
+          prix_unite_ht: 27,
+        },
+      ],
+    },
+    {
+      id: 'plexi_10_10mm',
+      nom: 'Plexi 10 10mm',
+      fournisseur: 'Thyssen Krupp',
+      formats_achat: [
+        {
+          largeur_cm: 152,
+          hauteur_cm: 203,
+          prix_unite_ht: 175,
+        },
+      ],
+    },
+    {
+      id: 'plexi_2_2mm',
+      nom: 'Plexi 2 2mm',
+      fournisseur: 'Thyssen Krupp',
+      formats_achat: [
+        {
+          largeur_cm: 152,
+          hauteur_cm: 203,
+          prix_unite_ht: 36,
+        },
+      ],
+    },
+    {
+      id: 'plexi_3_3mm',
+      nom: 'Plexi 3 3mm',
+      fournisseur: 'Thyssen Krupp',
+      formats_achat: [
+        {
+          largeur_cm: 152,
+          hauteur_cm: 205,
+          prix_unite_ht: 65,
+        },
+      ],
+    },
+    {
+      id: 'plexi_5_5mm',
+      nom: 'Plexi 5 5mm',
+      fournisseur: 'Thyssen Krupp',
+      formats_achat: [
+        {
+          largeur_cm: 152,
+          hauteur_cm: 203,
+          prix_unite_ht: 79,
+        },
+      ],
+    },
+    {
+      id: 'pvc_blanc_10_10mm',
+      nom: 'PVC blanc 10 10mm',
+      fournisseur: 'Thyssen Krupp',
+      formats_achat: [
+        {
+          largeur_cm: 122,
+          hauteur_cm: 244,
+          prix_unite_ht: 61,
+        },
+      ],
+    },
+    {
+      id: 'pvc_blanc_3_3mm',
+      nom: 'PVC blanc 3 3mm',
+      fournisseur: 'Thyssen Krupp',
+      formats_achat: [
+        {
+          largeur_cm: 122,
+          hauteur_cm: 244,
+          prix_unite_ht: 16,
+        },
+      ],
+    },
+    {
+      id: 'pvc_blanc_5_5mm',
+      nom: 'PVC blanc 5 5mm',
+      fournisseur: 'Thyssen Krupp',
+      formats_achat: [
+        {
+          largeur_cm: 122,
+          hauteur_cm: 244,
+          prix_unite_ht: 30,
+        },
+      ],
+    },
+    {
+      id: 'pvc_noir_3_3mm',
+      nom: 'PVC noir 3 3mm',
+      fournisseur: 'Thyssen Krupp',
+      formats_achat: [
+        {
+          largeur_cm: 205,
+          hauteur_cm: 305,
+          prix_unite_ht: 56,
+        },
+      ],
+    },
+    {
+      id: 'silkboard_2_2mm',
+      nom: 'Silkboard 2 2mm',
+      fournisseur: 'Antalis',
+      formats_achat: [
+        {
+          largeur_cm: 82,
+          hauteur_cm: 122,
+          prix_unite_ht: 5,
+        },
+      ],
     },
   ],
   tailles_standards: [
