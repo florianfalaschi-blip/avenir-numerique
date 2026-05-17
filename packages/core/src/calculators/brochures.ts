@@ -265,7 +265,7 @@ export function calcBrochures(input: BrochuresInput, params: BrochuresParams): B
   const lignes = [
     `Brochure ${largeur_mm}×${hauteur_mm} mm — ${input.nb_pages} pages — ${reliure.nom}`,
     `Quantité : ${input.quantite}`,
-    `Épaisseur estimée : ${thickness.epaisseur_mm.toFixed(2)} mm (±10%)`,
+    `Épaisseur du dos : ${thickness.epaisseur_mm.toFixed(2)} mm (±10%)`,
   ];
   if (impression_interieur) {
     lignes.push(

@@ -407,7 +407,7 @@ function ResultBlock({ result }: { result: BrochuresResult }) {
           value={fmtInt(result.nb_feuilles_interieur_par_brochure)}
         />
         <Row
-          label="Épaisseur estimée"
+          label="Épaisseur du dos"
           value={`${result.epaisseur_mm.toFixed(2)} mm`}
           bold
         />
@@ -415,7 +415,7 @@ function ResultBlock({ result }: { result: BrochuresResult }) {
 
       <details className="text-xs text-muted-foreground -mt-2">
         <summary className="cursor-pointer hover:text-foreground">
-          Détail du calcul d&apos;épaisseur
+          Détail du calcul d&apos;épaisseur du dos
         </summary>
         <div className="mt-1.5 pl-3 space-y-0.5 border-l">
           <div>
