@@ -193,6 +193,9 @@ export default function DevisDetailPage({
           <Link href={`/devis/${devis.id}/imprimer`}>
             <Button variant="outline">🖨️ Imprimer / PDF</Button>
           </Link>
+          {devis.pdf_archive_path && (
+            <ArchivedPdfButton path={devis.pdf_archive_path} date={devis.pdf_archive_date} />
+          )}
           {client && (
             <Link href={`/calculateurs/${devis.calculateur}?devis_pour=${client.id}`}>
               <Button variant="outline">Re-calculer →</Button>
@@ -648,5 +651,42 @@ function LignesCard({
         </ul>
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * Bouton pour ouvrir un PDF archivé dans Supabase Storage.
+ * Régénère une signed URL (10 min) au clic pour éviter d'exposer une URL persistante.
+ */
+function ArchivedPdfButton({
+  path,
+  date,
+}: {
+  path: string;
+  date?: number;
+}) {
+  const [loading, setLoading] = useState(false);
+  const dateStr = date ? new Date(date).toLocaleDateString('fr-FR') : null;
+  return (
+    <Button
+      variant="outline"
+      onClick={async () => {
+        if (loading) return;
+        setLoading(true);
+        try {
+          const { getSignedUrl } = await import('@/lib/storage');
+          const url = await getSignedUrl('pdf-archives', path, 600);
+          window.open(url, '_blank', 'noopener');
+        } catch (e) {
+          alert(e instanceof Error ? e.message : 'Erreur ouverture archive');
+        } finally {
+          setLoading(false);
+        }
+      }}
+      disabled={loading}
+      title={dateStr ? `Snapshot archivé le ${dateStr}` : 'PDF archivé'}
+    >
+      {loading ? '⏳' : '📁'} PDF archivé{dateStr ? ` · ${dateStr}` : ''}
+    </Button>
   );
 }

@@ -1,8 +1,9 @@
 'use client';
 
-import { use } from 'react';
+import { use, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@avenir/ui';
+import { archivePdfFromElement } from '@/lib/pdf-archive';
 import {
   clientLabel,
   delaiPaiementLabel,
@@ -29,7 +30,10 @@ export default function FactureImprimerPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { getFacture, hydrated: facturesHydrated } = useFactures();
+  const { getFacture, updateFacture, hydrated: facturesHydrated } = useFactures();
+  const articleRef = useRef<HTMLElement | null>(null);
+  const [archiving, setArchiving] = useState(false);
+  const [justArchived, setJustArchived] = useState(false);
   const { getClient, hydrated: clientsHydrated } = useClients();
   const { value: entreprise, hydrated: entrepriseHydrated } = useEntreprise();
 
@@ -88,6 +92,39 @@ export default function FactureImprimerPage({
             </kbd>
           </span>
           <Button
+            variant="outline"
+            onClick={async () => {
+              if (!articleRef.current) return;
+              if (archiving) return;
+              setArchiving(true);
+              try {
+                const result = await archivePdfFromElement(
+                  articleRef.current,
+                  'facture',
+                  facture.id
+                );
+                updateFacture(facture.id, {
+                  pdf_archive_path: result.path,
+                  pdf_archive_date: Date.now(),
+                });
+                setJustArchived(true);
+                setTimeout(() => setJustArchived(false), 3500);
+              } catch (err) {
+                alert(err instanceof Error ? err.message : 'Erreur archivage PDF');
+              } finally {
+                setArchiving(false);
+              }
+            }}
+            disabled={archiving}
+            title="Capture la facture actuelle et l'archive dans Supabase Storage"
+          >
+            {archiving
+              ? '⏳ Archivage…'
+              : justArchived
+                ? '✓ Archivé'
+                : '📸 Archiver PDF'}
+          </Button>
+          <Button
             variant="accent"
             onClick={() => {
               if (typeof window !== 'undefined') window.print();
@@ -99,7 +136,7 @@ export default function FactureImprimerPage({
       </div>
 
       {/* === DOCUMENT IMPRIMABLE === */}
-      <article className="space-y-6 text-[11pt] leading-relaxed text-black">
+      <article ref={articleRef} className="space-y-6 text-[11pt] leading-relaxed text-black">
         {/* En-tête */}
         <header className="flex justify-between items-start gap-6 pb-4 border-b-2 border-primary">
           <div className="flex-1">

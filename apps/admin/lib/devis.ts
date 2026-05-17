@@ -81,6 +81,11 @@ export interface Devis {
   prix_ht_override?: number;
   /** Remise manuelle supplémentaire en % appliquée au total. */
   remise_manuelle_pct?: number;
+
+  /** Chemin du PDF archivé dans Supabase Storage (bucket pdf-archives). */
+  pdf_archive_path?: string;
+  /** Date d'archivage du PDF (timestamp Unix ms). */
+  pdf_archive_date?: number;
 }
 
 type DevisRow = Database['public']['Tables']['devis']['Row'];
@@ -307,6 +312,8 @@ function rowToDevis(row: DevisRow): Devis {
     prix_ht_override: data.prix_ht_override as number | undefined,
     remise_manuelle_pct: data.remise_manuelle_pct as number | undefined,
     lignes: data.lignes as DevisLigne[] | undefined,
+    pdf_archive_path: data.pdf_archive_path as string | undefined,
+    pdf_archive_date: data.pdf_archive_date as number | undefined,
   };
 }
 

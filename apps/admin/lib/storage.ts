@@ -16,7 +16,7 @@
 
 import { getSupabase } from './supabase';
 
-export type BucketName = 'entreprise-logos' | 'client-documents';
+export type BucketName = 'entreprise-logos' | 'client-documents' | 'pdf-archives';
 
 export interface UploadResult {
   /** Chemin dans le bucket (sert à supprimer / signer plus tard). */
@@ -72,6 +72,7 @@ export async function uploadFile(
   if (bucket === 'entreprise-logos') {
     url = getPublicUrl(bucket, path);
   } else {
+    // Buckets privés : signed URL temporaire (1h)
     url = await getSignedUrl(bucket, path, 3600);
   }
 

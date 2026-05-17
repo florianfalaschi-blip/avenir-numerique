@@ -14,6 +14,8 @@
     "@avenir/db": "workspace:*",
     "@avenir/ui": "workspace:*",
     "@supabase/supabase-js": "^2.45.0",
+    "html2canvas": "1.4.1",
+    "jspdf": "2.5.1",
     "next": "^15.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

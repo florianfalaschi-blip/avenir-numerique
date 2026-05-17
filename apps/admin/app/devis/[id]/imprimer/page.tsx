@@ -1,9 +1,10 @@
 'use client';
 
-import { use } from 'react';
+import { use, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@avenir/ui';
+import { archivePdfFromElement } from '@/lib/pdf-archive';
 import {
   clientLabel,
   delaiPaiementLabel,
@@ -31,9 +32,12 @@ export default function DevisImprimerPage({
   const searchParams = useSearchParams();
   const isProforma = searchParams.get('proforma') === '1';
   const docTitle = isProforma ? 'FACTURE PROFORMA' : 'DEVIS';
-  const { getDevis, hydrated: devisHydrated } = useDevis();
+  const { getDevis, updateDevis, hydrated: devisHydrated } = useDevis();
   const { getClient, hydrated: clientsHydrated } = useClients();
   const { value: entreprise, hydrated: entrepriseHydrated } = useEntreprise();
+  const articleRef = useRef<HTMLElement | null>(null);
+  const [archiving, setArchiving] = useState(false);
+  const [justArchived, setJustArchived] = useState(false);
 
   const hydrated = devisHydrated && clientsHydrated && entrepriseHydrated;
   const devis = getDevis(id);
@@ -108,6 +112,40 @@ export default function DevisImprimerPage({
               Proforma
             </Link>
           </div>
+          {/* Archiver dans Supabase Storage */}
+          <Button
+            variant="outline"
+            onClick={async () => {
+              if (!articleRef.current) return;
+              if (archiving) return;
+              setArchiving(true);
+              try {
+                const result = await archivePdfFromElement(
+                  articleRef.current,
+                  isProforma ? 'proforma' : 'devis',
+                  devis.id
+                );
+                updateDevis(devis.id, {
+                  pdf_archive_path: result.path,
+                  pdf_archive_date: Date.now(),
+                });
+                setJustArchived(true);
+                setTimeout(() => setJustArchived(false), 3500);
+              } catch (err) {
+                alert(err instanceof Error ? err.message : 'Erreur archivage PDF');
+              } finally {
+                setArchiving(false);
+              }
+            }}
+            disabled={archiving}
+            title="Capture le document actuel et l'archive dans Supabase Storage"
+          >
+            {archiving
+              ? '⏳ Archivage…'
+              : justArchived
+                ? '✓ Archivé'
+                : '📸 Archiver PDF'}
+          </Button>
           <Button
             variant="accent"
             onClick={() => {
@@ -120,7 +158,7 @@ export default function DevisImprimerPage({
       </div>
 
       {/* === DOCUMENT IMPRIMABLE === */}
-      <article className="space-y-6 text-[11pt] leading-relaxed text-black">
+      <article ref={articleRef} className="space-y-6 text-[11pt] leading-relaxed text-black">
         {/* En-tête */}
         <header className="flex justify-between items-start gap-6 pb-4 border-b-2 border-primary">
           <div className="flex-1">

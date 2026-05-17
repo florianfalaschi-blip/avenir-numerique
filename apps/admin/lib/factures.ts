@@ -101,6 +101,11 @@ export interface Facture {
    * partir des champs montant_* / snapshot_recap via {@link getFactureLignes}.
    */
   lignes?: DevisLigne[];
+
+  /** Chemin du PDF archivé dans Supabase Storage (bucket pdf-archives). */
+  pdf_archive_path?: string;
+  /** Date d'archivage du PDF (timestamp Unix ms). */
+  pdf_archive_date?: number;
 }
 
 type FactureRow = Database['public']['Tables']['factures']['Row'];
@@ -351,6 +356,8 @@ function rowToFacture(row: FactureRow): Facture {
     notes: data.notes as string | undefined,
     snapshot_recap: data.snapshot_recap as string | undefined,
     lignes: data.lignes as DevisLigne[] | undefined,
+    pdf_archive_path: data.pdf_archive_path as string | undefined,
+    pdf_archive_date: data.pdf_archive_date as number | undefined,
   };
 }
 

@@ -314,9 +314,14 @@ export default function FactureDetailPage({
             </p>
           )}
         </div>
-        <Link href={`/factures/${facture.id}/imprimer`}>
-          <Button variant="accent">🖨️ Imprimer / PDF</Button>
-        </Link>
+        <div className="flex gap-2 flex-wrap">
+          {facture.pdf_archive_path && (
+            <ArchivedPdfButton path={facture.pdf_archive_path} date={facture.pdf_archive_date} />
+          )}
+          <Link href={`/factures/${facture.id}/imprimer`}>
+            <Button variant="accent">🖨️ Imprimer / PDF</Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -773,5 +778,42 @@ function RelanceRow({
         </Button>
       </div>
     </li>
+  );
+}
+
+/**
+ * Bouton pour ouvrir un PDF archivé dans Supabase Storage (bucket pdf-archives).
+ * Régénère une signed URL (10 min) au clic.
+ */
+function ArchivedPdfButton({
+  path,
+  date,
+}: {
+  path: string;
+  date?: number;
+}) {
+  const [loading, setLoading] = useState(false);
+  const dateStr = date ? new Date(date).toLocaleDateString('fr-FR') : null;
+  return (
+    <Button
+      variant="outline"
+      onClick={async () => {
+        if (loading) return;
+        setLoading(true);
+        try {
+          const { getSignedUrl } = await import('@/lib/storage');
+          const url = await getSignedUrl('pdf-archives', path, 600);
+          window.open(url, '_blank', 'noopener');
+        } catch (e) {
+          alert(e instanceof Error ? e.message : 'Erreur ouverture archive');
+        } finally {
+          setLoading(false);
+        }
+      }}
+      disabled={loading}
+      title={dateStr ? `Snapshot archivé le ${dateStr}` : 'PDF archivé'}
+    >
+      {loading ? '⏳' : '📁'} PDF archivé{dateStr ? ` · ${dateStr}` : ''}
+    </Button>
   );
 }
