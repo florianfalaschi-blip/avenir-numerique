@@ -216,9 +216,15 @@ function DocumentRow({
           </Field>
         )}
         {isUploaded && doc.filename && (
-          <Field label="Fichier" className="md:col-span-2">
-            <Input value={doc.filename} readOnly className="cursor-default" />
-          </Field>
+          <div className="md:col-span-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span aria-hidden>📎</span>
+            <span className="font-medium text-foreground truncate" title={doc.filename}>
+              {doc.filename}
+            </span>
+            {doc.size !== undefined && (
+              <span className="shrink-0">· {formatFileSize(doc.size)}</span>
+            )}
+          </div>
         )}
         <Field
           label="Notes"
