@@ -194,13 +194,13 @@ export const defaultPlaquesParams: PlaquesParams = {
     id: 'mutoh',
     nom: 'Mutoh UV LED',
     vitesse_m2_h: 5,
-    taux_horaire_ht: 60,
+    taux_horaire_ht: 11,
   },
   machine_decoupe: {
     id: 'zund',
     nom: 'Zund (découpe forme/plaque)',
     prix_metre_lineaire_ht: 1.5,
-    forfait_minimum_ht: 15,
+    forfait_minimum_ht: 10,
   },
   finitions: [
     { id: 'oeillets_4coins', nom: 'Œillets 4 coins (forfait)', type: 'forfait', prix_ht: 8 },
