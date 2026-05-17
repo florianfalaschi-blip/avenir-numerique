@@ -134,6 +134,14 @@ export interface BrochuresPapierConfig {
   grammage: number;
   formats_achat: BrochuresPapierFormat[];
   compatible_techno: BrochuresTechno[];
+  /**
+   * Main (bouffant) du papier en µm par g/m². Sert au calcul d'épaisseur.
+   * - 1.0 = papier dense / couché brillant
+   * - 1.3 = papier offset standard (défaut si absent)
+   * - 1.5 = papier bouffant / éco
+   * - 1.7 = bouffant épais (livre)
+   */
+  main?: number;
   /** Timestamp Unix ms de dernière modification (optionnel, info). */
   lastModifiedAt?: number;
 }
@@ -232,6 +240,19 @@ export interface BrochuresResult {
   faconnage_sous_traite: boolean;
   /** Coût pliage (si nb_pages > seuil_pages_pliage) */
   cout_pliage_ht: number;
+  /**
+   * Épaisseur estimée de la brochure finie (en mm).
+   * Calcul : (nb_feuilles × grammage × main) / 1000 + supplément reliure.
+   * Main par défaut = 1.3 µm/g (papier offset standard).
+   */
+  epaisseur_mm: number;
+  /** Détail du calcul d'épaisseur (transparence pour le devis). */
+  epaisseur_detail: {
+    epaisseur_papier_interieur_mm: number;
+    epaisseur_papier_couverture_mm: number;
+    supplement_reliure_mm: number;
+    main_utilisee: number;
+  };
   cout_finitions_ht: number;
   frais_fixes_ht: number;
   cout_bat_ht: number;

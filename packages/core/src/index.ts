@@ -82,7 +82,13 @@ export type {
 } from './types/bobines';
 
 // Brochures
-export { calcBrochures, BrochuresCalcError } from './calculators/brochures';
+export {
+  calcBrochures,
+  BrochuresCalcError,
+  computeBrochureThickness,
+  DEFAULT_PAPIER_MAIN,
+  SUPPLEMENT_RELIURE_MM,
+} from './calculators/brochures';
 export type {
   BrochuresInput,
   BrochuresParams,

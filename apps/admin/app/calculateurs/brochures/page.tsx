@@ -406,7 +406,34 @@ function ResultBlock({ result }: { result: BrochuresResult }) {
           label="Feuilles intérieur / brochure"
           value={fmtInt(result.nb_feuilles_interieur_par_brochure)}
         />
+        <Row
+          label="Épaisseur estimée"
+          value={`${result.epaisseur_mm.toFixed(2)} mm`}
+          bold
+        />
       </ResultSection>
+
+      <details className="text-xs text-muted-foreground -mt-2">
+        <summary className="cursor-pointer hover:text-foreground">
+          Détail du calcul d&apos;épaisseur
+        </summary>
+        <div className="mt-1.5 pl-3 space-y-0.5 border-l">
+          <div>
+            Papier intérieur : {result.epaisseur_detail.epaisseur_papier_interieur_mm.toFixed(2)} mm
+          </div>
+          <div>
+            Papier couverture :{' '}
+            {result.epaisseur_detail.epaisseur_papier_couverture_mm.toFixed(2)} mm
+          </div>
+          <div>
+            Supplément reliure :{' '}
+            {result.epaisseur_detail.supplement_reliure_mm.toFixed(2)} mm
+          </div>
+          <div className="text-[10px] opacity-80 pt-1 italic">
+            Main papier utilisée : {result.epaisseur_detail.main_utilisee} µm/g · précision ±10%
+          </div>
+        </div>
+      </details>
 
       <hr />
 

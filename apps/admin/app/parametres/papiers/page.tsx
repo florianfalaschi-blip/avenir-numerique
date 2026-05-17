@@ -152,21 +152,47 @@ export default function ParametresPapiersPage() {
                 </Button>
               </div>
 
-              {/* Fournisseur (sub-line) */}
-              <div className="flex items-center gap-2">
-                <label className="shrink-0 w-24">Fournisseur</label>
-                <Input
-                  className="max-w-md"
-                  value={p.fournisseur ?? ''}
-                  placeholder="ex. Antalis, Inapa, Igepa…"
-                  onChange={(e) =>
-                    patch((d) =>
-                      updatePapier(d, pi, {
-                        fournisseur: e.target.value === '' ? undefined : e.target.value,
-                      })
-                    )
-                  }
-                />
+              {/* Fournisseur + Main (sub-line) */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-1 min-w-60">
+                  <label className="shrink-0 w-24">Fournisseur</label>
+                  <Input
+                    className="flex-1 max-w-md"
+                    value={p.fournisseur ?? ''}
+                    placeholder="ex. Antalis, Inapa, Igepa…"
+                    onChange={(e) =>
+                      patch((d) =>
+                        updatePapier(d, pi, {
+                          fournisseur: e.target.value === '' ? undefined : e.target.value,
+                        })
+                      )
+                    }
+                  />
+                </div>
+                <div
+                  className="flex items-center gap-2"
+                  title="Main = épaisseur réelle du papier en µm par g/m². 1.0 (couché brillant) → 1.7 (bouffant épais). Sert au calcul d'épaisseur des brochures."
+                >
+                  <label className="shrink-0">Main</label>
+                  <Input
+                    className="w-16"
+                    type="number"
+                    min={0.5}
+                    max={3}
+                    step={0.05}
+                    value={p.main ?? ''}
+                    placeholder="1.3"
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      patch((d) =>
+                        updatePapier(d, pi, {
+                          main: v === '' ? undefined : Number(v) || undefined,
+                        })
+                      );
+                    }}
+                  />
+                  <span className="text-[10px] text-muted-foreground">µm/g</span>
+                </div>
               </div>
 
               {/* Formats d'achat */}
