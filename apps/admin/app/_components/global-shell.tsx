@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button, cn } from '@avenir/ui';
 import { useAuth } from '@/lib/auth';
+import { CommandPalette } from './command-palette';
 
 interface NavItem {
   href: string;
@@ -112,6 +113,7 @@ export function GlobalShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1 min-w-0 px-6 py-6 lg:px-8 lg:py-8 max-w-[1400px] mx-auto w-full">
         {children}
       </main>
+      <CommandPalette />
     </div>
   );
 }
@@ -132,6 +134,27 @@ function Sidebar({ pathname }: { pathname: string }) {
             Back-office
           </p>
         </Link>
+      </div>
+
+      {/* Search button (déclenche la palette via raccourci) */}
+      <div className="px-3 pt-3">
+        <button
+          type="button"
+          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-border bg-secondary/40 hover:bg-secondary text-xs text-muted-foreground transition-colors"
+          onClick={() => {
+            // Simule Ctrl+K via dispatch event
+            window.dispatchEvent(
+              new KeyboardEvent('keydown', { key: 'k', ctrlKey: true })
+            );
+          }}
+          title="Rechercher (Ctrl+K)"
+        >
+          <span aria-hidden>🔍</span>
+          <span className="flex-1 text-left">Rechercher…</span>
+          <kbd className="inline-flex items-center rounded border border-border bg-background px-1 py-0.5 text-[9px] font-medium">
+            Ctrl K
+          </kbd>
+        </button>
       </div>
 
       {/* Nav */}
