@@ -145,18 +145,14 @@ export default function ParametresEntreprisePage() {
               <div className="flex-1 min-w-0 space-y-1.5">
                 <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
                   <span aria-hidden>{draft.logo_path ? '📎' : '🔗'}</span>
-                  <span className="truncate" title={draft.logo_url}>
-                    {draft.logo_path
-                      ? draft.logo_path.split('/').pop() // nom de fichier court
-                      : 'Lien externe'}
-                  </span>
+                  <span>{draft.logo_path ? 'Logo personnalisé' : 'Lien externe'}</span>
                   <a
                     href={draft.logo_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[10px] text-primary hover:underline shrink-0"
                   >
-                    ouvrir ↗
+                    aperçu ↗
                   </a>
                 </p>
                 <div className="flex flex-wrap gap-1.5">

@@ -148,46 +148,57 @@ function DocumentRow({
     }
   };
 
+  // Label du bouton : intitulé saisi par l'utilisateur. Fallback sur filename
+  // (sans extension) ou "Télécharger" si tout est vide.
+  const downloadLabel =
+    doc.nom?.trim() ||
+    doc.filename?.replace(/\.[^/.]+$/, '') ||
+    'Télécharger';
+
   return (
     <div className="rounded-md border bg-secondary/20 p-2 space-y-2">
-      <div className="flex items-start justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-2 flex-wrap">
-          {isUploaded && (
-            <span className="inline-flex items-center rounded-full bg-primary/15 text-primary border border-primary/30 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide">
-              📎 Fichier
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        {/* Bouton principal — son label EST l'intitulé du document */}
+        {isUploaded || doc.url ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 px-3 text-xs font-medium max-w-[60%] flex-1 min-w-0 justify-start"
+            onClick={handleDownload}
+            disabled={downloading}
+            title={`Télécharger ${downloadLabel}`}
+          >
+            <span aria-hidden className="mr-1.5">
+              {downloading ? '⏳' : '📎'}
             </span>
-          )}
-          <p className="text-[11px] text-muted-foreground">
-            Ajouté : {fmtModifiedAt(doc.ajoute_le)}
-            {doc.size !== undefined && ` · ${formatFileSize(doc.size)}`}
-          </p>
-        </div>
-        <div className="flex gap-1.5">
-          {(isUploaded || doc.url) && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-[11px]"
-              onClick={handleDownload}
-              disabled={downloading}
-            >
-              {downloading ? '⏳' : '⬇ Télécharger'}
-            </Button>
-          )}
+            <span className="truncate">{downloadLabel}</span>
+            <span aria-hidden className="ml-auto pl-2 text-muted-foreground">↓</span>
+          </Button>
+        ) : (
+          <span className="text-xs text-muted-foreground italic">
+            (référence sans fichier)
+          </span>
+        )}
+        <div className="flex items-center gap-1.5 shrink-0 text-[10px] text-muted-foreground">
+          {doc.size !== undefined && <span>{formatFileSize(doc.size)}</span>}
+          <span title={`Ajouté ${fmtModifiedAt(doc.ajoute_le)}`}>·</span>
+          <span>{fmtModifiedAt(doc.ajoute_le)}</span>
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="h-6 px-2 text-[11px] text-muted-foreground hover:text-destructive"
+            className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
             onClick={() => onRemove(index)}
+            title="Supprimer"
+            aria-label="Supprimer"
           >
-            ✕ Supprimer
+            ✕
           </Button>
         </div>
       </div>
       <div className="grid gap-2.5 md:grid-cols-2 [&_input]:h-7 [&_input]:text-xs [&_input]:px-2 [&_label]:text-[10px] [&_label]:font-medium [&_label]:uppercase [&_label]:tracking-wide [&_label]:text-muted-foreground/80">
-        <Field label="Nom du document">
+        <Field label="Nom du document" hint="Sert de libellé au bouton de téléchargement">
           <Input
             value={doc.nom}
             placeholder="ex. RIB Crédit Mutuel, KBIS 2026…"
@@ -214,17 +225,6 @@ function DocumentRow({
               onChange={(e) => onUpdate(index, { url: e.target.value || undefined })}
             />
           </Field>
-        )}
-        {isUploaded && doc.filename && (
-          <div className="md:col-span-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <span aria-hidden>📎</span>
-            <span className="font-medium text-foreground truncate" title={doc.filename}>
-              {doc.filename}
-            </span>
-            {doc.size !== undefined && (
-              <span className="shrink-0">· {formatFileSize(doc.size)}</span>
-            )}
-          </div>
         )}
         <Field
           label="Notes"
