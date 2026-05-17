@@ -43,6 +43,7 @@ const navGroups: NavGroup[] = [
       { href: '/calculateurs/flyers', label: 'Flyers' },
       { href: '/calculateurs/bobines', label: 'Bobines' },
       { href: '/calculateurs/brochures', label: 'Brochures' },
+      { href: '/calculateurs/soustraitance', label: 'Sous-traitance' },
     ],
   },
   {

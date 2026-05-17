@@ -179,6 +179,15 @@ export function defaultEtapesFor(calculateur: CalcSlug): Omit<EtapeProduction, '
       'Conditionnement',
       'Expédition',
     ],
+    soustraitance: [
+      'Validation devis fournisseur',
+      'Envoi BAT / fichier au sous-traitant',
+      'Confirmation production sous-traitant',
+      'Réception marchandise',
+      'Contrôle qualité',
+      'Conditionnement',
+      'Expédition / retrait client',
+    ],
   };
   return (base[calculateur] ?? []).map((nom, i) => ({
     nom,
@@ -238,6 +247,7 @@ function CALC_LABEL_DESIGNATION(calc: CalcSlug): string {
     flyers: 'Flyers / Affiches',
     bobines: 'Bobines / Étiquettes',
     brochures: 'Brochures',
+    soustraitance: 'Sous-traitance',
   };
   return m[calc] ?? 'Produit';
 }

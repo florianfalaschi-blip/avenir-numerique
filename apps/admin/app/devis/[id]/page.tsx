@@ -43,6 +43,7 @@ const CALC_ICONS: Record<CalcSlug, string> = {
   flyers: '📰',
   bobines: '🏷️',
   brochures: '📖',
+  soustraitance: '🤝',
 };
 
 export default function DevisDetailPage({

@@ -292,6 +292,7 @@ function CALC_LABEL_DESIGNATION(calc: CalcSlug): string {
     flyers: 'Flyers / Affiches',
     bobines: 'Bobines / Étiquettes',
     brochures: 'Brochures',
+    soustraitance: 'Sous-traitance',
   };
   return m[calc] ?? 'Produit';
 }

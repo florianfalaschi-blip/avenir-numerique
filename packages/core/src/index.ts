@@ -111,3 +111,15 @@ export type {
   BrochuresPoste,
   BrochuresReliureType,
 } from './types/brochures';
+
+// Sous-traitance
+export { calcSoustraitance, SoustraitanceCalcError } from './calculators/soustraitance';
+export type {
+  SoustraitanceInput,
+  SoustraitanceParams,
+  SoustraitanceResult,
+  SoustraitanceLigne,
+  SoustraitanceLigneDetail,
+  SoustraitanceFournisseurConfig,
+  SoustraitanceDegressifSeuil,
+} from './types/soustraitance';
