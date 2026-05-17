@@ -81,6 +81,15 @@ export interface FlyersPapierConfig {
   formats_achat: FlyersPapierFormat[];
   /** Quelles technos ce papier supporte */
   compatible_techno: Techno[];
+  /**
+   * Main (bouffant) du papier en µm par g/m². Utilisé par le calc Brochures
+   * pour estimer l'épaisseur de la brochure finie.
+   * - 1.0 = papier dense / couché brillant
+   * - 1.3 = papier offset standard (défaut si absent)
+   * - 1.5 = papier bouffant / éco
+   * - 1.7 = bouffant épais (livre)
+   */
+  main?: number;
   /** Timestamp Unix ms de dernière modification (optionnel, info). */
   lastModifiedAt?: number;
 }

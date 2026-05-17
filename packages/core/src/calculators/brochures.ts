@@ -23,6 +23,7 @@ import type {
   BrochuresFinitionConfig,
   BrochuresReliureConfig,
   BrochuresMachineFaconnageConfig,
+  BrochuresReliureType,
   BrochuresTechno,
   BrochuresTechnoMode,
   BrochuresCouleur,
@@ -237,6 +238,14 @@ export function calcBrochures(input: BrochuresInput, params: BrochuresParams): B
       part_offset * params.marge_pct_offset + (1 - part_offset) * params.marge_pct_numerique;
   }
 
+  // === 12bis. Calcul de l'épaisseur estimée ===
+  const thickness = computeBrochureThickness(
+    input.nb_pages,
+    papier_interieur,
+    papier_couverture,
+    reliure.type
+  );
+
   // === 13. Prix HT brut, dégressif, plancher, TTC ===
   const prix_ht_brut = cout_revient_ht * (1 + marge_pct / 100);
 
@@ -256,6 +265,7 @@ export function calcBrochures(input: BrochuresInput, params: BrochuresParams): B
   const lignes = [
     `Brochure ${largeur_mm}×${hauteur_mm} mm — ${input.nb_pages} pages — ${reliure.nom}`,
     `Quantité : ${input.quantite}`,
+    `Épaisseur du dos : ${thickness.epaisseur_mm.toFixed(2)} mm (±10%)`,
   ];
   if (impression_interieur) {
     lignes.push(
@@ -297,6 +307,8 @@ export function calcBrochures(input: BrochuresInput, params: BrochuresParams): B
     cout_faconnage_ht: round(cout_faconnage_ht, 2),
     faconnage_sous_traite,
     cout_pliage_ht: round(cout_pliage_ht, 2),
+    epaisseur_mm: thickness.epaisseur_mm,
+    epaisseur_detail: thickness.epaisseur_detail,
     cout_finitions_ht: round(cout_finitions_ht, 2),
     frais_fixes_ht: round(params.frais_fixes_ht, 2),
     cout_bat_ht: round(cout_bat_ht, 2),
@@ -616,4 +628,82 @@ function calcCoutFinitions(
 function round(value: number, decimals: number): number {
   const factor = Math.pow(10, decimals);
   return Math.round(value * factor) / factor;
+}
+
+/**
+ * Main par défaut (épaisseur en µm par g/m²) si non spécifiée sur le papier.
+ * Valeur calibrée pour papier offset standard. Voir `BrochuresPapierConfig.main`.
+ */
+export const DEFAULT_PAPIER_MAIN = 1.3;
+
+/**
+ * Supplément d'épaisseur (en mm) apporté par la reliure.
+ * - agrafe : 0 (agrafes 2 boucles ~0.5mm écrasées, négligeable)
+ * - dos_carre_colle : 0.5 mm (couche de colle PUR)
+ * - dos_carre_cousu : 0.5 mm (colle + fils)
+ * - spirale : 1.0 mm (boucles plastique métal Ø ~6mm écrasées)
+ * - wire_o : 1.0 mm (boucles métal double Ø ~6mm écrasées)
+ */
+export const SUPPLEMENT_RELIURE_MM: Record<BrochuresReliureType, number> = {
+  agrafe: 0,
+  dos_carre_colle: 0.5,
+  dos_carre_cousu: 0.5,
+  spirale: 1.0,
+  wire_o: 1.0,
+};
+
+/**
+ * Calcule l'épaisseur estimée d'une brochure finie.
+ *
+ * Formule :
+ *   épaisseur_papier = (nb_feuilles_int × grammage_int × main_int +
+ *                       1 × grammage_couv × main_couv) / 1000   [mm]
+ *   épaisseur_totale = épaisseur_papier + supplément_reliure
+ *
+ * Où :
+ *   - nb_feuilles_int = (nb_pages - 4) / 2 (4 pages couverture, 2 pages par feuille)
+ *   - main = épaisseur réelle du papier en µm par g/m² (défaut 1.3)
+ *
+ * Précision : ±10% (la main réelle dépend de l'humidité, du calage, du satinage).
+ */
+export function computeBrochureThickness(
+  nb_pages: number,
+  papier_interieur: BrochuresPapierConfig,
+  papier_couverture: BrochuresPapierConfig,
+  reliure_type: BrochuresReliureType
+): {
+  epaisseur_mm: number;
+  epaisseur_detail: {
+    epaisseur_papier_interieur_mm: number;
+    epaisseur_papier_couverture_mm: number;
+    supplement_reliure_mm: number;
+    main_utilisee: number;
+  };
+} {
+  const main_int = papier_interieur.main ?? DEFAULT_PAPIER_MAIN;
+  const main_couv = papier_couverture.main ?? DEFAULT_PAPIER_MAIN;
+  const nb_feuilles_int = Math.max(0, (nb_pages - 4) / 2);
+
+  const epaisseur_papier_interieur_mm =
+    (nb_feuilles_int * papier_interieur.grammage * main_int) / 1000;
+  const epaisseur_papier_couverture_mm =
+    (1 * papier_couverture.grammage * main_couv) / 1000;
+  const supplement_reliure_mm = SUPPLEMENT_RELIURE_MM[reliure_type] ?? 0;
+
+  const epaisseur_mm =
+    epaisseur_papier_interieur_mm +
+    epaisseur_papier_couverture_mm +
+    supplement_reliure_mm;
+
+  return {
+    epaisseur_mm: round(epaisseur_mm, 2),
+    epaisseur_detail: {
+      epaisseur_papier_interieur_mm: round(epaisseur_papier_interieur_mm, 2),
+      epaisseur_papier_couverture_mm: round(epaisseur_papier_couverture_mm, 2),
+      supplement_reliure_mm,
+      // Si int et couv ont des mains différentes, expose la moyenne pour info
+      main_utilisee:
+        main_int === main_couv ? main_int : round((main_int + main_couv) / 2, 2),
+    },
+  };
 }

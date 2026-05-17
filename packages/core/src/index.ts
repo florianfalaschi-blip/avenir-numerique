@@ -82,7 +82,13 @@ export type {
 } from './types/bobines';
 
 // Brochures
-export { calcBrochures, BrochuresCalcError } from './calculators/brochures';
+export {
+  calcBrochures,
+  BrochuresCalcError,
+  computeBrochureThickness,
+  DEFAULT_PAPIER_MAIN,
+  SUPPLEMENT_RELIURE_MM,
+} from './calculators/brochures';
 export type {
   BrochuresInput,
   BrochuresParams,
@@ -105,3 +111,15 @@ export type {
   BrochuresPoste,
   BrochuresReliureType,
 } from './types/brochures';
+
+// Sous-traitance
+export { calcSoustraitance, SoustraitanceCalcError } from './calculators/soustraitance';
+export type {
+  SoustraitanceInput,
+  SoustraitanceParams,
+  SoustraitanceResult,
+  SoustraitanceLigne,
+  SoustraitanceLigneDetail,
+  SoustraitanceFournisseurConfig,
+  SoustraitanceDegressifSeuil,
+} from './types/soustraitance';

@@ -12,6 +12,7 @@ const CALC_DESCRIPTIONS: Record<CalcSlug, string> = {
   flyers: 'Machines (HP Indigo, Speedmaster), marges offset/numérique, finitions.',
   bobines: 'Machines, finitions, espace inter-étiquettes, rembobinage, marge.',
   brochures: 'Machines impression + façonnage, reliures, marges prorata, plieuse.',
+  soustraitance: 'Catalogue fournisseurs, marge par défaut, dégressif sur achats.',
 };
 
 interface SharedCatalogue {

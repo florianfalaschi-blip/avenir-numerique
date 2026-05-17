@@ -29,6 +29,7 @@ const CALC_DESCRIPTIONS: Record<CalcSlug, string> = {
   flyers: 'Flyers, affiches, cartes',
   bobines: 'Étiquettes adhésives',
   brochures: 'Catalogues, brochures reliées',
+  soustraitance: 'Devis fournisseurs partenaires',
 };
 
 export default function NouveauDevisPage() {

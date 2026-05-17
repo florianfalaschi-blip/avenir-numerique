@@ -43,6 +43,12 @@ import {
   topClients,
   caSur12Mois,
   breakdownParCalculateur,
+  agingImpayes,
+  dsoMoyen,
+  AGING_LABELS,
+  margeParCalculateur,
+  commandesEnRetardLivraison,
+  type AgingBucket,
 } from '@/lib/dashboard';
 import { BarChart } from './_components/charts/bar-chart';
 import { DonutChart } from './_components/charts/donut-chart';
@@ -111,6 +117,10 @@ export default function HomePage() {
       top: topClients(factures, devis, 5),
       ca12mois: caSur12Mois(factures, now),
       breakdown: breakdownParCalculateur(factures, devis),
+      aging: agingImpayes(factures),
+      dso: dsoMoyen(factures),
+      margesParCalc: margeParCalculateur(factures, devis),
+      cmdRetard: commandesEnRetardLivraison(commandes),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [factures, devis, commandes, year, month, prev.year, prev.month]);
@@ -412,6 +422,141 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* === Pilotage avancé : Aging + DSO + Marges + Cmd retard === */}
+      {hasData && (
+        <section className="space-y-3">
+          <p className="label-section">Pilotage avancé</p>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {/* AGING IMPAYÉS */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-baseline justify-between gap-2">
+                  <CardTitle className="text-base">Encours impayés par ancienneté</CardTitle>
+                  {stats.dso !== null && (
+                    <span
+                      className="text-[11px] font-medium text-muted-foreground"
+                      title="Days Sales Outstanding : nombre de jours moyens entre émission et paiement (12 derniers mois, pondéré par montant)"
+                    >
+                      DSO : <span className="text-foreground font-semibold">{stats.dso} j</span>
+                    </span>
+                  )}
+                </div>
+                <CardDescription className="text-xs">
+                  Aging des créances clients — répartition des montants restants dus.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <AgingChart aging={stats.aging} />
+              </CardContent>
+            </Card>
+
+            {/* MARGE PAR PRODUIT */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Marge moyenne par produit</CardTitle>
+                <CardDescription className="text-xs">
+                  Marge pondérée par CA (factures + devis acceptés). Indique quel
+                  produit rapporte le plus.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {stats.margesParCalc.length === 0 ? (
+                  <p className="px-6 py-8 text-center text-sm text-muted-foreground">
+                    Pas encore assez de données.
+                  </p>
+                ) : (
+                  <ul className="divide-y">
+                    {stats.margesParCalc.map((m) => (
+                      <li
+                        key={m.calculateur}
+                        className="grid grid-cols-12 items-center gap-3 px-6 py-2.5"
+                      >
+                        <span className="col-span-4 text-sm font-medium truncate">
+                          {CALC_LABELS[m.calculateur as keyof typeof CALC_LABELS] ?? m.calculateur}
+                        </span>
+                        <div className="col-span-5">
+                          <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                            <div
+                              className="h-full bg-primary transition-all"
+                              style={{
+                                width: `${Math.min(100, Math.max(0, m.marge_pct_moy))}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <span className="col-span-1 text-xs font-semibold tabular text-right">
+                          {m.marge_pct_moy.toFixed(1)}%
+                        </span>
+                        <span className="col-span-2 text-[11px] tabular text-right text-muted-foreground">
+                          {fmtEur(m.ca_total_ht)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* COMMANDES EN RETARD DE LIVRAISON */}
+          {stats.cmdRetard.length > 0 && (
+            <Card className="border-destructive/40 bg-destructive/5">
+              <CardHeader>
+                <div className="flex items-baseline justify-between gap-2">
+                  <CardTitle className="text-base">
+                    Commandes en retard de livraison
+                    <Pill variant="destructive" size="sm" className="ml-2">
+                      {stats.cmdRetard.length}
+                    </Pill>
+                  </CardTitle>
+                  <Link
+                    href="/commandes"
+                    className="text-[11px] font-semibold text-primary hover:underline"
+                  >
+                    Voir tout →
+                  </Link>
+                </div>
+                <CardDescription className="text-xs">
+                  Date de livraison prévue dépassée, statut ni livré ni annulé.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ul className="divide-y">
+                  {stats.cmdRetard.slice(0, 5).map(({ commande, jours_retard }) => {
+                    const client = getClient(commande.client_id);
+                    return (
+                      <li key={commande.id}>
+                        <Link
+                          href={`/commandes/${commande.id}`}
+                          className="flex items-center gap-3 px-6 py-2.5 hover:bg-destructive/10 transition-colors"
+                        >
+                          <span className="text-[11px] font-mono text-muted-foreground w-24 shrink-0">
+                            {commande.numero}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {client ? clientLabel(client) : '— Client supprimé'}
+                            </p>
+                            <p className="text-[11px] text-destructive font-medium">
+                              {jours_retard} j de retard ·{' '}
+                              {CALC_LABELS[commande.calculateur as keyof typeof CALC_LABELS] ??
+                                commande.calculateur}
+                            </p>
+                          </div>
+                          <span className="text-sm font-semibold tabular shrink-0 w-24 text-right text-destructive">
+                            {fmtEur(commande.snapshot_prix_ht)}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+        </section>
+      )}
+
       {/* === Top clients === */}
       {stats.top.length > 0 && (
         <Card>
@@ -485,12 +630,90 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* === Footer info === */}
-      <div className="rounded-lg border border-dashed bg-card p-4 text-xs text-muted-foreground max-w-3xl">
-        <p>
-          <strong className="text-foreground">⚠ Stockage local</strong> — Données dans ce
-          navigateur uniquement. Phase 3b à venir : Supabase pour partage multi-postes.
-        </p>
+    </div>
+  );
+}
+
+// ============================================================
+// AgingChart — barres horizontales par tranche d'ancienneté
+// ============================================================
+
+function AgingChart({ aging }: { aging: AgingBucket[] }) {
+  const totalMontant = aging.reduce((acc, b) => acc + b.montant, 0);
+  const totalCount = aging.reduce((acc, b) => acc + b.count, 0);
+
+  if (totalMontant === 0) {
+    return (
+      <p className="text-sm text-muted-foreground py-4 text-center">
+        ✓ Aucun encours impayé.
+      </p>
+    );
+  }
+
+  // Couleurs par tranche
+  const colors: Record<string, string> = {
+    a_echoir: 'bg-primary',
+    '0_30': 'bg-warning',
+    '30_60': 'bg-accent',
+    '60_90': 'bg-destructive/70',
+    plus_90: 'bg-destructive',
+  };
+
+  return (
+    <div className="space-y-2.5">
+      {/* Barre cumulée */}
+      <div className="flex h-2.5 rounded-full overflow-hidden bg-secondary">
+        {aging.map((b) => {
+          const pct = (b.montant / totalMontant) * 100;
+          if (pct === 0) return null;
+          return (
+            <div
+              key={b.tranche}
+              className={`${colors[b.tranche]} transition-all`}
+              style={{ width: `${pct}%` }}
+              title={`${AGING_LABELS[b.tranche]} : ${fmtEur(b.montant)} (${b.count})`}
+            />
+          );
+        })}
+      </div>
+
+      {/* Légende détaillée */}
+      <ul className="space-y-1">
+        {aging.map((b) => {
+          const pct = (b.montant / totalMontant) * 100;
+          return (
+            <li
+              key={b.tranche}
+              className="flex items-center gap-2.5 text-xs"
+              style={{ opacity: b.count === 0 ? 0.4 : 1 }}
+            >
+              <span
+                className={`h-2.5 w-2.5 shrink-0 rounded-full ${colors[b.tranche]}`}
+                aria-hidden
+              />
+              <span className="flex-1 font-medium">{AGING_LABELS[b.tranche]}</span>
+              <span className="text-muted-foreground tabular tabular-nums">
+                {b.count} fact.
+              </span>
+              <span className="w-24 text-right font-semibold tabular">
+                {fmtEur(b.montant)}
+              </span>
+              <span className="w-12 text-right text-[10px] text-muted-foreground tabular">
+                {pct.toFixed(0)}%
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Total */}
+      <div className="flex items-center gap-2.5 text-xs pt-1.5 border-t border-border/60">
+        <span className="flex-1 font-semibold text-foreground">Total encours</span>
+        <span className="text-muted-foreground">{totalCount} fact.</span>
+        <span className="w-24 text-right font-bold tabular text-primary">
+          {fmtEur(totalMontant)}
+        </span>
+        <span className="w-12" />
       </div>
     </div>
   );
